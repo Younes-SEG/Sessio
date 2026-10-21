@@ -1,0 +1,2 @@
+ALTER TABLE "Course" ADD COLUMN "gradingRules" JSONB NOT NULL DEFAULT '[]',
+ADD COLUMN "gradingNotes" TEXT NOT NULL DEFAULT '';

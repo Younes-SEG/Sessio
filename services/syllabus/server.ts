@@ -9,8 +9,8 @@ import type { UsageLimits } from './limits';
 
 const courseSchema = z
   .object({
-    code: z.string().min(1).max(100),
-    name: z.string().min(1).max(300),
+    code: z.string().max(100),
+    name: z.string().max(300),
     startDate: z.iso.date(),
     endDate: z.iso.date(),
   })
@@ -18,7 +18,7 @@ const courseSchema = z
   .refine((c) => c.startDate <= c.endDate);
 const uploadSchema = z
   .object({
-    kind: z.enum(['pdf', 'text']),
+    kind: z.enum(['pdf', 'text', 'docx', 'jpeg', 'png']),
     document: z
       .string()
       .min(4)
@@ -72,7 +72,11 @@ export function createSyllabusServer(options: {
   usage: Pick<UsageLimits, 'reserve'>;
   ready: () => boolean;
   trustedProxyHops?: number;
-  read?: (input: SyllabusAiInput, signal?: AbortSignal) => Promise<SyllabusPreview>;
+  read?: (
+    input: SyllabusAiInput,
+    signal?: AbortSignal,
+    beforeRetry?: () => void,
+  ) => Promise<SyllabusPreview>;
 }) {
   let active = false;
   const server = createServer(
@@ -135,10 +139,13 @@ export function createSyllabusServer(options: {
         const result = await (options.read ?? readSyllabusWithAi)(
           { bytes, kind, course, ...inspected },
           controller.signal,
+          () => options.usage.reserve(network),
         );
         reply(res, 200, result);
       } catch (error) {
         // Do not log body, course, filename, provider response, IP address or credentials.
+        if (error instanceof ApiError && error.code === 'provider_unavailable')
+          res.setHeader('X-Command-Reader-Error', error.code);
         reply(res, error instanceof ApiError ? error.status : 503, {
           error:
             error instanceof ApiError

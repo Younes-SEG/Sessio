@@ -25,6 +25,24 @@ afterEach(() => {
 });
 
 describe('shared reader client', () => {
+  it('reports provider unavailability without exposing its error body', async () => {
+    vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'https://reader.example');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('secret provider details', {
+          status: 503,
+          headers: { 'X-Command-Reader-Error': 'provider_unavailable' },
+        }),
+      ),
+    );
+    await expect(readSyllabusThroughService(input())).rejects.toMatchObject({
+      status: 503,
+      message:
+        'The AI provider is temporarily unavailable or busy. Please try again later. Nothing was saved.',
+    });
+  });
+
   it('sends only document and course context without a local provider key', async () => {
     vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'https://reader.example');
     vi.stubEnv('OPENAI_API_KEY', 'local-key-must-not-leave');
@@ -58,7 +76,8 @@ describe('shared reader client', () => {
     await expect(readSyllabusThroughService(input())).rejects.toMatchObject({ status: 503 });
     expect(fetcher).not.toHaveBeenCalled();
   });
-  it('never accepts plain HTTP in a production build', async () => {
+  it('never accepts plain HTTP in a hosted deployment', async () => {
+    vi.stubEnv('VERCEL', '1');
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'http://127.0.0.1:8080');
     const fetcher = vi.fn();
@@ -66,7 +85,7 @@ describe('shared reader client', () => {
     expect(await isSyllabusServiceAvailable()).toBe(false);
     expect(fetcher).not.toHaveBeenCalled();
   });
-  it.each([429, 503])(
+  it.each([429, 502, 503, 504])(
     'shows a safe service error for %s without echoing upstream content',
     async (status) => {
       vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'https://reader.example');
@@ -102,4 +121,13 @@ describe('shared reader client', () => {
     await expect(readSyllabusThroughService(input())).rejects.toMatchObject({ status: 502 });
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
+});
+
+it('allows the loopback reader for local production builds', async () => {
+  vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('VERCEL', '');
+  vi.stubEnv('COMMAND_HOSTED', 'false');
+  vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'http://127.0.0.1:8080');
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ available: true })));
+  expect(await isSyllabusServiceAvailable()).toBe(true);
 });

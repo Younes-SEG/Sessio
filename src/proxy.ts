@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
   }
   if (
     !request.nextUrl.pathname.startsWith('/legal/') &&
-    !isLocalWorkspaceRequest(request.headers)
+    !isLocalWorkspaceRequest(request.headers, { method: request.method, pathname: path })
   ) {
     return new NextResponse(
       'Command’s workspace is local-only. Run it on your own computer. Public hosting requires authentication and isolated user data.',

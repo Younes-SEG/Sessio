@@ -2,6 +2,7 @@ import { db } from './db';
 import { getWorkspace } from './workspace';
 import { listSubscriptions } from './calendar-subscriptions';
 import { requireWorkspaceId } from './auth';
+import { exportEmailData } from './email-updates';
 
 export async function exportWorkspace() {
   return {
@@ -10,6 +11,7 @@ export async function exportWorkspace() {
     workspace: await getWorkspace(),
     // Explicit projection excludes feed URLs and provider source identifiers.
     calendarConnections: await listSubscriptions(),
+    emailUpdates: await exportEmailData(),
   };
 }
 
@@ -19,6 +21,8 @@ export async function eraseWorkspace() {
     async (tx) => {
       // Removing subscriptions first prevents in-flight syncs from applying new entries.
       await tx.calendarSubscription.deleteMany({ where: { workspaceId } });
+      await tx.gmailOAuthState.deleteMany({ where: { workspaceId } });
+      await tx.gmailConnection.deleteMany({ where: { workspaceId } });
       await tx.task.deleteMany({ where: { workspaceId } });
       await tx.calendarEvent.deleteMany({ where: { workspaceId } });
       await tx.course.deleteMany({ where: { semester: { workspaceId } } });

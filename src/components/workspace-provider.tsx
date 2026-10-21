@@ -1,4 +1,5 @@
 'use client';
+import { useT } from '@/components/language-provider';
 import {
   createContext,
   useCallback,
@@ -9,6 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 import type { EditorKind, EditorState, EntityKind, Workspace } from '@/lib/types';
+import { EmailAutoSync } from './email-updates';
+import { applyThemePreference, themePreference } from '@/lib/theme';
 interface WorkspaceContextValue {
   data: Workspace;
   now: Date;
@@ -29,6 +32,7 @@ export function WorkspaceProvider({
   initialNow: number;
   children: ReactNode;
 }) {
+  const t = useT();
   const [data, setData] = useState(initialData);
   const [now, setNow] = useState(() => new Date(initialNow));
   const [editor, setEditor] = useState<EditorState | null>(null);
@@ -40,12 +44,7 @@ export function WorkspaceProvider({
   }, []);
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const dark =
-        data.settings.theme === 'DARK' || (data.settings.theme === 'SYSTEM' && media.matches);
-      document.documentElement.classList.toggle('dark', dark);
-      document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-    };
+    const apply = () => applyThemePreference(data.settings.theme);
     apply();
     media.addEventListener('change', apply);
     return () => media.removeEventListener('change', apply);
@@ -91,6 +90,8 @@ export function WorkspaceProvider({
       if (response.status === 401) window.location.replace('/auth/sign-in');
       if (!response.ok)
         throw new Error(result.error || 'This change could not be saved. Please try again.');
+      if (kind === 'settings' && input?.theme !== undefined)
+        applyThemePreference(themePreference(input.theme));
       try {
         await refresh();
       } catch {
@@ -118,12 +119,13 @@ export function WorkspaceProvider({
   const closeEditor = useCallback(() => setEditor(null), []);
   return (
     <Context.Provider value={{ data, now, editor, save, remove, refresh, openEditor, closeEditor }}>
+      <EmailAutoSync />
       {children}
       <div role="status" aria-live="polite" className={notice ? 'toast visible' : 'toast'}>
         {notice && (
           <>
             <span className="toast-check">✓</span>
-            {notice}
+            {t(notice)}
           </>
         )}
       </div>

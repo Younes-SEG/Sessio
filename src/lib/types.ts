@@ -11,6 +11,10 @@ export interface Semester {
   isActive: boolean;
 }
 export interface Course {
+  syllabusImportedAt?: string | null;
+  syllabusImportDetected?: boolean;
+  gradingRules?: import('./grading-rules').GradingRule[];
+  gradingNotes?: string;
   id: string;
   code: string;
   name: string;
@@ -38,6 +42,8 @@ export interface Subtask {
   completed: boolean;
 }
 export interface Task {
+  calendarManaged?: boolean;
+  studyTask?: boolean;
   id: string;
   title: string;
   description: string;
@@ -80,6 +86,7 @@ export interface Settings {
   showCompleted: boolean;
   studyBuddy: 'CAT' | 'SPROUT' | 'CLOUD' | 'NONE';
   buddyMotion: boolean;
+  onboardingCompleted?: boolean;
 }
 export interface Workspace {
   hosted?: boolean;

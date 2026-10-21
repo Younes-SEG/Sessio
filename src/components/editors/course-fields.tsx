@@ -1,3 +1,5 @@
+'use client';
+import { T, useT } from '@/components/language-provider';
 import { Field, NotesField, SelectField, TextField } from './fields';
 import { Input } from '@/components/ui/input';
 import type { Course, Semester } from '@/lib/types';
@@ -9,11 +11,12 @@ export function CourseFields({
   initial: Partial<Course>;
   semesters: Semester[];
 }) {
+  const t = useT();
   return (
     <div className="form-grid">
       <TextField
         name="code"
-        label="Course code"
+        label={t('Course code')}
         value={initial.code}
         placeholder="e.g. SEG3101"
         maxLength={30}
@@ -21,7 +24,7 @@ export function CourseFields({
       />
       <SelectField
         name="semesterId"
-        label="Semester"
+        label={t('Semester')}
         value={initial.semesterId ?? semesters.find((semester) => semester.isActive)?.id ?? ''}
         options={[
           { value: '', label: 'Select a semester' },
@@ -30,7 +33,7 @@ export function CourseFields({
       />
       <TextField
         name="name"
-        label="Course name"
+        label={t('Course name')}
         value={initial.name}
         placeholder="e.g. Software Requirements Analysis"
         required
@@ -38,11 +41,15 @@ export function CourseFields({
       />
       <TextField
         name="instructor"
-        label="Instructor (optional)"
+        label={t('Instructor (optional)')}
         value={initial.instructor}
-        placeholder="Professor’s name"
+        placeholder={t('Professor’s name')}
       />
-      <Field name="color" label="Course color" hint="Used across your courses and calendar.">
+      <Field
+        name="color"
+        label={t('Course color')}
+        hint={t('Used across your courses and calendar.')}
+      >
         <Input
           id="editor-color"
           name="color"
@@ -51,7 +58,7 @@ export function CourseFields({
           defaultValue={initial.color ?? '#8273d5'}
         />
       </Field>
-      <NotesField value={initial.notes} placeholder="Office hours, links, room numbers…" />
+      <NotesField value={initial.notes} placeholder={t('Office hours, links, room numbers…')} />
       {initial.id && (
         <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input
@@ -60,12 +67,12 @@ export function CourseFields({
             defaultChecked={initial.archived}
             className="size-4 accent-[var(--primary)]"
           />
-          Archive course (hide from active courses)
+          <T text="Archive course (hide from active courses)" />
         </label>
       )}
       {!semesters.length && (
         <p className="text-sm text-[var(--destructive)] sm:col-span-2">
-          Add a semester in Settings before creating a course.
+          <T text="Add a semester in Settings before creating a course." />
         </p>
       )}
     </div>
@@ -73,27 +80,28 @@ export function CourseFields({
 }
 
 export function SemesterFields({ initial }: { initial: Partial<Semester> }) {
+  const t = useT();
   return (
     <div className="form-grid">
       <TextField
         name="name"
-        label="Semester name"
+        label={t('Semester name')}
         value={initial.name}
-        placeholder="e.g. Fall 2026"
+        placeholder={t('e.g. Fall 2026')}
         maxLength={80}
         required
         wide
       />
       <TextField
         name="startDate"
-        label="Start date"
+        label={t('Start date')}
         type="date"
         value={initial.startDate?.slice(0, 10)}
         required
       />
       <TextField
         name="endDate"
-        label="End date"
+        label={t('End date')}
         type="date"
         value={initial.endDate?.slice(0, 10)}
         required
@@ -106,9 +114,11 @@ export function SemesterFields({ initial }: { initial: Partial<Semester> }) {
           className="mt-0.5 size-4 accent-[var(--primary)]"
         />
         <span>
-          <span className="font-medium">Make this the active semester</span>
+          <span className="font-medium">
+            <T text="Make this the active semester" />
+          </span>
           <span className="muted mt-1 block">
-            Your default semester for new courses. This replaces the current active semester.
+            <T text="Your default semester for new courses. This replaces the current active semester." />
           </span>
         </span>
       </label>

@@ -60,13 +60,14 @@ export function isOverdue(dueDate: DateValue, status?: string, now = new Date())
   return due !== null && due.getTime() < now.getTime();
 }
 
-export function dueLabel(value: DateValue, now = new Date()): string {
+export function dueLabel(value: DateValue, now = new Date(), locale = 'en'): string {
   const date = toDate(value);
-  if (!date) return 'No due date';
-  if (isSameDay(date, now)) return 'Today';
-  if (isSameDay(date, addDays(now, 1))) return 'Tomorrow';
-  if (isSameDay(date, addDays(now, -1))) return 'Yesterday';
-  return new Intl.DateTimeFormat('en', {
+  const fr = locale.startsWith('fr');
+  if (!date) return fr ? 'Sans échéance' : 'No due date';
+  if (isSameDay(date, now)) return fr ? 'Aujourd’hui' : 'Today';
+  if (isSameDay(date, addDays(now, 1))) return fr ? 'Demain' : 'Tomorrow';
+  if (isSameDay(date, addDays(now, -1))) return fr ? 'Hier' : 'Yesterday';
+  return new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
     ...(date.getFullYear() !== now.getFullYear() ? { year: 'numeric' as const } : {}),
@@ -76,15 +77,20 @@ export function dueLabel(value: DateValue, now = new Date()): string {
 export function formatDate(
   value: DateValue,
   options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' },
+  locale = 'en',
 ): string {
   const date = toDate(value);
-  return date ? new Intl.DateTimeFormat('en', options).format(date) : '—';
+  return date ? new Intl.DateTimeFormat(locale, options).format(date) : '—';
 }
 
-export function formatTime(value: DateValue, timeFormat: '12' | '24' = '12'): string {
+export function formatTime(
+  value: DateValue,
+  timeFormat: '12' | '24' = '12',
+  locale = 'en',
+): string {
   const date = toDate(value);
   return date
-    ? new Intl.DateTimeFormat('en', {
+    ? new Intl.DateTimeFormat(locale, {
         hour: 'numeric',
         minute: '2-digit',
         hourCycle: timeFormat === '24' ? 'h23' : 'h12',

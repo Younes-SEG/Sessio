@@ -2,6 +2,8 @@ import type { Workspace } from '@/lib/types';
 import { db } from './db';
 import { requireWorkspaceId } from './auth';
 import { isHosted } from './hosting';
+import { ensureStudyTasks } from './study-tasks';
+import { readGradingRules, withEqualWeights } from '../grading-rules';
 
 /** Read one consistent snapshot; all view-specific calculations happen outside persistence. */
 export async function getWorkspace(): Promise<Workspace> {
@@ -15,6 +17,7 @@ export async function getWorkspace(): Promise<Workspace> {
     },
     update: {},
   });
+  await db.$transaction((tx) => ensureStudyTasks(tx, workspaceId));
   const [semesters, courses, assessments, tasks, events, schedules, settings] =
     await db.$transaction(
       [
@@ -39,6 +42,13 @@ export async function getWorkspace(): Promise<Workspace> {
       { isolationLevel: 'RepeatableRead' },
     );
 
+  const effectiveAssessments = courses.flatMap((c) =>
+    withEqualWeights(
+      assessments.filter((a) => a.courseId === c.id),
+      readGradingRules(c.gradingRules),
+    ),
+  );
+  const weights = new Map(effectiveAssessments.map((a) => [a.id, a.weight]));
   return {
     hosted: isHosted(),
     semesters: semesters.map((s) => ({
@@ -46,8 +56,22 @@ export async function getWorkspace(): Promise<Workspace> {
       startDate: s.startDate.toISOString().slice(0, 10),
       endDate: s.endDate.toISOString().slice(0, 10),
     })),
-    courses,
-    assessments: assessments.map((a) => ({ ...a, dueDate: a.dueDate?.toISOString() ?? null })),
+    courses: courses.map((c) => ({
+      ...c,
+      syllabusImportedAt: c.syllabusImportedAt?.toISOString() ?? null,
+      // Older imports saved provenance in assessment notes, but no import date.
+      syllabusImportDetected: assessments.some(
+        (a) =>
+          a.courseId === c.id &&
+          a.notes.startsWith('Imported from syllabus. Verify against the course outline.'),
+      ),
+      gradingRules: readGradingRules(c.gradingRules),
+    })),
+    assessments: assessments.map((a) => ({
+      ...a,
+      weight: weights.get(a.id) ?? a.weight,
+      dueDate: a.dueDate?.toISOString() ?? null,
+    })),
     tasks: tasks.map((t) => ({
       ...t,
       dueDate: t.dueDate?.toISOString() ?? null,

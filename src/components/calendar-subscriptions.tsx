@@ -1,4 +1,5 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 
 import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -32,6 +33,7 @@ interface Subscription {
 }
 
 export function CalendarSubscriptions() {
+  const t = useT();
   const { now, refresh, data } = useWorkspace();
   const [options, setOptions] = useState(() => currentTerm(now));
   const [url, setUrl] = useState('');
@@ -97,7 +99,7 @@ export function CalendarSubscriptions() {
             : action === 'disconnect'
               ? 'Disconnected. Your imported entries are still here.'
               : action === 'connect'
-                ? 'Calendar connected. Your courses, deadlines and events are ready.'
+                ? 'Calendar connected. Your courses, assessments and events are ready.'
                 : 'Calendar is up to date.',
         );
       }
@@ -130,9 +132,11 @@ export function CalendarSubscriptions() {
           <Link2 size={18} />
         </div>
         <div>
-          <h2 className="section-title">Connect your calendar</h2>
+          <h2 className="section-title">
+            <T text="Connect your calendar" />
+          </h2>
           <p className="muted mt-1 text-xs">
-            Paste your Brightspace subscription link. Command takes care of the dates.
+            <T text="Paste your Brightspace subscription link. Course deadlines become assessments, without duplicating translated entries." />
           </p>
         </div>
       </div>
@@ -140,7 +144,9 @@ export function CalendarSubscriptions() {
         <form onSubmit={onConnect} className="space-y-4">
           <fieldset disabled={!!busy} className="min-w-0 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="calendar-link">Calendar subscription link</Label>
+              <Label htmlFor="calendar-link">
+                <T text="Calendar subscription link" />
+              </Label>
               <Input
                 id="calendar-link"
                 type="password"
@@ -157,18 +163,16 @@ export function CalendarSubscriptions() {
                 }}
               />
               <p id="calendar-link-help" className="muted text-xs leading-relaxed">
-                In Brightspace: Calendar → Settings → Enable Calendar Feeds, then Subscribe → copy
-                the link. Choose all calendars to include all your courses.
+                <T text="In Brightspace: Calendar → Settings → Enable Calendar Feeds, then Subscribe → copy the link. Choose all calendars to include all your courses." />
               </p>
               <p id="calendar-preview-notice" className="muted text-xs leading-relaxed">
-                Save calendar stores this private link, imports the selected dates and enables
-                refresh every 15 minutes while Command is running. Preview checks the feed without
-                saving. Your calendar provider receives the request. Use only a link you are
-                authorized to access.{' '}
+                <T text="Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Command is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access." />{' '}
                 {data.hosted &&
-                  'Your private link is stored in your online workspace and fetched by the hosted server. '}
+                  t(
+                    'Your private link is stored in your online workspace and fetched by the hosted server. ',
+                  )}
                 <Link className="underline" href="/legal/privacy">
-                  Calendar privacy details
+                  <T text="Calendar privacy details" />
                 </Link>
                 .
               </p>
@@ -183,7 +187,7 @@ export function CalendarSubscriptions() {
                   ) : (
                     <Link2 size={15} />
                   )}
-                  {busy === 'connect' ? 'Saving calendar…' : 'Save calendar'}
+                  {busy === 'connect' ? t('Saving calendar…') : t('Save calendar')}
                 </Button>
                 <Button
                   type="button"
@@ -196,20 +200,22 @@ export function CalendarSubscriptions() {
                   ) : (
                     <CalendarDays size={15} />
                   )}
-                  Preview calendar
+                  <T text="Preview calendar" />
                 </Button>
               </div>
               <p className="muted text-xs">
-                Calendar changes save here separately from your preferences.
+                <T text="Calendar changes save here separately from your preferences." />
               </p>
             </div>
             <details className="rounded-xl border border-[var(--border)] p-3">
               <summary className="cursor-pointer text-sm">
-                Import dates: {options.fromDate} to {options.throughDate}
+                <T text="Import dates:" /> {options.fromDate} <T text="to" /> {options.throughDate}
               </summary>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="calendar-from">From</Label>
+                  <Label htmlFor="calendar-from">
+                    <T text="From" />
+                  </Label>
                   <Input
                     id="calendar-from"
                     type="date"
@@ -222,7 +228,9 @@ export function CalendarSubscriptions() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="calendar-through">Through</Label>
+                  <Label htmlFor="calendar-through">
+                    <T text="Through" />
+                  </Label>
                   <Input
                     id="calendar-through"
                     type="date"
@@ -236,8 +244,7 @@ export function CalendarSubscriptions() {
                 </div>
               </div>
               <p className="muted mt-3 text-xs">
-                Starts with the current term so old courses stay out. Sync uses this range until you
-                reconnect with different dates.
+                <T text="Starts with the current term so old courses stay out. Sync uses this range until you reconnect with different dates." />
               </p>
             </details>
           </fieldset>
@@ -247,8 +254,8 @@ export function CalendarSubscriptions() {
             <div>
               <h3 className="font-medium break-words">{preview.name}</h3>
               <p className="muted mt-1 text-sm">
-                {courses.length} courses · {deadlines} deadlines · {count - deadlines} other events
-                in this date range
+                {courses.length} <T text="courses ·" /> {deadlines} <T text="deadlines ·" />{' '}
+                {count - deadlines} <T text="other events in this date range" />
               </p>
             </div>
             {courses.length > 0 && (
@@ -262,13 +269,13 @@ export function CalendarSubscriptions() {
             )}
             {!count ? (
               <p className="text-sm">
-                No events in these dates. Expand the import dates and preview again.
+                <T text="No events in these dates. Expand the import dates and preview again." />
               </p>
             ) : (
               <>
                 <ul
                   className="max-h-64 space-y-3 overflow-y-auto text-sm"
-                  aria-label="Calendar import preview"
+                  aria-label={t('Calendar import preview')}
                 >
                   {preview.items
                     .filter((item) => !item.cancelled)
@@ -285,7 +292,7 @@ export function CalendarSubscriptions() {
                           </span>
                         </span>
                         <span className="muted text-xs">
-                          {new Date(item.startAt).toLocaleDateString(undefined, {
+                          {new Date(item.startAt).toLocaleDateString(t.locale, {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
@@ -295,17 +302,15 @@ export function CalendarSubscriptions() {
                     ))}
                 </ul>
                 {count > 100 && (
-                  <p className="muted text-xs">Showing the first 100 of {count} entries.</p>
+                  <p className="muted text-xs">
+                    <T text="Showing the first 100 of" /> {count} <T text="entries." />
+                  </p>
                 )}
                 <p className="muted text-xs leading-relaxed">
-                  Matching courses are reused; missing courses are created. Deadlines become
-                  assessments with no grade and 0% weight until you fill those in. Availability
-                  notices stay calendar events.
+                  <T text="Matching courses are reused; missing courses are created. Deadlines become assessments with no grade and 0% weight until you fill those in. Availability notices stay calendar events." />
                 </p>
                 <p id="calendar-connect-notice" className="text-sm leading-relaxed">
-                  By choosing Connect and import, you authorize Command to store this private link
-                  and import and refresh its calendar data every 15 minutes while running. You can
-                  disconnect or forget it below at any time.
+                  <T text="By choosing Connect and import, you authorize Command to store this private link and import and refresh its calendar data every 15 minutes while running. You can disconnect or forget it below at any time." />
                   {data.hosted && ' Hosted automatic checks depend on using the app.'}
                 </p>
                 <Button
@@ -318,7 +323,7 @@ export function CalendarSubscriptions() {
                   ) : (
                     <Link2 size={15} />
                   )}
-                  Connect and import
+                  <T text="Connect and import" />
                 </Button>
               </>
             )}
@@ -326,7 +331,7 @@ export function CalendarSubscriptions() {
         )}
         {error && (
           <p role="alert" className="text-sm text-[var(--destructive)]">
-            {error}
+            {t(error)}
           </p>
         )}
         {message && (
@@ -334,7 +339,7 @@ export function CalendarSubscriptions() {
             {message}{' '}
             {message.startsWith('Calendar connected') && (
               <Link href="/calendar" className="underline">
-                View calendar
+                <T text="View calendar" />
               </Link>
             )}
           </p>
@@ -344,16 +349,18 @@ export function CalendarSubscriptions() {
             <div>
               <h3 className="text-sm font-medium break-words">{subscription.name}</h3>
               {!subscription.enabled && (
-                <p className="mt-1 text-sm">Disconnected · Saved link retained</p>
+                <p className="mt-1 text-sm">
+                  <T text="Disconnected · Saved link retained" />
+                </p>
               )}
               <p className="muted mt-1 text-xs">
-                {subscription.itemCount} imported entries · {subscription.fromDate} to{' '}
-                {subscription.throughDate}
+                {subscription.itemCount} <T text="imported entries ·" /> {subscription.fromDate}{' '}
+                <T text="to" /> {subscription.throughDate}
               </p>
               <p className="muted mt-1 text-xs">
                 {subscription.lastSyncedAt
                   ? `Last synced ${new Date(subscription.lastSyncedAt).toLocaleString()}`
-                  : 'Waiting for first sync'}
+                  : t('Waiting for first sync')}
               </p>
             </div>
             {subscription.lastError && (
@@ -373,7 +380,7 @@ export function CalendarSubscriptions() {
                 ) : (
                   <RefreshCw size={14} />
                 )}
-                Sync now
+                <T text="Sync now" />
               </Button>
               <Button
                 size="sm"
@@ -382,30 +389,33 @@ export function CalendarSubscriptions() {
                 onClick={() => void perform('disconnect', subscription.id)}
               >
                 <Unplug size={14} />
-                Disconnect
+                <T text="Disconnect" />
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline" disabled={!!busy}>
-                    Forget link
+                    <T text="Forget link" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Forget this calendar link?</DialogTitle>
+                    <DialogTitle>
+                      <T text="Forget this calendar link?" />
+                    </DialogTitle>
                     <DialogDescription>
-                      The saved private URL and sync mapping for {subscription.name} will be
-                      deleted. Imported courses and entries stay in your workspace. Reconnecting
-                      after this may create duplicates.
+                      <T text="The saved private URL and sync mapping for" /> {subscription.name}{' '}
+                      <T text="will be deleted. Imported courses and entries stay in your workspace. Reconnecting after this may create duplicates." />
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
                     <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
+                      <Button variant="outline">
+                        <T text="Cancel" />
+                      </Button>
                     </DialogClose>
                     <DialogClose asChild>
                       <Button onClick={() => void perform('forget', subscription.id)}>
-                        Forget saved link
+                        <T text="Forget saved link" />
                       </Button>
                     </DialogClose>
                   </DialogFooter>
@@ -416,11 +426,13 @@ export function CalendarSubscriptions() {
         ))}
         <p className="muted text-xs leading-relaxed">
           {data.hosted
-            ? 'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. '
-            : 'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. '}
-          Grades and notes stay yours. Entries that disappear from the feed are kept for review;
-          explicit cancellations are labelled. Disconnecting keeps imported entries and remembers
-          this feed for reconnection.
+            ? t(
+                'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ',
+              )
+            : t(
+                'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ',
+              )}
+          <T text="Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection." />
         </p>
       </div>
     </section>

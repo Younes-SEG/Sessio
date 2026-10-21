@@ -2,6 +2,7 @@ import { Prisma } from '@/generated/prisma/client';
 import { db } from './db';
 import { ApiError } from './errors';
 import { requireWorkspaceId } from './auth';
+import { gradingRuleError, readGradingRules, configuredCourseWeight } from '../grading-rules';
 import {
   assessmentSchema,
   courseSchema,
@@ -69,6 +70,9 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
           ? exists(await tx.course.findUnique({ where: { id, semester: { workspaceId } } }))
           : {};
         const data = courseSchema.parse({ ...current, ...body });
+        const members = id ? await tx.assessment.findMany({ where: { courseId: id } }) : [];
+        const ruleError = gradingRuleError(data.gradingRules, members);
+        if (ruleError && data.gradingRules.length) throw new ApiError(400, ruleError);
         exists(
           await tx.semester.findUnique({ where: { id: data.semesterId, workspaceId } }),
           'Semester',
@@ -85,12 +89,38 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
           : null;
         const data = assessmentSchema.parse({ ...current, ...body });
         await requireCourse(tx, data.courseId, workspaceId);
-        const weights = await tx.assessment.aggregate({
+        const destination = await tx.course.findUniqueOrThrow({ where: { id: data.courseId } });
+        const rules = readGradingRules(destination.gradingRules);
+        if (rules.some((r) => r.mode === 'equal' && r.assessmentType === data.type))
+          data.weight = current?.weight ?? 0;
+        if (current && current.courseId !== data.courseId) {
+          const origin = await tx.course.findUniqueOrThrow({ where: { id: current.courseId } });
+          if (
+            readGradingRules(origin.gradingRules).some(
+              (r) => r.mode !== 'equal' && r.assessmentIds.includes(current.id),
+            )
+          )
+            throw new ApiError(
+              400,
+              'Remove this assessment from its grading rule before moving it to another course.',
+            );
+        }
+        const siblings = await tx.assessment.findMany({
           where: { courseId: data.courseId, ...(id ? { id: { not: id } } : {}) },
-          _sum: { weight: true },
         });
-        const allocated = weights._sum.weight ?? 0;
-        if (allocated + data.weight > 100 + 0.000001) {
+        const allocated = configuredCourseWeight(siblings, rules);
+        const ruleError = gradingRuleError(rules, [
+          ...siblings,
+          { id: id || '__new__', weight: data.weight, type: data.type },
+        ]);
+        if (rules.length && ruleError) throw new ApiError(400, ruleError);
+        if (
+          configuredCourseWeight(
+            [...siblings, { id: id || '__new__', weight: data.weight, type: data.type }],
+            rules,
+          ) >
+          100 + 0.000001
+        ) {
           throw new ApiError(
             400,
             `Assessment weights cannot exceed 100%. There is ${Math.max(0, 100 - allocated).toFixed(2)}% available in this course.`,
@@ -149,6 +179,14 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
               data: {
                 ...data,
                 completedAt,
+                // Changing the generated title/date/link makes this a personal task.
+                ...(current?.studyTask &&
+                (data.title !== current.title ||
+                  data.dueDate?.getTime() !== current.dueDate?.getTime() ||
+                  data.assessmentId !== current.assessmentId ||
+                  data.courseId !== current.courseId)
+                  ? { studyTask: false }
+                  : {}),
                 ...(body.subtasks !== undefined
                   ? { subtasks: { deleteMany: {}, create: children } }
                   : {}),
@@ -210,21 +248,57 @@ export async function deleteEntity(entity: string, id: string) {
   return transaction(async (tx) => {
     switch (entity) {
       case 'semesters': {
-        exists(await tx.semester.findUnique({ where: { id, workspaceId } }));
-        if (await tx.course.count({ where: { semesterId: id, semester: { workspaceId } } }))
-          throw new ApiError(
-            409,
-            'Move or delete this semester’s courses before deleting the semester.',
-          );
+        const semester = exists(await tx.semester.findUnique({ where: { id, workspaceId } }));
+        await tx.task.deleteMany({
+          where: {
+            workspaceId,
+            OR: [{ course: { semesterId: id } }, { assessment: { course: { semesterId: id } } }],
+          },
+        });
+        await tx.calendarEvent.deleteMany({ where: { workspaceId, course: { semesterId: id } } });
+        await tx.course.deleteMany({ where: { semesterId: id, semester: { workspaceId } } });
         await tx.semester.delete({ where: { id, workspaceId } });
+        if (semester.isActive) {
+          const next = await tx.semester.findFirst({
+            where: { workspaceId },
+            orderBy: { startDate: 'desc' },
+          });
+          if (next)
+            await tx.semester.update({
+              where: { id: next.id, workspaceId },
+              data: { isActive: true },
+            });
+        }
         break;
       }
       case 'courses':
+        exists(await tx.course.findUnique({ where: { id, semester: { workspaceId } } }));
+        await tx.task.deleteMany({
+          where: { workspaceId, OR: [{ courseId: id }, { assessment: { courseId: id } }] },
+        });
+        await tx.calendarEvent.deleteMany({ where: { workspaceId, courseId: id } });
         await tx.course.delete({ where: { id, semester: { workspaceId } } });
         break;
-      case 'assessments':
+      case 'assessments': {
+        const member = exists(
+          await tx.assessment.findUnique({
+            where: { id, course: { semester: { workspaceId } } },
+            include: { course: true },
+          }),
+        );
+        if (
+          readGradingRules(member.course.gradingRules).some(
+            (r) => r.mode !== 'equal' && r.assessmentIds.includes(id),
+          )
+        )
+          throw new ApiError(
+            400,
+            'Remove this assessment from its grading rule in the course Grades tab before deleting it.',
+          );
+        await tx.task.deleteMany({ where: { workspaceId, assessmentId: id, studyTask: true } });
         await tx.assessment.delete({ where: { id, course: { semester: { workspaceId } } } });
         break;
+      }
       case 'tasks':
         await tx.task.delete({ where: { id, workspaceId } });
         break;

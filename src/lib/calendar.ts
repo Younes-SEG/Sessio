@@ -49,7 +49,8 @@ export function getCalendarOccurrences(
   const semesters = new Map(workspace.semesters.map((semester) => [semester.id, semester]));
   const occurrences: CalendarOccurrence[] = [];
   const visible = (courseId: string | null) =>
-    !courseId || options.includeArchived || !courses.get(courseId)?.archived;
+    courseId === null ||
+    (courses.has(courseId) && (options.includeArchived || !courses.get(courseId)!.archived));
   const color = (courseId: string | null, fallback = '#8b5cf6') =>
     (courseId ? courses.get(courseId)?.color : undefined) ?? fallback;
 
@@ -65,6 +66,13 @@ export function getCalendarOccurrences(
   for (const task of workspace.tasks) {
     const start = toDate(task.dueDate);
     if (!start) continue;
+    // Imported tasks mirror an assessment. Show one calendar deadline, while retaining
+    // separately scheduled or user-created study tasks.
+    if (
+      task.calendarManaged &&
+      workspace.assessments.some((a) => a.id === task.assessmentId && a.dueDate === task.dueDate)
+    )
+      continue;
     push({
       id: `task:${task.id}`,
       sourceId: task.id,

@@ -1,13 +1,21 @@
 import { getDocumentProxy } from 'unpdf';
+import type { SyllabusKind } from '../syllabus-files';
+import { inspectDocx, inspectImage, type InspectedSyllabus } from './syllabus-documents';
 import { ApiError } from './errors';
 
 export const MAX_SYLLABUS_BYTES = 8 * 1024 * 1024;
 const MAX_TEXT = 100_000;
 
 /** Validate the original PDF without extracting its text; image-only pages are supported. */
-export async function inspectSyllabusUpload(bytes: Uint8Array, kind: 'pdf' | 'text') {
+export async function inspectSyllabusUpload(
+  bytes: Uint8Array,
+  kind: SyllabusKind,
+): Promise<InspectedSyllabus> {
   if (!bytes.length || bytes.length > MAX_SYLLABUS_BYTES)
     throw new ApiError(413, 'Choose a non-empty file smaller than 8 MB.');
+  if (kind === 'docx') return inspectDocx(bytes);
+  if (kind === 'jpeg' || kind === 'png')
+    return { pages: 1, images: [await inspectImage(bytes, kind)] };
   if (kind === 'text') {
     let text: string;
     try {

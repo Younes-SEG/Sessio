@@ -4,6 +4,25 @@ import { dateKey } from '../src/lib/dates';
 import { assessment, task, workspace } from './fixtures';
 
 describe('combined calendar', () => {
+  it('shows a linked imported task and its deadline once, but keeps separate study sessions', () => {
+    const dueDate = new Date(2026, 8, 28, 12).toISOString();
+    const a = assessment({ id: 'linked', dueDate });
+    const data = workspace({
+      assessments: [a],
+      tasks: [
+        task({ id: 'mirror', assessmentId: a.id, dueDate, calendarManaged: true }),
+        task({ id: 'study', assessmentId: a.id, dueDate }),
+        task({
+          id: 'rescheduled',
+          assessmentId: a.id,
+          dueDate: new Date(2026, 8, 28, 10).toISOString(),
+          calendarManaged: true,
+        }),
+      ],
+    });
+    const rows = getCalendarOccurrences(data, new Date(2026, 8, 28), new Date(2026, 8, 29));
+    expect(rows.map((r) => r.sourceId).sort()).toEqual(['linked', 'rescheduled', 'study']);
+  });
   it('uses an exclusive upper boundary while including events overlapping the range', () => {
     const start = new Date(2026, 8, 28);
     const end = new Date(2026, 8, 29);

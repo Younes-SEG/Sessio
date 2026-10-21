@@ -1,4 +1,5 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -23,6 +24,7 @@ export function CommandPalette({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const { data, openEditor } = useWorkspace();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -154,6 +156,14 @@ export function CommandPalette({
         }))
       : []),
   ]
+    .map((action) => ({
+      ...action,
+      title:
+        action.group === 'Navigation' || action.group === 'Quick action'
+          ? t(action.title)
+          : action.title,
+      group: t(action.group),
+    }))
     .filter((action) => action.title.toLowerCase().includes(query.toLowerCase()))
     .slice(0, 30);
   const active = Math.min(selected, Math.max(actions.length - 1, 0));
@@ -178,20 +188,22 @@ export function CommandPalette({
       }}
     >
       <DialogContent className="p-0 overflow-hidden max-w-[590px]">
-        <DialogTitle className="sr-only">Command palette</DialogTitle>
+        <DialogTitle className="sr-only">
+          <T text="Command palette" />
+        </DialogTitle>
         <DialogDescription className="sr-only">
-          Search, navigate, or add something to your workspace.
+          <T text="Search, navigate, or add something to your workspace." />
         </DialogDescription>
         <div className="flex gap-3 items-center border-b border-border px-5 py-4 pr-12">
           <Search size={19} className="muted" />
           <input
             role="combobox"
-            aria-label="Search commands"
+            aria-label={t('Search commands')}
             aria-expanded="true"
             aria-controls="command-results"
             aria-activedescendant={actions[active] ? `cmd-${actions[active].id}` : undefined}
             className="w-full bg-transparent outline-none text-sm"
-            placeholder="What would you like to do?"
+            placeholder={t('What would you like to do?')}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -214,7 +226,7 @@ export function CommandPalette({
         <div
           id="command-results"
           role="listbox"
-          aria-label="Commands"
+          aria-label={t('Commands')}
           className="max-h-[50vh] overflow-auto p-2"
         >
           {actions.length ? (
@@ -236,15 +248,21 @@ export function CommandPalette({
               </button>
             ))
           ) : (
-            <div className="empty-state">No matches. Try a course code or task name.</div>
+            <div className="empty-state">
+              <T text="No matches. Try a course code or task name." />
+            </div>
           )}
         </div>
         <div className="flex gap-4 px-5 py-3 bg-muted/40 border-t border-border text-[10px] muted">
-          <span>↑ ↓ to navigate</span>
-          <span>↵ to select</span>
+          <span>
+            <T text="↑ ↓ to navigate" />
+          </span>
+          <span>
+            <T text="↵ to select" />
+          </span>
           <span className="ml-auto flex gap-1 items-center">
             <ArrowUpRight size={12} />
-            Your next step, one shortcut away
+            <T text="Your next step, one shortcut away" />
           </span>
         </div>
       </DialogContent>

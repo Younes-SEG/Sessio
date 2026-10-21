@@ -1,4 +1,5 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ import {
 } from './ui/dialog';
 
 export function PrivacyControls() {
+  const t = useT();
   const { data } = useWorkspace();
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
@@ -45,26 +47,29 @@ export function PrivacyControls() {
       aria-labelledby="your-data-title"
     >
       <h2 id="your-data-title" className="section-title">
-        Your data
+        <T text="Your data" />
       </h2>
       <p className="muted text-sm leading-relaxed">
         {data.hosted
-          ? 'Your workspace is saved to your account. You can export or erase your workspace here. Erasing it does not delete your sign-in account.'
-          : 'Your workspace is stored in this installation. No account or identity check is needed to access or delete it.'}{' '}
+          ? t(
+              'Your workspace is saved to your account. You can export or erase your workspace here. Erasing it does not delete your sign-in account.',
+            )
+          : t(
+              'Your workspace is stored in this installation. No account or identity check is needed to access or delete it.',
+            )}{' '}
         <Link href="/legal/privacy" className="underline">
-          Read the privacy policy
+          <T text="Read the privacy policy" />
         </Link>
         .
       </p>
       <div className="space-y-2">
         <Button asChild variant="outline">
           <a href="/api/privacy/export" download="command-data.json">
-            Download my data
+            <T text="Download my data" />
           </a>
         </Button>
         <p className="muted text-xs leading-relaxed">
-          Downloads a readable JSON copy of your academic records and preferences, excluding private
-          calendar links. Keep it private. This is not an automatic restore backup.
+          <T text="Downloads a readable JSON copy of your academic records and preferences, excluding private calendar links. Keep it private. This is not an automatic restore backup." />
         </p>
       </div>
       <Dialog
@@ -75,24 +80,25 @@ export function PrivacyControls() {
       >
         <DialogTrigger asChild>
           <Button variant="outline" className="text-[var(--destructive)]">
-            Erase workspace data
+            <T text="Erase workspace data" />
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Erase this workspace?</DialogTitle>
+            <DialogTitle>
+              <T text="Erase this workspace?" />
+            </DialogTitle>
             <DialogDescription>
-              This permanently deletes all courses, grades, notes, tasks, events, semesters, saved
-              calendar links and preferences from the active application database. Calendar syncing
-              stops. This cannot be undone here.
+              <T text="This permanently deletes all courses, grades, notes, tasks, events, semesters, saved calendar links and preferences from the active application database. Calendar syncing stops. This cannot be undone here." />
             </DialogDescription>
           </DialogHeader>
           <p className="muted mb-4 text-sm">
-            It does not remove downloaded files, backups, database logs or your provider’s calendar.
-            Download a copy first if you need one.
+            <T text="It does not remove downloaded files, backups, database logs or your provider’s calendar. Download a copy first if you need one." />
           </p>
           <div className="field">
-            <Label htmlFor="erase-confirmation">Type DELETE MY DATA to confirm</Label>
+            <Label htmlFor="erase-confirmation">
+              <T text="Type DELETE MY DATA to confirm" />
+            </Label>
             <Input
               id="erase-confirmation"
               value={confirmation}
@@ -103,13 +109,13 @@ export function PrivacyControls() {
           </div>
           {error && (
             <p role="alert" className="mt-3 text-sm text-[var(--destructive)]">
-              {error}
+              {t(error)}
             </p>
           )}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" disabled={busy}>
-                Cancel
+                <T text="Cancel" />
               </Button>
             </DialogClose>
             <Button
@@ -117,7 +123,7 @@ export function PrivacyControls() {
               disabled={busy || confirmation !== 'DELETE MY DATA'}
               onClick={() => void erase()}
             >
-              {busy ? 'Erasing…' : 'Permanently erase data'}
+              {busy ? t('Erasing…') : t('Permanently erase data')}
             </Button>
           </DialogFooter>
         </DialogContent>

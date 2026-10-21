@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { gradingRulesSchema } from '../grading-rules';
 
 const text = (maximum = 200) => z.string().trim().min(1, 'This field is required.').max(maximum);
 const notes = z.string().max(20_000).default('');
@@ -41,6 +42,8 @@ export const semesterSchema = z
   });
 
 export const courseSchema = z.object({
+  gradingRules: gradingRulesSchema.default([]),
+  gradingNotes: z.string().max(5000).default(''),
   code: text(30).transform((value) => value.toUpperCase()),
   name: text(),
   semesterId: link,
@@ -138,4 +141,5 @@ export const settingsSchema = z.object({
   showCompleted: z.boolean().default(false),
   studyBuddy: z.enum(['CAT', 'SPROUT', 'CLOUD', 'NONE']).default('CAT'),
   buddyMotion: z.boolean().default(true),
+  onboardingCompleted: z.boolean().default(false),
 });

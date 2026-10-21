@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
+  logging: { incomingRequests: { ignore: [/\/api\/email\/callback/] } },
   poweredByHeader: false,
   async headers() {
     return [

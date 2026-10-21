@@ -3,12 +3,12 @@
 import { useLayoutEffect, useRef } from 'react';
 
 /** Replay entrances on navigation, including cards revealed by streamed page content. */
-export function useCardEntrance(pathname: string) {
+export function useCardEntrance(pathname: string, enabled = true) {
   const container = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
     const root = container.current;
-    if (!root) return;
+    if (!root || !enabled) return;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const entered = new WeakSet<Element>();
     const animations = new Set<Animation>();
@@ -60,7 +60,7 @@ export function useCardEntrance(pathname: string) {
       reducedMotion.removeEventListener('change', stop);
       stop();
     };
-  }, [pathname]);
+  }, [pathname, enabled]);
 
   return container;
 }

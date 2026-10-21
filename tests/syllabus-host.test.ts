@@ -1,3 +1,5 @@
+import { syllabusDocx } from './fixtures/syllabus-docx';
+import sharp from 'sharp';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IncomingMessage, Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -90,6 +92,19 @@ describe('durable service quotas', () => {
   });
 });
 
+it('accepts term-only context for new-course extraction and returns the detected identity', async () => {
+  const course = { code: 'NEW101', name: 'New course', source: 'NEW101 - New course', page: 1 };
+  const read = vi.fn().mockResolvedValue({ course, items: [], warnings: [] });
+  const url = await host({ usage: { reserve: vi.fn() }, ready: () => true, read });
+  const body = payload();
+  body.course.code = '';
+  body.course.name = '';
+  const response = await post(url, body);
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ course });
+  expect(read.mock.calls[0][0].course.code).toBe('');
+});
+
 describe('hosted reader HTTP boundary', () => {
   it('connects the actual app client to the HTTP service without any user key', async () => {
     const read = vi.fn(async () => ({ items: [], warnings: ['Sample has no assessments.'] }));
@@ -165,6 +180,51 @@ describe('hosted reader HTTP boundary', () => {
     expect((await fetch(`${offline}/health`)).status).toBe(503);
     expect((await post(offline)).status).toBe(503);
   });
+  it('passes a safe provider-unavailable code through the HTTP service', async () => {
+    const url = await host({
+      usage: { reserve: vi.fn() },
+      ready: () => true,
+      read: async () => {
+        throw new ApiError(503, 'Temporary provider failure', 'provider_unavailable');
+      },
+    });
+    vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', url);
+    vi.stubEnv('NODE_ENV', 'development');
+    await expect(
+      readSyllabusThroughService({
+        kind: 'pdf',
+        bytes: syllabusPdf([]),
+        pages: 1,
+        course: payload().course,
+      }),
+    ).rejects.toMatchObject({
+      status: 503,
+      message:
+        'The AI provider is temporarily unavailable or busy. Please try again later. Nothing was saved.',
+    });
+  });
+  it('passes a quota reservation to the reader for each retry', async () => {
+    const reserve = vi
+      .fn()
+      .mockImplementationOnce(() => undefined)
+      .mockImplementationOnce(() => {
+        throw new ApiError(429, 'Allowance reached.');
+      });
+    const url = await host({
+      usage: { reserve },
+      ready: () => true,
+      read: async (_input, _signal, beforeRetry) => {
+        expect(beforeRetry).toBeTypeOf('function');
+        beforeRetry!();
+        throw new Error('Must stop before a second provider attempt');
+      },
+    });
+    const response = await post(url);
+    expect(response.status).toBe(429);
+    expect(reserve).toHaveBeenCalledTimes(2);
+    expect(reserve.mock.calls[0][0]).toBe(reserve.mock.calls[1][0]);
+  });
+
   it('quota exhaustion prevents provider calls', async () => {
     const read = vi.fn();
     const url = await host({
@@ -217,3 +277,28 @@ describe('hosted reader HTTP boundary', () => {
     expect(() => networkAddress(req('127.0.0.1', ''), 1)).toThrow(ApiError);
   });
 });
+
+it.each(['docx', 'png', 'jpeg'] as const)(
+  'validates and forwards %s uploads through the reader service',
+  async (kind) => {
+    const read = vi.fn().mockResolvedValue({ items: [], warnings: [] });
+    const reserve = vi.fn();
+    const url = await host({ usage: { reserve }, ready: () => true, read });
+    const bytes =
+      kind === 'docx'
+        ? syllabusDocx()
+        : await sharp({ create: { width: 80, height: 80, channels: 3, background: 'white' } })
+            .toFormat(kind)
+            .toBuffer();
+    const response = await fetch(`${url}/v1/syllabus`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload(), kind, document: Buffer.from(bytes).toString('base64') }),
+    });
+    expect(response.status).toBe(200);
+    expect(reserve).toHaveBeenCalledTimes(1);
+    expect(read.mock.calls[0][0].kind).toBe(kind);
+    if (kind === 'docx') expect(read.mock.calls[0][0].text).toContain('Quiz 1');
+    else expect(read.mock.calls[0][0].images).toHaveLength(1);
+  },
+);

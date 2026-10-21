@@ -1,3 +1,5 @@
+'use client';
+import { T, useT } from '@/components/language-provider';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,6 +20,14 @@ export function AssessmentFields({
   initial: Partial<Assessment>;
   courses: Course[];
 }) {
+  const t = useT();
+  const rule = courses
+    .find((c) => c.id === initial.courseId)
+    ?.gradingRules?.find((r) =>
+      r.mode === 'equal'
+        ? r.assessmentType === initial.type
+        : r.assessmentIds.includes(initial.id || ''),
+    );
   const [status, setStatus] = useState(initial.status ?? 'NOT_STARTED');
   const [score, setScore] = useState(
     initial.score === null || initial.score === undefined ? '' : String(initial.score),
@@ -35,7 +45,7 @@ export function AssessmentFields({
     <div className="form-grid">
       <TextField
         name="name"
-        label="Assessment name"
+        label={t('Assessment name')}
         value={initial.name}
         placeholder="e.g. Assignment 1 · Requirements document"
         required
@@ -44,7 +54,7 @@ export function AssessmentFields({
       <CourseField courses={courses} value={initial.courseId} required />
       <SelectField
         name="type"
-        label="Type"
+        label={t('Type')}
         value={initial.type ?? 'ASSIGNMENT'}
         options={optionsFor([
           'ASSIGNMENT',
@@ -58,20 +68,32 @@ export function AssessmentFields({
       />
       <TextField
         name="dueDate"
-        label="Due date & time (optional)"
+        label={t('Due date & time (optional)')}
         type="datetime-local"
         value={localDateTime(initial.dueDate)}
       />
       <TextField
         name="weight"
-        label="Course weight (%)"
+        label={t('Course weight (%)')}
         type="number"
         value={initial.weight ?? 10}
         min={0}
         max={100}
-        step="0.01"
+        step="any"
         required
       />
+      {rule && (
+        <p className="muted text-sm">
+          <T
+            text={
+              rule.mode === 'equal'
+                ? 'This weight is managed by an automatic equal split. Manual weight changes are ignored while it is active. Manage the category total in the course Grades tab.'
+                : 'This assessment uses a best-of group. Its individual weight is ignored while that rule is active. Manage it in the course Grades tab.'
+            }
+          />{' '}
+          ({rule.name})
+        </p>
+      )}
       <div className="space-y-3">
         <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--control-border)] p-3">
           <input
@@ -81,16 +103,20 @@ export function AssessmentFields({
             onChange={(event) => changeStatus(event.target.checked ? 'SUBMITTED' : 'IN_PROGRESS')}
             aria-describedby="assessment-completed-help"
           />
-          <span className="text-sm font-medium">Completed</span>
+          <span className="text-sm font-medium">
+            <T text="Completed" />
+          </span>
         </label>
         <p id="assessment-completed-help" className="muted text-xs leading-relaxed">
           {status === 'GRADED'
-            ? 'A recorded grade already marks this work complete.'
-            : 'Marks this as submitted and keeps it in Grades → Awaiting grades until you receive a score.'}
+            ? t('A recorded grade already marks this work complete.')
+            : t(
+                'Marks this as submitted and keeps it in Grades → Awaiting grades until you receive a score.',
+              )}
         </p>
         <SelectField
           name="status"
-          label="Status"
+          label={t('Status')}
           value={status}
           onChange={changeStatus}
           options={optionsFor(['NOT_STARTED', 'IN_PROGRESS', 'SUBMITTED', 'GRADED'])}
@@ -98,7 +124,7 @@ export function AssessmentFields({
       </div>
       <TextField
         name="maxScore"
-        label="Maximum score"
+        label={t('Maximum score')}
         type="number"
         value={initial.maxScore ?? 100}
         min="0.01"
@@ -109,7 +135,7 @@ export function AssessmentFields({
       <Field
         name="score"
         label={status === 'GRADED' ? 'Score received' : 'Score received (optional)'}
-        hint="Entering a score marks this as graded. An ungraded status clears the score."
+        hint={t('Entering a score marks this as graded. An ungraded status clears the score.')}
       >
         <Input
           id="editor-score"

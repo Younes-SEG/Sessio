@@ -1,4 +1,5 @@
 import type { AssessmentType } from './types';
+import type { SyllabusTiming } from './syllabus-schedule';
 
 export interface SyllabusSuggestion {
   name: string;
@@ -10,6 +11,9 @@ export interface SyllabusSuggestion {
   page?: number | null;
   warnings: string[];
   grouped: boolean;
+  timing?: SyllabusTiming | null;
+  durationMinutes?: number | null;
+  tentative?: boolean;
 }
 
 export const assessmentNameKey = (value: string) =>

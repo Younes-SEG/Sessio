@@ -2,6 +2,7 @@ import type { z } from 'zod';
 import type { syllabusResultSchema } from '../../src/lib/syllabus-result';
 // Synthetic model output. Browser tests never send real syllabi to a paid API.
 export const syllabusModelResult: z.infer<typeof syllabusResultSchema> = {
+  course: { code: 'TEST101', name: 'Test course', source: 'TEST101 - Test course', page: 1 },
   items: [
     {
       name: 'Midterm 1',

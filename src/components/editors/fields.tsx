@@ -1,3 +1,5 @@
+'use client';
+import { T, useT } from '@/components/language-provider';
 import type { ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,20 +22,21 @@ export function Field({
   wide?: boolean;
   required?: boolean;
 }) {
+  const t = useT();
   return (
     <div className={`field ${wide ? 'sm:col-span-2' : ''}`}>
       <div className="flex items-center gap-1">
-        <Label htmlFor={`editor-${name}`}>{label}</Label>
+        <Label htmlFor={`editor-${name}`}>{t(label)}</Label>
         {required && (
           <span aria-hidden="true" className="muted ml-1 text-xs">
-            (required)
+            <T text="(required)" />
           </span>
         )}
       </div>
       {children}
       {hint && (
         <p id={`editor-${name}-hint`} className="muted text-xs leading-relaxed">
-          {hint}
+          {t(hint)}
         </p>
       )}
     </div>
@@ -126,6 +129,7 @@ export function SelectField({
   required?: boolean;
   onChange?: (value: string) => void;
 }) {
+  const t = useT();
   return (
     <Field name={name} label={label} required={required}>
       <select
@@ -143,7 +147,7 @@ export function SelectField({
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {t(option.label)}
           </option>
         ))}
       </select>

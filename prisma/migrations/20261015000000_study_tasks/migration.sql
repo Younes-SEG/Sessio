@@ -1,0 +1,2 @@
+ALTER TABLE "Assessment" ADD COLUMN "studyTaskCreated" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Task" ADD COLUMN "studyTask" BOOLEAN NOT NULL DEFAULT false;

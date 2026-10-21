@@ -1,4 +1,5 @@
 'use client';
+import { LanguageSwitch, T, useT } from '@/components/language-provider';
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, KeyRound, UserPlus } from 'lucide-react';
@@ -17,6 +18,7 @@ function passwordError(error: unknown) {
 }
 
 export function SignOutButton({ className }: { className?: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   return (
@@ -39,11 +41,11 @@ export function SignOutButton({ className }: { className?: string }) {
           }
         }}
       >
-        {busy ? 'Signing out…' : 'Sign out'}
+        {busy ? t('Signing out…') : t('Sign out')}
       </button>
       {error && (
         <p role="alert" className="text-xs text-destructive">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>
@@ -51,6 +53,7 @@ export function SignOutButton({ className }: { className?: string }) {
 }
 
 export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -146,15 +149,20 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
 
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight">{titles[mode]}</h1>
+      <div className="mb-5 flex justify-end">
+        <LanguageSwitch />
+      </div>
+      <h1 className="text-3xl font-semibold tracking-tight">{t(titles[mode])}</h1>
       <p className="muted mt-3 leading-relaxed">
         {verify
-          ? 'Verify your email before opening your private workspace. You can request another link below.'
+          ? t(
+              'Verify your email before opening your private workspace. You can request another link below.',
+            )
           : signUp
-            ? 'Keep your courses, grades and plans together in your own private workspace.'
+            ? t('Keep your courses, grades and plans together in your own private workspace.')
             : signIn
-              ? 'Sign in to pick up where you left off.'
-              : 'Manage access to your private workspace.'}
+              ? t('Sign in to pick up where you left off.')
+              : t('Manage access to your private workspace.')}
       </p>
       {mode === 'sign-out' ? (
         <div className="mt-6">
@@ -165,14 +173,19 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
           {signUp && (
             <label className="block space-y-2 text-sm font-medium">
               <span>
-                Name <span className="muted">(optional)</span>
+                <T text="Name" />{' '}
+                <span className="muted">
+                  <T text="(optional)" />
+                </span>
               </span>
               <Input name="name" autoComplete="nickname" maxLength={80} disabled={busy} />
             </label>
           )}
           {!reset && (
             <label className="block space-y-2 text-sm font-medium">
-              <span>Email</span>
+              <span>
+                <T text="Email" />
+              </span>
               <Input
                 name="email"
                 type="email"
@@ -185,7 +198,7 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
           )}
           {passwordNeeded && (
             <label className="block space-y-2 text-sm font-medium">
-              <span id="auth-password-label">{reset ? 'New password' : 'Password'}</span>
+              <span id="auth-password-label">{reset ? t('New password') : t('Password')}</span>
               <Input
                 name="password"
                 type="password"
@@ -198,45 +211,45 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
           )}
           {signUp && (
             <p className="muted text-xs leading-relaxed">
-              Creating an account uses Neon Auth to handle your email and password. Read our{' '}
+              <T text="Creating an account uses Neon Auth to handle your email and password. Read our" />{' '}
               <Link href="/legal/terms" className="underline">
-                Terms
+                <T text="Terms" />
               </Link>{' '}
-              and{' '}
+              <T text="and" />{' '}
               <Link href="/legal/privacy" className="underline">
-                Privacy policy
+                <T text="Privacy policy" />
               </Link>
               .
             </p>
           )}
           {error && (
             <p role="alert" className="text-sm text-destructive">
-              {error}
+              {t(error)}
             </p>
           )}
           {notice && (
             <p role="status" className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
-              {notice}
+              {t(notice)}
             </p>
           )}
           <Button type="submit" className="w-full" disabled={busy || (reset && !token)}>
             {busy
-              ? 'Please wait…'
+              ? t('Please wait…')
               : signIn
-                ? 'Sign in'
+                ? t('Sign in')
                 : signUp
-                  ? 'Create account'
+                  ? t('Create account')
                   : reset
-                    ? 'Update password'
+                    ? t('Update password')
                     : verify
-                      ? 'Resend verification email'
-                      : 'Send reset link'}
+                      ? t('Resend verification email')
+                      : t('Send reset link')}
           </Button>
           {signIn && (
             <div className="flex justify-center">
               <Link href="/auth/forgot-password" className="auth-action auth-action-recovery">
                 <KeyRound size={16} aria-hidden="true" />
-                Forgot your password?
+                <T text="Forgot your password?" />
               </Link>
             </div>
           )}
@@ -245,17 +258,21 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
       <div className="mt-7 border-t border-border pt-5 text-sm">
         {signIn ? (
           <div className="auth-signup">
-            <p className="muted text-center">New to Command?</p>
+            <p className="muted text-center">
+              <T text="New to Command?" />
+            </p>
             <Link href="/auth/sign-up" className="auth-action auth-action-signup">
               <UserPlus size={18} aria-hidden="true" />
-              <span>Create an account</span>
+              <span>
+                <T text="Create an account" />
+              </span>
               <ArrowRight size={18} aria-hidden="true" className="auth-action-arrow ml-auto" />
             </Link>
           </div>
         ) : (
           <Link href="/auth/sign-in" className="auth-action auth-action-recovery">
             <ArrowLeft size={16} aria-hidden="true" />
-            Back to sign in
+            <T text="Back to sign in" />
           </Link>
         )}
       </div>

@@ -7,6 +7,12 @@ import { ApiError } from './errors';
 import { fetchCalendarFeed, normalizeFeedUrl } from './feed-fetch';
 import { requireWorkspaceId } from './auth';
 import { isHosted } from './hosting';
+import { brightspaceEventIdentity } from '@/lib/calendar-identity';
+import {
+  reconcileCalendarAssessments,
+  retireCalendarTasks,
+  updateCalendarAssessment,
+} from './calendar-reconcile';
 
 const date = z
   .string()
@@ -118,6 +124,16 @@ export async function applyCalendarFeed(
     )?.enabled
   )
     return;
+  await retireCalendarTasks(tx, workspaceId);
+  await reconcileCalendarAssessments(tx, workspaceId);
+  const subscription = await tx.calendarSubscription.findUniqueOrThrow({
+    where: { id: subscriptionId, workspaceId },
+  });
+  const origin = new URL(subscription.url).origin;
+  const aliases = await tx.importedCalendarItem.findMany({
+    where: { subscription: { workspaceId } },
+    include: { subscription: { select: { url: true } } },
+  });
   const semester = preview.items.some((item) => item.course && !item.cancelled)
     ? await semesterForImport(tx, options, workspaceId)
     : null;
@@ -129,7 +145,23 @@ export async function applyCalendarFeed(
     ]),
   );
   for (const item of preview.items) {
-    const previous = existing.get(item.key);
+    let previous = existing.get(item.key);
+    if (!previous) {
+      const alias = aliases.find(
+        (a) => a.sourceKey === item.key && new URL(a.subscription.url).origin === origin,
+      );
+      if (alias) {
+        previous = await tx.importedCalendarItem.create({
+          data: {
+            subscriptionId,
+            sourceKey: item.key,
+            assessmentId: alias.assessmentId,
+            eventId: alias.eventId,
+          },
+        });
+        existing.set(item.key, previous);
+      }
+    }
     if (item.cancelled) {
       if (previous?.eventId)
         await tx.calendarEvent.update({
@@ -137,10 +169,13 @@ export async function applyCalendarFeed(
           data: { title: `[Cancelled] ${item.title}`.slice(0, 200) },
         });
       if (previous?.assessmentId)
-        await tx.assessment.update({
-          where: { id: previous.assessmentId },
-          data: { name: `[Cancelled] ${item.title}`.slice(0, 200), dueDate: null },
-        });
+        await updateCalendarAssessment(
+          tx,
+          previous.assessmentId,
+          `[Cancelled] ${item.title}`.slice(0, 200),
+          null,
+          workspaceId,
+        );
       continue;
     }
     // A deleted imported item is a tombstone, so a refresh won't resurrect it.
@@ -159,10 +194,13 @@ export async function applyCalendarFeed(
       }
     }
     if (previous?.assessmentId) {
-      await tx.assessment.update({
-        where: { id: previous.assessmentId },
-        data: { name: item.title, dueDate: new Date(item.startAt) },
-      });
+      await updateCalendarAssessment(
+        tx,
+        previous.assessmentId,
+        item.title,
+        new Date(item.startAt),
+        workspaceId,
+      );
     } else if (previous?.eventId) {
       await tx.calendarEvent.update({
         where: { id: previous.eventId },
@@ -175,31 +213,68 @@ export async function applyCalendarFeed(
         },
       });
     } else if (courseId && item.deadline) {
-      const assessment = await tx.assessment.create({
-        data: {
-          courseId,
-          name: item.title,
-          type: item.type,
-          dueDate: new Date(item.startAt),
-          notes: item.description,
-        },
-      });
-      await tx.importedCalendarItem.create({
+      const identity = item.key.includes('::') ? null : brightspaceEventIdentity(item.description);
+      const candidates = identity
+        ? (
+            await tx.assessment.findMany({
+              where: { courseId, calendarImport: { none: { sourceKey: { contains: '::' } } } },
+            })
+          ).filter((a) => brightspaceEventIdentity(a.notes) === identity)
+        : [];
+      if (candidates.length > 1)
+        throw new ApiError(
+          409,
+          'This calendar has duplicate assessments with conflicting grades or weights. Review those entries before syncing.',
+        );
+      const assessment =
+        candidates[0] ??
+        (await tx.assessment.create({
+          data: {
+            courseId,
+            name: item.title,
+            type: item.type,
+            dueDate: new Date(item.startAt),
+            notes: item.description,
+          },
+        }));
+      const imported = await tx.importedCalendarItem.create({
         data: { subscriptionId, sourceKey: item.key, assessmentId: assessment.id },
       });
+      existing.set(item.key, imported);
+      await updateCalendarAssessment(
+        tx,
+        assessment.id,
+        item.title,
+        new Date(item.startAt),
+        workspaceId,
+      );
     } else {
-      const event = await tx.calendarEvent.create({
-        data: {
-          workspaceId,
-          title: item.title,
-          description: item.description,
-          startAt: new Date(item.startAt),
-          endAt: new Date(item.endAt),
-          allDay: item.allDay,
-          location: item.location,
-          courseId,
-        },
-      });
+      const identity = brightspaceEventIdentity(item.description);
+      const matches = identity
+        ? (await tx.calendarEvent.findMany({ where: { workspaceId, courseId } })).filter(
+            (e) =>
+              brightspaceEventIdentity(e.description) === identity &&
+              e.startAt.toISOString() === item.startAt,
+          )
+        : [];
+      const event =
+        matches.length === 1
+          ? await tx.calendarEvent.update({
+              where: { id: matches[0].id },
+              data: { title: item.title, endAt: new Date(item.endAt), location: item.location },
+            })
+          : await tx.calendarEvent.create({
+              data: {
+                workspaceId,
+                title: item.title,
+                description: item.description,
+                startAt: new Date(item.startAt),
+                endAt: new Date(item.endAt),
+                allDay: item.allDay,
+                location: item.location,
+                courseId,
+              },
+            });
       await tx.importedCalendarItem.create({
         data: { subscriptionId, sourceKey: item.key, eventId: event.id },
       });

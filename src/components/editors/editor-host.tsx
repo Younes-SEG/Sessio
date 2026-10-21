@@ -1,7 +1,8 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 
 import { useState, type FormEvent } from 'react';
-import { Loader2, Trash2 } from 'lucide-react';
+import { ExternalLink, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +13,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useWorkspace } from '@/components/workspace-provider';
+import { brightspaceUrl } from '@/lib/brightspace';
+import { scopeWorkspace } from '@/lib/workspace-scope';
 import type { EditorKind, EditorState } from '@/lib/types';
 import { CourseFields, SemesterFields } from './course-fields';
 import { AssessmentFields } from './assessment-fields';
@@ -123,12 +126,29 @@ function serialize(kind: EditorKind, form: FormData): Record<string, unknown> {
 }
 
 function EntityDialog({ editor }: { editor: EditorState }) {
+  const t = useT();
   const { data, save, remove, closeEditor } = useWorkspace();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const record = editor.id ? data[editor.kind].find((item) => item.id === editor.id) : undefined;
   const initial = { ...editor.defaults, ...record };
+  const linkedAssessment =
+    record && 'assessmentId' in record
+      ? data.assessments.find((item) => item.id === record.assessmentId)
+      : undefined;
+  const sourceUrl =
+    record && ['tasks', 'assessments', 'events'].includes(editor.kind)
+      ? brightspaceUrl(
+          'notes' in record ? record.notes : 'description' in record ? record.description : '',
+          linkedAssessment?.notes,
+        )
+      : null;
+  const initialCourseId = 'courseId' in initial ? initial.courseId : undefined;
+  const activeCourseIds = new Set(scopeWorkspace(data).courses.map((course) => course.id));
+  const editorCourses = data.courses.filter(
+    (course) => activeCourseIds.has(course.id) || course.id === initialCourseId,
+  );
   const label = labels[editor.kind];
   const missing = Boolean(editor.id && !record);
 
@@ -171,19 +191,40 @@ function EntityDialog({ editor }: { editor: EditorState }) {
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-[620px]">
         <DialogHeader>
           <DialogTitle>
-            {confirmDelete ? `Delete ${label}?` : `${editor.id ? 'Edit' : 'New'} ${label}`}
+            {confirmDelete ? t(`Delete ${label}?`) : t(`${editor.id ? 'Edit' : 'New'} ${label}`)}
           </DialogTitle>
           <DialogDescription>
             {confirmDelete
-              ? 'This action is permanent and cannot be undone.'
-              : descriptions[editor.kind]}
+              ? t('This action is permanent and cannot be undone.')
+              : t(descriptions[editor.kind])}
           </DialogDescription>
         </DialogHeader>
+        {sourceUrl && !confirmDelete && (
+          <Button
+            asChild
+            variant="outline"
+            className="mb-5 w-fit border-[var(--primary)] text-primary"
+          >
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerPolicy="no-referrer"
+            >
+              <ExternalLink aria-hidden /> <T text="Open in Brightspace" />
+              <span className="sr-only">
+                <T text="(opens in a new tab)" />
+              </span>
+            </a>
+          </Button>
+        )}
         {missing ? (
           <div className="py-6">
-            <p>This {label} no longer exists.</p>
+            <p>
+              <T text="This" /> {t(label)} <T text="no longer exists." />
+            </p>
             <Button variant="outline" onClick={closeEditor} className="mt-4">
-              Close
+              <T text="Close" />
             </Button>
           </div>
         ) : (
@@ -195,21 +236,21 @@ function EntityDialog({ editor }: { editor: EditorState }) {
                 )}
                 {editor.kind === 'semesters' && <SemesterFields initial={initial} />}
                 {editor.kind === 'assessments' && (
-                  <AssessmentFields initial={initial} courses={data.courses} />
+                  <AssessmentFields initial={initial} courses={editorCourses} />
                 )}
                 {editor.kind === 'tasks' && (
                   <TaskFields
                     initial={initial}
-                    courses={data.courses}
+                    courses={editorCourses}
                     assessments={data.assessments}
                     timeFormat={data.settings.timeFormat}
                   />
                 )}
                 {editor.kind === 'events' && (
-                  <EventFields initial={initial} courses={data.courses} />
+                  <EventFields initial={initial} courses={editorCourses} />
                 )}
                 {editor.kind === 'schedules' && (
-                  <ScheduleFields initial={initial} courses={data.courses} />
+                  <ScheduleFields initial={initial} courses={editorCourses} />
                 )}
               </fieldset>
               {error && (
@@ -217,7 +258,7 @@ function EntityDialog({ editor }: { editor: EditorState }) {
                   role="alert"
                   className="rounded-lg border border-red-400/25 bg-red-400/10 p-3 text-sm text-[var(--destructive)]"
                 >
-                  {error}
+                  {t(error)}
                 </p>
               )}
               <DialogFooter className="mt-2 flex-col-reverse gap-2 border-t border-[var(--border)] pt-5 sm:flex-row">
@@ -233,18 +274,18 @@ function EntityDialog({ editor }: { editor: EditorState }) {
                     }}
                   >
                     <Trash2 size={15} />
-                    Delete
+                    <T text="Delete" />
                   </Button>
                 )}
                 <Button type="button" variant="outline" disabled={busy} onClick={closeEditor}>
-                  Cancel
+                  <T text="Cancel" />
                 </Button>
                 <Button
                   type="submit"
                   disabled={busy || (editor.kind === 'courses' && !data.semesters.length)}
                 >
                   {busy && <Loader2 size={15} className="animate-spin" />}
-                  {busy ? 'Saving…' : editor.id ? 'Save changes' : `Create ${label}`}
+                  {busy ? t('Saving…') : editor.id ? t('Save changes') : t(`Create ${label}`)}
                 </Button>
               </DialogFooter>
             </form>
@@ -252,14 +293,16 @@ function EntityDialog({ editor }: { editor: EditorState }) {
               <div className="form-stack">
                 <p className="text-sm leading-relaxed">
                   {editor.kind === 'courses'
-                    ? 'This deletes the course, its assessments, and recurring classes. Linked tasks and personal events are kept without this course.'
+                    ? t(
+                        'This permanently deletes the course and all its assessments, grades, recurring classes, linked tasks, and linked calendar events. Unlinked personal items are kept. To keep your records, cancel and archive the course instead.',
+                      )
                     : editor.kind === 'semesters'
-                      ? 'A semester can only be deleted after its courses have been moved or removed.'
+                      ? `This permanently deletes this term and its ${data.courses.filter((course) => course.semesterId === editor.id).length} courses, including their assessments, grades, recurring classes, linked tasks and linked calendar events. Unlinked personal items and other terms are kept. Move any courses you want to keep into another term before deleting.`
                       : `This ${label} will be removed from your workspace.`}
                 </p>
                 {error && (
                   <p role="alert" className="text-sm text-[var(--destructive)]">
-                    {error}
+                    {t(error)}
                   </p>
                 )}
                 <DialogFooter>
@@ -273,7 +316,7 @@ function EntityDialog({ editor }: { editor: EditorState }) {
                       setConfirmDelete(false);
                     }}
                   >
-                    Keep {label}
+                    <T text="Keep" /> {t(label)}
                   </Button>
                   <Button
                     type="button"
@@ -281,7 +324,8 @@ function EntityDialog({ editor }: { editor: EditorState }) {
                     disabled={busy}
                     onClick={deleteEntity}
                   >
-                    {busy && <Loader2 size={15} className="animate-spin" />}Delete {label}
+                    {busy && <Loader2 size={15} className="animate-spin" />}
+                    <T text="Delete" /> {t(label)}
                   </Button>
                 </DialogFooter>
               </div>

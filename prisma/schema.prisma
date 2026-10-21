@@ -7,6 +7,51 @@ datasource db {
   provider = "postgresql"
 }
 
+model GmailConnection {
+  id String @id @default(cuid())
+  workspaceId String @unique
+  email String
+  refreshToken String
+  query String
+  autoSync Boolean @default(true)
+  connectedAt DateTime @default(now())
+  consentVersion String @default("2026-10-19")
+  lastCheckedAt DateTime?
+  lastAttemptAt DateTime?
+  lastError String?
+  pageToken String?
+  pageQuery String?
+  syncToken String?
+  syncStartedAt DateTime?
+  messages EmailUpdate[]
+}
+
+model GmailOAuthState {
+  id String @id
+  workspaceId String @unique
+  verifier String
+  expiresAt DateTime
+  claimed Boolean @default(false)
+}
+
+model EmailUpdate {
+  id String @id @default(cuid())
+  connectionId String
+  messageId String
+  subject String
+  sender String
+  receivedAt DateTime
+  excerpt String
+  score Float?
+  maxScore Float?
+  suggestedAssessmentId String?
+  status String @default("PENDING")
+  reviewedAt DateTime?
+  connection GmailConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  @@unique([connectionId, messageId])
+  @@index([connectionId, status, receivedAt])
+}
+
 enum Priority {
   LOW
   MEDIUM
@@ -64,6 +109,9 @@ model Course {
   color       String          @default("#5b67e8")
   notes       String          @default("")
   archived    Boolean         @default(false)
+  gradingRules Json            @default("[]")
+  gradingNotes String          @default("")
+  syllabusImportedAt DateTime?
   semester    Semester        @relation(fields: [semesterId], references: [id], onDelete: Restrict)
   assessments Assessment[]
   tasks       Task[]
@@ -87,7 +135,9 @@ model Assessment {
   notes    String           @default("")
   course   Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   tasks    Task[]
-  calendarImport ImportedCalendarItem?
+  calendarImport ImportedCalendarItem[]
+  calendarTaskCreated Boolean @default(false)
+  studyTaskCreated Boolean @default(false)
 
   @@index([courseId, dueDate])
 }
@@ -105,6 +155,8 @@ model Task {
   assessmentId     String?
   createdAt        DateTime     @default(now())
   completedAt      DateTime?
+  calendarManaged  Boolean      @default(false)
+  studyTask        Boolean      @default(false)
   course           Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull)
   assessment       Assessment?  @relation(fields: [assessmentId], references: [id], onDelete: SetNull)
   subtasks         Subtask[]
@@ -138,7 +190,7 @@ model CalendarEvent {
   courseId    String?
   color       String   @default("#5b67e8")
   course      Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
-  calendarImport ImportedCalendarItem?
+  calendarImport ImportedCalendarItem[]
 
   @@index([startAt, endAt])
   @@index([courseId])
@@ -169,13 +221,15 @@ model ImportedCalendarItem {
   id             String @id @default(cuid())
   subscriptionId String
   sourceKey      String
-  assessmentId   String? @unique
-  eventId        String? @unique
+  assessmentId   String?
+  eventId        String?
   subscription   CalendarSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
   assessment     Assessment? @relation(fields: [assessmentId], references: [id], onDelete: SetNull)
   event          CalendarEvent? @relation(fields: [eventId], references: [id], onDelete: SetNull)
 
   @@unique([subscriptionId, sourceKey])
+  @@index([assessmentId])
+  @@index([eventId])
 }
 
 model ScheduleEntry {
@@ -201,4 +255,5 @@ model Settings {
   showCompleted Boolean @default(false)
   studyBuddy    String  @default("CAT")
   buddyMotion   Boolean @default(true)
+  onboardingCompleted Boolean @default(false)
 }

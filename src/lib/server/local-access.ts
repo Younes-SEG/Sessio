@@ -9,10 +9,22 @@ function localHost(host: string) {
 }
 
 /** Defense in depth for the local edition, not a substitute for hosted authentication. */
-export function isLocalWorkspaceRequest(headers: Headers) {
+export function isLocalWorkspaceRequest(
+  headers: Headers,
+  request?: { method: string; pathname: string },
+) {
   const host = headers.get('host');
   if (!host || !localHost(host)) return false;
-  if (headers.get('sec-fetch-site') === 'cross-site') return false;
+  if (headers.get('sec-fetch-site') === 'cross-site') {
+    // Google returns through a top-level browser navigation. Only this callback
+    // may cross the site boundary; its handler validates state, cookie and PKCE.
+    const gmailReturn =
+      request?.method === 'GET' &&
+      request.pathname === '/api/email/callback' &&
+      headers.get('sec-fetch-mode') === 'navigate' &&
+      headers.get('sec-fetch-dest') === 'document';
+    if (!gmailReturn) return false;
+  }
   const forwardedHost = headers.get('x-forwarded-host');
   if (forwardedHost && forwardedHost.split(',').some((value) => !localHost(value.trim())))
     return false;

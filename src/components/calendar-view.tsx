@@ -1,7 +1,10 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { scopeWorkspace } from '@/lib/workspace-scope';
+import { SemesterFilter } from './semester-filter';
 import {
   BookOpen,
   CalendarDays,
@@ -64,18 +67,24 @@ function occurrenceTime(
   day: Date,
   timeFormat: '12' | '24',
   includeEnd = false,
+  t: ReturnType<typeof useT>,
 ) {
-  if (item.allDay) return 'All day';
+  if (item.allDay) return t('All day');
   if (item.start < startOfDay(day))
-    return isSameDay(item.end, day) ? `Until ${formatTime(item.end, timeFormat)}` : 'Continues';
-  const start = formatTime(item.start, timeFormat);
+    return isSameDay(item.end, day)
+      ? `${t('Until')} ${formatTime(item.end, timeFormat, t.locale)}`
+      : t('Continues');
+  const start = formatTime(item.start, timeFormat, t.locale);
   return includeEnd && item.end > item.start && isSameDay(item.start, item.end)
-    ? `${start} – ${formatTime(item.end, timeFormat)}`
+    ? `${start} – ${formatTime(item.end, timeFormat, t.locale)}`
     : start;
 }
 
 export function CalendarView() {
-  const { data, openEditor, now } = useWorkspace();
+  const t = useT();
+  const { data: workspace, openEditor, now } = useWorkspace();
+  const [semesterId, setSemesterId] = useState('active');
+  const data = scopeWorkspace(workspace, { semesterId });
   const [mode, setMode] = useState<CalendarMode>('month');
   const [anchor, setAnchor] = useState(() => startOfDay(now));
   const [selectedDay, setSelectedDay] = useState(() => startOfDay(now));
@@ -146,36 +155,47 @@ export function CalendarView() {
   const weekLast = addDays(rangeEnd, -1);
   const title =
     mode === 'month'
-      ? formatDate(anchor, { month: 'long', year: 'numeric' })
-      : `${formatDate(rangeStart, { month: 'short', day: 'numeric', ...(rangeStart.getFullYear() !== weekLast.getFullYear() ? { year: 'numeric' as const } : {}) })} – ${formatDate(weekLast, { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      ? formatDate(anchor, { month: 'long', year: 'numeric' }, t.locale)
+      : `${formatDate(rangeStart, { month: 'short', day: 'numeric', ...(rangeStart.getFullYear() !== weekLast.getFullYear() ? { year: 'numeric' as const } : {}) }, t.locale)} – ${formatDate(weekLast, { month: 'short', day: 'numeric', year: 'numeric' }, t.locale)}`;
 
   return (
     <div className="space-y-6">
-      <div className="page-header">
+      <div data-tour="calendar" className="page-header">
         <div>
-          <p className="eyebrow mb-2">MAKE ROOM FOR WHAT MATTERS</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Your calendar</h1>
-          <p className="muted mt-2 text-sm">Classes, deadlines, and a little life in between.</p>
+          <p className="eyebrow mb-2">
+            <T text="MAKE ROOM FOR WHAT MATTERS" />
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            <T text="Your calendar" />
+          </h1>
+          <p className="muted mt-2 text-sm">
+            <T text="Classes, deadlines, and a little life in between." />
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href="/settings#calendar-connections">Connect calendar</Link>
+            <Link data-tour="calendar-connect" href="/settings#calendar-connections">
+              <T text="Connect calendar" />
+            </Link>
           </Button>
-          <Button onClick={() => addEvent(selectedDay)}>
+          <Button data-tour="calendar-add" onClick={() => addEvent(selectedDay)}>
             <Plus size={16} />
-            Add event
+            <T text="Add event" />
           </Button>
         </div>
       </div>
 
-      <section className="card overflow-hidden" aria-label="Calendar">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] p-4 sm:p-5">
+      <section className="card overflow-hidden" aria-label={t('Calendar')}>
+        <div
+          data-tour="calendar-controls"
+          className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] p-4 sm:p-5"
+        >
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label={`Previous ${mode}`}
+                aria-label={`Previous ${t(mode)}`}
                 onClick={() => navigate(-1)}
               >
                 <ChevronLeft size={18} />
@@ -183,7 +203,7 @@ export function CalendarView() {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label={`Next ${mode}`}
+                aria-label={`Next ${t(mode)}`}
                 onClick={() => navigate(1)}
               >
                 <ChevronRight size={18} />
@@ -194,7 +214,8 @@ export function CalendarView() {
                 {title}
               </h2>
               <p className="muted mt-0.5 text-xs">
-                {count} {count === 1 ? 'item' : 'items'} this {mode}
+                {count} {count === 1 ? t('item') : t('items')}{' '}
+                {t(mode === 'week' ? 'this week' : 'this month')}
               </p>
             </div>
             <Button
@@ -206,13 +227,13 @@ export function CalendarView() {
                 setSelectedDay(startOfDay(now));
               }}
             >
-              Today
+              <T text="Today" />
             </Button>
           </div>
           <div
             className="inline-flex gap-1 rounded-lg bg-[var(--muted)] p-1"
             role="group"
-            aria-label="Calendar view"
+            aria-label={t('Calendar view')}
           >
             {(['month', 'week'] as const).map((value) => (
               <button
@@ -222,16 +243,27 @@ export function CalendarView() {
                 onClick={() => selectMode(value)}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors ${mode === value ? 'bg-[var(--background)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
               >
-                {value}
+                {t(value)}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3 sm:px-5">
+        <div
+          data-tour="calendar-filters"
+          className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3 sm:px-5"
+        >
+          <SemesterFilter
+            semesters={workspace.semesters}
+            value={semesterId}
+            onChange={(value) => {
+              setSemesterId(value);
+              setCourseId('all');
+            }}
+          />
           <div className="flex items-center gap-3">
             <label htmlFor="calendar-course" className="muted text-xs font-medium">
-              Show
+              <T text="Show" />
             </label>
             <select
               id="calendar-course"
@@ -239,8 +271,12 @@ export function CalendarView() {
               value={courseId}
               onChange={(event) => setCourseId(event.target.value)}
             >
-              <option value="all">Everything</option>
-              <option value="personal">Personal only</option>
+              <option value="all">
+                <T text="Everything" />
+              </option>
+              <option value="personal">
+                <T text="Personal only" />
+              </option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.code}
@@ -255,11 +291,11 @@ export function CalendarView() {
               onChange={(event) => setShowCompleted(event.target.checked)}
               className="size-3.5 accent-[var(--primary)]"
             />
-            Show completed
+            <T text="Show completed" />
           </label>
         </div>
 
-        <div className="overflow-x-auto">
+        <div data-tour="calendar-grid" className="overflow-x-auto">
           {mode === 'month' ? (
             <MonthGrid
               days={days}
@@ -291,41 +327,45 @@ export function CalendarView() {
               return (
                 <span key={kind} className="inline-flex items-center gap-1.5">
                   <Icon size={12} />
-                  {kindLabels[kind]}
+                  {t(kindLabels[kind])}
                 </span>
               );
             })}
           </div>
-          <p className="muted text-[11px]">Times shown in your local time zone</p>
+          <p className="muted text-[11px]">
+            <T text="Times shown in your local time zone" />
+          </p>
         </div>
       </section>
 
       {mode === 'month' && (
-        <section className="card p-5 sm:p-6" aria-label="Selected day agenda">
+        <section className="card p-5 sm:p-6" aria-label={t('Selected day agenda')}>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="eyebrow mb-1">DAY AT A GLANCE</p>
+              <p className="eyebrow mb-1">
+                <T text="DAY AT A GLANCE" />
+              </p>
               <h2 className="section-title">
                 {isSameDay(selectedDay, now)
-                  ? 'Today'
-                  : formatDate(selectedDay, { weekday: 'long' })}
+                  ? t('Today')
+                  : formatDate(selectedDay, { weekday: 'long' }, t.locale)}
                 <span className="muted ml-2 text-sm font-normal">
-                  {formatDate(selectedDay, { month: 'long', day: 'numeric' })}
+                  {formatDate(selectedDay, { month: 'long', day: 'numeric' }, t.locale)}
                 </span>
               </h2>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="ghost" size="sm" onClick={() => addDeadline('tasks')}>
                 <Plus size={14} />
-                Task
+                <T text="Task" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => addDeadline('assessments')}>
                 <Plus size={14} />
-                Assessment
+                <T text="Assessment" />
               </Button>
               <Button variant="outline" size="sm" onClick={() => addEvent(selectedDay)}>
                 <Plus size={14} />
-                Event
+                <T text="Event" />
               </Button>
             </div>
           </div>
@@ -345,17 +385,21 @@ export function CalendarView() {
           ) : (
             <div className="empty-state rounded-xl bg-[var(--muted)]/40 px-4 py-8">
               <CalendarDays size={25} className="muted mx-auto mb-3" />
-              <h3 className="text-sm font-medium">A little room in your day</h3>
+              <h3 className="text-sm font-medium">
+                <T text="A little room in your day" />
+              </h3>
               <p className="muted mt-1.5 text-sm">
                 {courseId !== 'all'
-                  ? 'No items match this calendar filter.'
-                  : 'Nothing scheduled. Make space for a break, or plan something ahead.'}
+                  ? t('No items match this calendar filter.')
+                  : t('Nothing scheduled. Make space for a break, or plan something ahead.')}
               </p>
             </div>
           )}
         </section>
       )}
-      <p className="muted text-xs sm:hidden">Swipe the calendar sideways to see all seven days.</p>
+      <p className="muted text-xs sm:hidden">
+        <T text="Swipe the calendar sideways to see all seven days." />
+      </p>
     </div>
   );
 }
@@ -380,6 +424,7 @@ function MonthGrid({
   onAddEvent,
   onOpen,
 }: GridProps & { anchor: Date; selectedDay: Date; onSelectDay: (day: Date) => void }) {
+  const t = useT();
   return (
     <div className="min-w-[720px]">
       <div className="grid grid-cols-7 border-b border-[var(--border)]">
@@ -388,7 +433,7 @@ function MonthGrid({
             key={dateKey(day)}
             className="muted px-3 py-3 text-center text-[11px] font-medium uppercase tracking-wider"
           >
-            {formatDate(day, { weekday: 'short' })}
+            {formatDate(day, { weekday: 'short' }, t.locale)}
           </div>
         ))}
       </div>
@@ -409,7 +454,7 @@ function MonthGrid({
                   onClick={() => onSelectDay(day)}
                   aria-current={today ? 'date' : undefined}
                   aria-pressed={selected}
-                  aria-label={`Show agenda for ${formatDate(day, { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                  aria-label={`${t('Show agenda for')} ${formatDate(day, { weekday: 'long', month: 'long', day: 'numeric' }, t.locale)}`}
                   className={`flex size-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : selected ? 'bg-[var(--muted)] text-[var(--primary)] ring-1 ring-[var(--primary)]/25' : currentMonth ? 'hover:bg-[var(--muted)]' : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'}`}
                 >
                   {day.getDate()}
@@ -417,7 +462,7 @@ function MonthGrid({
                 <button
                   type="button"
                   onClick={() => onAddEvent(day)}
-                  aria-label={`Add event on ${formatDate(day, { month: 'long', day: 'numeric' })}`}
+                  aria-label={`${t('Add event on')} ${formatDate(day, { month: 'long', day: 'numeric' }, t.locale)}`}
                   className="muted flex size-6 items-center justify-center rounded-md opacity-45 transition-opacity hover:bg-[var(--muted)] hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
                 >
                   <Plus size={13} />
@@ -438,7 +483,7 @@ function MonthGrid({
                     className="muted w-full rounded-md px-1.5 py-1 text-left text-[10px] font-medium hover:bg-[var(--muted)]"
                     onClick={() => onSelectDay(day)}
                   >
-                    +{dayItems.length - 3} more · view day
+                    +{dayItems.length - 3} <T text="more · view day" />
                   </button>
                 )}
               </div>
@@ -462,12 +507,13 @@ function MonthItem({
   onOpen: () => void;
 }) {
   const Icon = kindIcons[item.kind];
-  const time = occurrenceTime(item, day, timeFormat);
+  const t = useT();
+  const time = occurrenceTime(item, day, timeFormat, false, t);
   return (
     <button
       type="button"
       onClick={onOpen}
-      title={`${kindLabels[item.kind]}: ${item.title} · ${time}`}
+      title={`${t(kindLabels[item.kind])}: ${item.title} · ${time}`}
       className={`flex w-full min-w-0 items-center gap-1.5 rounded-md border-l-2 px-1.5 py-1.5 text-left text-[10px] hover:ring-1 hover:ring-[var(--control-border)] ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
       style={{ borderLeftColor: item.color, backgroundColor: `${item.color}12` }}
     >
@@ -495,6 +541,7 @@ function WeekGrid({
   onAddEvent,
   onOpen,
 }: GridProps & { courses: Map<string, Course> }) {
+  const t = useT();
   return (
     <div className="grid min-w-[980px] grid-cols-7">
       {days.map((day, index) => {
@@ -503,13 +550,17 @@ function WeekGrid({
         return (
           <section
             key={dateKey(day)}
-            aria-label={formatDate(day, { weekday: 'long', month: 'long', day: 'numeric' })}
+            aria-label={formatDate(
+              day,
+              { weekday: 'long', month: 'long', day: 'numeric' },
+              t.locale,
+            )}
             className={`min-w-0 ${index !== 6 ? 'border-r border-[var(--border)]' : ''} ${today ? 'bg-[var(--primary)]/5' : ''}`}
           >
             <div className="flex items-center justify-between border-b border-[var(--border)] px-3 py-4">
               <div>
                 <p className="muted text-[10px] font-medium uppercase tracking-wider">
-                  {formatDate(day, { weekday: 'short' })}
+                  {formatDate(day, { weekday: 'short' }, t.locale)}
                 </p>
                 <p
                   className={`mt-1 flex size-8 items-center justify-center rounded-full text-xl font-semibold ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : ''}`}
@@ -521,7 +572,7 @@ function WeekGrid({
                 type="button"
                 onClick={() => onAddEvent(day)}
                 className="muted rounded-md p-1 hover:bg-[var(--muted)]"
-                aria-label={`Add event on ${formatDate(day, { month: 'long', day: 'numeric' })}`}
+                aria-label={`${t('Add event on')} ${formatDate(day, { month: 'long', day: 'numeric' }, t.locale)}`}
               >
                 <Plus size={14} />
               </button>
@@ -541,7 +592,7 @@ function WeekGrid({
                     >
                       <span className="mb-2 flex items-center gap-1.5 text-[10px] text-[var(--muted-foreground)]">
                         <Icon size={11} />
-                        {kindLabels[item.kind]}
+                        {t(kindLabels[item.kind])}
                       </span>
                       <span
                         className={`block break-words text-xs font-medium leading-5 ${item.completed ? 'line-through' : ''}`}
@@ -549,7 +600,7 @@ function WeekGrid({
                         {item.title}
                       </span>
                       <span className="mt-2 block text-[10px] leading-4 text-[var(--muted-foreground)]">
-                        {occurrenceTime(item, day, timeFormat, true)}
+                        {occurrenceTime(item, day, timeFormat, true, t)}
                       </span>
                       {course && (
                         <span
@@ -569,7 +620,9 @@ function WeekGrid({
                   );
                 })
               ) : (
-                <p className="muted pt-12 text-center text-[11px]">A little breathing room</p>
+                <p className="muted pt-12 text-center text-[11px]">
+                  <T text="A little breathing room" />
+                </p>
               )}
             </div>
           </section>
@@ -592,6 +645,7 @@ function AgendaItem({
   timeFormat: '12' | '24';
   onOpen: () => void;
 }) {
+  const t = useT();
   const Icon = kindIcons[item.kind];
   return (
     <button
@@ -610,11 +664,11 @@ function AgendaItem({
           {item.title}
         </p>
         <p className="muted mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-          <span>{course?.code ?? 'Personal'}</span>
+          <span>{course?.code ?? t('Personal')}</span>
           <span aria-hidden="true">·</span>
           <span>
-            {kindLabels[item.kind]}
-            {item.completed ? ' · Completed' : ''}
+            {t(kindLabels[item.kind])}
+            {item.completed ? t(' · Completed') : ''}
           </span>
           {item.location && (
             <span className="inline-flex items-center gap-1">
@@ -626,7 +680,7 @@ function AgendaItem({
       </div>
       <span className="muted flex max-w-32 shrink-0 items-center gap-1.5 text-right text-xs sm:max-w-none">
         <Clock3 size={13} className="hidden shrink-0 sm:block" />
-        {occurrenceTime(item, day, timeFormat, true)}
+        {occurrenceTime(item, day, timeFormat, true, t)}
       </span>
       <ChevronRight size={15} className="muted hidden shrink-0 sm:block" />
     </button>

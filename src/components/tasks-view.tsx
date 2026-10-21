@@ -1,6 +1,10 @@
 'use client';
+import { displayTaskTitle } from '@/lib/study-tasks';
+import { T, useT } from '@/components/language-provider';
 
 import { useState } from 'react';
+import { scopeWorkspace } from '@/lib/workspace-scope';
+import { SemesterFilter } from './semester-filter';
 import {
   ArrowUpRight,
   Check,
@@ -43,7 +47,11 @@ const sortOptions: { id: string; label: string; sort: TaskSort; direction: 'asc'
 ];
 
 export function TasksView() {
-  const { data, now, save, openEditor } = useWorkspace();
+  const t = useT();
+  const { data: workspace, now, save, openEditor } = useWorkspace();
+  const [semesterId, setSemesterId] = useState('active');
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const data = scopeWorkspace(workspace, { semesterId, includeArchived });
   const [view, setView] = useState<TaskView>('today');
   const [search, setSearch] = useState('');
   const [courseId, setCourseId] = useState('all');
@@ -119,21 +127,46 @@ export function TasksView() {
 
   return (
     <div className="space-y-7">
-      <header className="page-header">
+      <header data-tour="tasks" className="page-header">
         <div>
-          <p className="eyebrow mb-2">ONE STEP AT A TIME</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Tasks</h1>
+          <p className="eyebrow mb-2">
+            <T text="ONE STEP AT A TIME" />
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            <T text="Tasks" />
+          </h1>
           <p className="muted mt-2 text-sm">
-            A clear head starts with a clear list. {openCount} {openCount === 1 ? 'task' : 'tasks'}{' '}
-            to go.
+            <T text="A clear head starts with a clear list." /> {openCount}{' '}
+            {openCount === 1 ? t('task') : t('tasks')} <T text="to go." />
           </p>
         </div>
-        <Button onClick={() => openEditor('tasks')}>
+        <Button data-tour="task-add" onClick={() => openEditor('tasks')}>
           <Plus size={16} />
-          New task
+          <T text="New task" />
         </Button>
       </header>
-      <div className="tabs overflow-x-auto" aria-label="Task views">
+      <div className="flex flex-wrap items-center gap-4">
+        <SemesterFilter
+          semesters={workspace.semesters}
+          value={semesterId}
+          onChange={(value) => {
+            setSemesterId(value);
+            setCourseId('all');
+          }}
+        />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(event) => {
+              setIncludeArchived(event.target.checked);
+              setCourseId('all');
+            }}
+          />
+          <T text="Include archived courses" />
+        </label>
+      </div>
+      <div data-tour="task-views" className="tabs overflow-x-auto" aria-label={t('Task views')}>
         {views.map((item) => (
           <button
             key={item.id}
@@ -142,7 +175,7 @@ export function TasksView() {
             aria-pressed={view === item.id}
             onClick={() => setView(item.id)}
           >
-            {item.label}
+            {t(item.label)}
             <span
               className={`ml-2 text-xs ${item.id === 'overdue' && counts[item.id] > 0 ? 'text-[var(--destructive)]' : 'text-[var(--muted-foreground)]'}`}
             >
@@ -151,8 +184,11 @@ export function TasksView() {
           </button>
         ))}
       </div>
-      <section className="card overflow-hidden" aria-label="Your tasks">
-        <div className="space-y-4 border-b border-[var(--border)] p-4 sm:p-5">
+      <section className="card overflow-hidden" aria-label={t('Your tasks')}>
+        <div
+          data-tour="task-filters"
+          className="space-y-4 border-b border-[var(--border)] p-4 sm:p-5"
+        >
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative min-w-[180px] flex-1">
               <Search
@@ -160,8 +196,8 @@ export function TasksView() {
                 className="muted pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
               />
               <Input
-                aria-label="Search tasks"
-                placeholder="Search tasks…"
+                aria-label={t('Search tasks')}
+                placeholder={t('Search tasks…')}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="pl-9"
@@ -174,7 +210,7 @@ export function TasksView() {
               onClick={() => setShowFilters((value) => !value)}
             >
               <SlidersHorizontal size={15} />
-              Filters
+              <T text="Filters" />
               {filterCount > 0 && (
                 <span className="flex size-5 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] text-[var(--primary-foreground)]">
                   {filterCount}
@@ -184,13 +220,13 @@ export function TasksView() {
             </Button>
             <select
               className="input w-full sm:w-auto sm:max-w-56"
-              aria-label="Sort tasks"
+              aria-label={t('Sort tasks')}
               value={sortId}
               onChange={(event) => setSortId(event.target.value)}
             >
               {sortOptions.map((option) => (
                 <option key={option.id} value={option.id}>
-                  {option.label}
+                  {t(option.label)}
                 </option>
               ))}
             </select>
@@ -201,15 +237,21 @@ export function TasksView() {
               className="grid gap-4 border-t border-[var(--border)] pt-4 sm:grid-cols-2 xl:grid-cols-5"
             >
               <div className="field">
-                <Label htmlFor="task-course-filter">Course</Label>
+                <Label htmlFor="task-course-filter">
+                  <T text="Course" />
+                </Label>
                 <select
                   id="task-course-filter"
                   className="input"
                   value={courseId}
                   onChange={(event) => setCourseId(event.target.value)}
                 >
-                  <option value="all">All courses</option>
-                  <option value="personal">Personal / no course</option>
+                  <option value="all">
+                    <T text="All courses" />
+                  </option>
+                  <option value="personal">
+                    <T text="Personal / no course" />
+                  </option>
                   {data.courses.map((course) => (
                     <option key={course.id} value={course.id}>
                       {course.code}
@@ -218,39 +260,49 @@ export function TasksView() {
                 </select>
               </div>
               <div className="field">
-                <Label htmlFor="task-priority-filter">Priority</Label>
+                <Label htmlFor="task-priority-filter">
+                  <T text="Priority" />
+                </Label>
                 <select
                   id="task-priority-filter"
                   className="input"
                   value={priority}
                   onChange={(event) => setPriority(event.target.value as Priority | 'all')}
                 >
-                  <option value="all">All priorities</option>
+                  <option value="all">
+                    <T text="All priorities" />
+                  </option>
                   {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((value) => (
                     <option key={value} value={value}>
-                      {statusLabel(value)}
+                      {t(statusLabel(value))}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="field">
-                <Label htmlFor="task-status-filter">Status</Label>
+                <Label htmlFor="task-status-filter">
+                  <T text="Status" />
+                </Label>
                 <select
                   id="task-status-filter"
                   className="input"
                   value={status}
                   onChange={(event) => setStatus(event.target.value as TaskStatus | 'all')}
                 >
-                  <option value="all">All statuses</option>
+                  <option value="all">
+                    <T text="All statuses" />
+                  </option>
                   {['NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'].map((value) => (
                     <option key={value} value={value}>
-                      {statusLabel(value)}
+                      {t(statusLabel(value))}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="field">
-                <Label htmlFor="task-date-from">Due from</Label>
+                <Label htmlFor="task-date-from">
+                  <T text="Due from" />
+                </Label>
                 <Input
                   id="task-date-from"
                   type="date"
@@ -260,7 +312,9 @@ export function TasksView() {
                 />
               </div>
               <div className="field">
-                <Label htmlFor="task-date-to">Due through</Label>
+                <Label htmlFor="task-date-to">
+                  <T text="Due through" />
+                </Label>
                 <Input
                   id="task-date-to"
                   type="date"
@@ -274,7 +328,7 @@ export function TasksView() {
           {hasFilters && (
             <div className="flex items-center justify-between gap-3 text-xs">
               <p className="muted">
-                {tasks.length} {tasks.length === 1 ? 'match' : 'matches'}
+                {tasks.length} {tasks.length === 1 ? t('match') : t('matches')}
                 {filterCount > 0
                   ? ` · ${filterCount} active ${filterCount === 1 ? 'filter' : 'filters'}`
                   : ''}
@@ -285,13 +339,13 @@ export function TasksView() {
                 onClick={clearFilters}
               >
                 <X size={12} />
-                Clear filters
+                <T text="Clear filters" />
               </button>
             </div>
           )}
           {dateError && (
             <p role="alert" className="text-sm text-[var(--destructive)]">
-              The end of the date range must be on or after its start.
+              <T text="The end of the date range must be on or after its start." />
             </p>
           )}
         </div>
@@ -300,14 +354,14 @@ export function TasksView() {
             role="alert"
             className="flex items-center justify-between gap-3 border-b border-red-500/20 bg-red-500/10 px-5 py-3 text-sm text-[var(--destructive)]"
           >
-            <p>{error}</p>
-            <button type="button" aria-label="Dismiss error" onClick={() => setError('')}>
+            <p>{t(error)}</p>
+            <button type="button" aria-label={t('Dismiss error')} onClick={() => setError('')}>
               <X size={15} />
             </button>
           </div>
         )}
         {tasks.length ? (
-          <ul className="divide-y divide-[var(--border)]">
+          <ul data-tour="task-list" className="divide-y divide-[var(--border)]">
             {tasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -318,7 +372,7 @@ export function TasksView() {
             ))}
           </ul>
         ) : (
-          <div className="empty-state px-6 py-16">
+          <div data-tour="task-list" className="empty-state px-6 py-16">
             <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[var(--muted)] text-[var(--primary)]">
               {view === 'overdue' || view === 'completed' ? (
                 <CheckCheck size={26} />
@@ -328,27 +382,27 @@ export function TasksView() {
             </div>
             <h2 className="text-lg font-semibold">
               {hasFilters
-                ? 'No tasks match your filters'
+                ? t('No tasks match your filters')
                 : view === 'today'
-                  ? 'A fresh start for today'
+                  ? t('A fresh start for today')
                   : view === 'overdue'
-                    ? 'You’re right on track'
+                    ? t('You’re right on track')
                     : view === 'completed'
-                      ? 'Small steps add up'
+                      ? t('Small steps add up')
                       : view === 'upcoming'
-                        ? 'A little room to plan ahead'
-                        : 'Make space for what matters'}
+                        ? t('A little room to plan ahead')
+                        : t('Make space for what matters')}
             </h2>
             <p className="muted mx-auto mt-2 max-w-sm text-sm leading-relaxed">
               {hasFilters
-                ? 'Try another search or clear your filters to see more tasks.'
+                ? t('Try another search or clear your filters to see more tasks.')
                 : view === 'overdue'
-                  ? 'No overdue tasks. Enjoy the breathing room.'
+                  ? t('No overdue tasks. Enjoy the breathing room.')
                   : view === 'completed'
-                    ? 'Completed tasks will collect here as you make progress.'
+                    ? t('Completed tasks will collect here as you make progress.')
                     : view === 'today'
-                      ? 'Nothing is due today. Choose your next small step.'
-                      : 'Capture your next task and give it a place in your week.'}
+                      ? t('Nothing is due today. Choose your next small step.')
+                      : t('Capture your next task and give it a place in your week.')}
             </p>
             <Button
               variant="outline"
@@ -356,14 +410,14 @@ export function TasksView() {
               onClick={hasFilters ? clearFilters : () => openEditor('tasks')}
             >
               {hasFilters ? <X size={15} /> : <Plus size={15} />}
-              {hasFilters ? 'Clear filters' : 'Add a task'}
+              {hasFilters ? t('Clear filters') : t('Add a task')}
             </Button>
           </div>
         )}
         {tasks.length > 0 && (
           <div className="muted border-t border-[var(--border)] px-5 py-3 text-xs">
-            {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} · Select a title to edit the
-            details.
+            {tasks.length} {tasks.length === 1 ? t('task') : t('tasks')}{' '}
+            <T text="· Select a title to edit the details." />
           </div>
         )}
       </section>
@@ -372,6 +426,7 @@ export function TasksView() {
 }
 
 function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle: () => void }) {
+  const t = useT();
   const { data, now, openEditor } = useWorkspace();
   const course = data.courses.find((item) => item.id === task.courseId);
   const completed = task.status === 'COMPLETED';
@@ -406,7 +461,7 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
           className={`text-left text-sm font-medium leading-6 transition-colors hover:text-[var(--primary)] ${completed ? 'text-[var(--muted-foreground)] line-through' : ''}`}
           onClick={() => openEditor('tasks', task.id)}
         >
-          {task.title}
+          {displayTaskTitle(task, t.locale)}
         </button>
         <div className="muted mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           {course ? (
@@ -418,16 +473,18 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
               {course.code}
             </span>
           ) : (
-            <span>Personal</span>
+            <span>
+              <T text="Personal" />
+            </span>
           )}
           <span className={`inline-flex items-center gap-1.5 ${priorityClass}`}>
             <span className="size-1.5 rounded-full bg-current" />
-            {statusLabel(task.priority)}
+            {t(statusLabel(task.priority))}
           </span>
           {task.status === 'IN_PROGRESS' && (
             <span className="inline-flex items-center gap-1.5">
               <Circle size={11} className="text-[var(--primary)]" />
-              In progress
+              <T text="In progress" />
             </span>
           )}
           {task.estimatedMinutes && (
@@ -448,9 +505,11 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
             </span>
           )}
           <span className={`sm:hidden ${overdue ? 'text-[var(--destructive)]' : ''}`}>
-            {overdue ? 'Overdue · ' : ''}
-            {dueLabel(task.dueDate, now)}
-            {task.dueDate ? `, ${formatTime(task.dueDate, data.settings.timeFormat)}` : ''}
+            {overdue ? t('Overdue · ') : ''}
+            {dueLabel(task.dueDate, now, t.locale)}
+            {task.dueDate
+              ? `, ${formatTime(task.dueDate, data.settings.timeFormat, t.locale)}`
+              : ''}
           </span>
         </div>
       </div>
@@ -458,11 +517,11 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
         className={`hidden shrink-0 pt-1 text-right text-xs sm:block ${overdue ? 'text-[var(--destructive)]' : 'muted'}`}
       >
         <p className="font-medium">
-          {overdue ? 'Overdue · ' : ''}
-          {dueLabel(task.dueDate, now)}
+          {overdue ? t('Overdue · ') : ''}
+          {dueLabel(task.dueDate, now, t.locale)}
         </p>
         {task.dueDate && (
-          <p className="mt-1.5">{formatTime(task.dueDate, data.settings.timeFormat)}</p>
+          <p className="mt-1.5">{formatTime(task.dueDate, data.settings.timeFormat, t.locale)}</p>
         )}
       </div>
       <Button

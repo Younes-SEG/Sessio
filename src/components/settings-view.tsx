@@ -1,4 +1,5 @@
 'use client';
+import { LanguageSwitch, T, useT } from '@/components/language-provider';
 
 import { useState, type FormEvent } from 'react';
 import {
@@ -22,8 +23,10 @@ import type { Settings } from '@/lib/types';
 import { CalendarSubscriptions } from './calendar-subscriptions';
 import { PrivacyControls } from './privacy-controls';
 import { BuddyCharacter, buddyCharacters } from './buddy-character';
+import { EmailUpdatesLink } from './email-updates';
 
 export function SettingsView() {
+  const t = useT();
   const { data, save, openEditor } = useWorkspace();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -68,12 +71,31 @@ export function SettingsView() {
     <div className="mx-auto max-w-4xl space-y-7">
       <header className="page-header">
         <div>
-          <p className="eyebrow mb-2">MAKE YOURSELF AT HOME</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-          <p className="muted mt-2 text-sm">A few thoughtful details to make this space yours.</p>
+          <p className="eyebrow mb-2">
+            <T text="MAKE YOURSELF AT HOME" />
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            <T text="Settings" />
+          </h1>
+          <p className="muted mt-2 text-sm">
+            <T text="A few thoughtful details to make this space yours." />
+          </p>
         </div>
       </header>
+      <section className="card flex items-center justify-between gap-4 p-5">
+        <h2 className="section-title">{t('Language')}</h2>
+        <LanguageSwitch />
+      </section>
       <CalendarSubscriptions />
+      <section className="card flex flex-wrap items-center justify-between gap-4 p-5">
+        <div>
+          <h2 className="section-title">{t('Email updates')}</h2>
+          <p className="muted mt-2 text-sm">
+            {t('Connect Gmail and review grade notifications from your school.')}
+          </p>
+        </div>
+        <EmailUpdatesLink />
+      </section>
       <PrivacyControls />
       <form
         onSubmit={savePreferences}
@@ -86,8 +108,12 @@ export function SettingsView() {
               <Settings2 size={18} />
             </div>
             <div>
-              <h2 className="section-title">Your preferences</h2>
-              <p className="muted mt-1 text-xs">Little adjustments, a better everyday.</p>
+              <h2 className="section-title">
+                <T text="Your preferences" />
+              </h2>
+              <p className="muted mt-1 text-xs">
+                <T text="Little adjustments, a better everyday." />
+              </p>
             </div>
           </div>
           <PreferenceFields key={JSON.stringify(data.settings)} settings={data.settings} />
@@ -96,20 +122,22 @@ export function SettingsView() {
           <div className="min-w-0 flex-1">
             {error ? (
               <p role="alert" className="text-sm text-[var(--destructive)]">
-                {error}
+                {t(error)}
               </p>
             ) : saved ? (
               <p role="status" className="flex items-center gap-2 text-sm text-[var(--primary)]">
                 <CheckCircle2 size={15} />
-                Your preferences are saved.
+                <T text="Your preferences are saved." />
               </p>
             ) : (
-              <p className="muted text-xs">Preferences apply across your workspace.</p>
+              <p className="muted text-xs">
+                <T text="Preferences apply across your workspace." />
+              </p>
             )}
           </div>
           <Button type="submit" disabled={busy}>
             {busy ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
-            {busy ? 'Saving…' : 'Save preferences'}
+            {busy ? t('Saving…') : t('Save preferences')}
           </Button>
         </div>
       </form>
@@ -120,13 +148,17 @@ export function SettingsView() {
               <CalendarDays size={18} />
             </div>
             <div>
-              <h2 className="section-title">Semesters</h2>
-              <p className="muted mt-1 text-xs">Give each chapter its own space.</p>
+              <h2 id="terms" className="section-title scroll-mt-24">
+                <T text="Terms (semesters)" />
+              </h2>
+              <p className="muted mt-1 text-xs">
+                <T text="Edit dates, choose your active term, or delete a term and its courses." />
+              </p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={() => openEditor('semesters')}>
             <Plus size={14} />
-            Add semester
+            <T text="Add semester" />
           </Button>
         </div>
         {semesters.length ? (
@@ -151,27 +183,39 @@ export function SettingsView() {
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-medium">{semester.name}</h3>
                       {semester.isActive && (
-                        <span className="badge text-[var(--primary)]">Active</span>
+                        <span className="badge text-[var(--primary)]">
+                          <T text="Active" />
+                        </span>
                       )}
                     </div>
                     <p className="muted mt-1.5 text-xs leading-relaxed">
-                      {formatDate(semester.startDate.slice(0, 10), {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}{' '}
+                      {formatDate(
+                        semester.startDate.slice(0, 10),
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        },
+                        t.locale,
+                      )}{' '}
                       –{' '}
-                      {formatDate(semester.endDate.slice(0, 10), {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {formatDate(
+                        semester.endDate.slice(0, 10),
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        },
+                        t.locale,
+                      )}
                       <span className="ml-2">
-                        · {count} {count === 1 ? 'course' : 'courses'}
+                        · {count} {count === 1 ? t('course') : t('courses')}
                       </span>
                     </p>
                   </div>
-                  <Pencil size={15} className="muted shrink-0" />
+                  <span className="flex items-center gap-2 text-sm text-primary">
+                    <Pencil size={15} /> <T text="Edit" />
+                  </span>
                 </button>
               );
             })}
@@ -179,20 +223,20 @@ export function SettingsView() {
         ) : (
           <div className="empty-state px-6 py-12">
             <CalendarDays size={30} className="muted mx-auto mb-4" />
-            <h3 className="font-semibold">Your next chapter starts here</h3>
+            <h3 className="font-semibold">
+              <T text="Your next chapter starts here" />
+            </h3>
             <p className="muted mx-auto mt-2 max-w-sm text-sm leading-relaxed">
-              Create a semester before adding your courses. Its dates also define when weekly
-              classes appear.
+              <T text="Create a semester before adding your courses. Its dates also define when weekly classes appear." />
             </p>
             <Button variant="outline" className="mt-5" onClick={() => openEditor('semesters')}>
               <Plus size={15} />
-              Create your first semester
+              <T text="Create your first semester" />
             </Button>
           </div>
         )}
         <p className="muted border-t border-[var(--border)] px-5 py-4 text-xs leading-relaxed sm:px-7">
-          The active semester is selected by default for new courses. Select a semester to edit its
-          dates, change its active status, or delete it.
+          <T text="The active semester is selected by default for new courses. Select a semester to edit its dates, change its active status, or delete it." />
         </p>
       </section>
     </div>
@@ -200,13 +244,16 @@ export function SettingsView() {
 }
 
 function PreferenceFields({ settings }: { settings: Settings }) {
+  const t = useT();
   return (
     <div className="divide-y divide-[var(--border)] px-5 sm:px-7">
       <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
         <div>
-          <Label htmlFor="settings-name">What should we call you?</Label>
+          <Label htmlFor="settings-name">
+            <T text="What should we call you?" />
+          </Label>
           <p className="muted mt-2 text-xs leading-relaxed">
-            Optional. A nickname or no name is fine.
+            <T text="Optional. A nickname or no name is fine." />
           </p>
         </div>
         <Input
@@ -214,16 +261,18 @@ function PreferenceFields({ settings }: { settings: Settings }) {
           name="displayName"
           defaultValue={settings.displayName}
           maxLength={80}
-          placeholder="Your first name"
+          placeholder={t('Your first name')}
           autoComplete="given-name"
         />
       </div>
       <fieldset className="min-w-0 py-6">
         <legend id="appearance" className="float-left w-full scroll-mt-6 text-sm font-medium">
-          Appearance
+          <T text="Appearance" />
         </legend>
         <div className="clear-both pt-2">
-          <p className="muted mb-4 text-xs">Choose your favorite look, or follow your device.</p>
+          <p className="muted mb-4 text-xs">
+            <T text="Choose your favorite look, or follow your device." />
+          </p>
           <div className="grid grid-cols-3 gap-3">
             {(
               [
@@ -244,7 +293,7 @@ function PreferenceFields({ settings }: { settings: Settings }) {
                   <ThemePreview theme={value} />
                   <span className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium sm:text-sm">
                     <Icon size={14} />
-                    {label}
+                    {t(label)}
                   </span>
                 </div>
               </label>
@@ -252,11 +301,12 @@ function PreferenceFields({ settings }: { settings: Settings }) {
           </div>
         </div>
         <fieldset className="mt-6 min-w-0 border-t border-[var(--border)] pt-5">
-          <legend className="float-left w-full text-sm font-medium">Your study buddy</legend>
+          <legend className="float-left w-full text-sm font-medium">
+            <T text="Your study buddy" />
+          </legend>
           <div className="clear-both pt-2">
             <p className="muted mb-4 text-xs leading-relaxed">
-              A little company at the edge of your screen. No sounds, messages, or things to take
-              care of.
+              <T text="A little company at the edge of your screen. No sounds, messages, or things to take care of." />
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {buddyCharacters.map((option) => (
@@ -272,8 +322,8 @@ function PreferenceFields({ settings }: { settings: Settings }) {
                     <div className="mx-auto mb-2 size-16">
                       <BuddyCharacter character={option.value} />
                     </div>
-                    <span className="block text-sm font-medium">{option.name}</span>
-                    <span className="muted mt-1 block text-[11px]">{option.description}</span>
+                    <span className="block text-sm font-medium">{t(option.name)}</span>
+                    <span className="muted mt-1 block text-[11px]">{t(option.description)}</span>
                   </div>
                 </label>
               ))}
@@ -286,10 +336,11 @@ function PreferenceFields({ settings }: { settings: Settings }) {
                 className="mt-0.5 shrink-0"
               />
               <span>
-                <span className="text-sm font-medium">Gentle movement</span>
+                <span className="text-sm font-medium">
+                  <T text="Gentle movement" />
+                </span>
                 <span className="muted mt-1 block text-xs leading-relaxed">
-                  Wander, follow your mouse along the edges, and hop along on page changes. Turn off
-                  for a still companion. Your device’s reduced-motion setting is always respected.
+                  <T text="Wander, follow your mouse along the edges, and hop along on page changes. Turn off for a still companion. Your device’s reduced-motion setting is always respected." />
                 </span>
               </span>
             </label>
@@ -298,40 +349,60 @@ function PreferenceFields({ settings }: { settings: Settings }) {
       </fieldset>
       <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
         <div>
-          <h3 className="text-sm font-medium">Date & time</h3>
-          <p className="muted mt-2 text-xs leading-relaxed">Make the calendar feel familiar.</p>
+          <h3 className="text-sm font-medium">
+            <T text="Date & time" />
+          </h3>
+          <p className="muted mt-2 text-xs leading-relaxed">
+            <T text="Make the calendar feel familiar." />
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field">
-            <Label htmlFor="settings-time">Time format</Label>
+            <Label htmlFor="settings-time">
+              <T text="Time format" />
+            </Label>
             <select
               id="settings-time"
               name="timeFormat"
               defaultValue={settings.timeFormat}
               className="input"
             >
-              <option value="12">12-hour · 2:30 PM</option>
-              <option value="24">24-hour · 14:30</option>
+              <option value="12">
+                <T text="12-hour · 2:30 PM" />
+              </option>
+              <option value="24">
+                <T text="24-hour · 14:30" />
+              </option>
             </select>
           </div>
           <div className="field">
-            <Label htmlFor="settings-week">Week starts on</Label>
+            <Label htmlFor="settings-week">
+              <T text="Week starts on" />
+            </Label>
             <select
               id="settings-week"
               name="weekStartsOn"
               defaultValue={settings.weekStartsOn}
               className="input"
             >
-              <option value="1">Monday</option>
-              <option value="0">Sunday</option>
+              <option value="1">
+                <T text="Monday" />
+              </option>
+              <option value="0">
+                <T text="Sunday" />
+              </option>
             </select>
           </div>
         </div>
       </div>
       <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
         <div>
-          <h3 className="text-sm font-medium">A little less clutter</h3>
-          <p className="muted mt-2 text-xs leading-relaxed">Choose how finished work appears.</p>
+          <h3 className="text-sm font-medium">
+            <T text="A little less clutter" />
+          </h3>
+          <p className="muted mt-2 text-xs leading-relaxed">
+            <T text="Choose how finished work appears." />
+          </p>
         </div>
         <label className="flex cursor-pointer items-start gap-3">
           <input
@@ -341,10 +412,11 @@ function PreferenceFields({ settings }: { settings: Settings }) {
             className="mt-0.5 size-4 shrink-0 accent-[var(--primary)]"
           />
           <span>
-            <span className="text-sm font-medium">Show completed tasks</span>
+            <span className="text-sm font-medium">
+              <T text="Show completed tasks" />
+            </span>
             <span className="muted mt-1.5 block text-xs leading-relaxed">
-              Include completed tasks on Home and in the calendar. They’re always available in
-              Tasks.
+              <T text="Include completed tasks on Home and in the calendar. They’re always available in Tasks." />
             </span>
           </span>
         </label>

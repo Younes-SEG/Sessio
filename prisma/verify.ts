@@ -91,23 +91,19 @@ async function verify() {
     assert.equal((await db.task.findUniqueOrThrow({ where: { id: task.id } })).completedAt, null);
     await saveEntity('assessments', { courseId: second.id }, assessment.id);
     assert.equal((await db.task.findUniqueOrThrow({ where: { id: task.id } })).courseId, second.id);
-    await assert.rejects(deleteEntity('semesters', semester.id), /courses/);
     await deleteEntity('courses', second.id);
-    storedTask = await db.task.findUniqueOrThrow({
-      where: { id: task.id },
-      include: { subtasks: true },
-    });
-    assert.equal(storedTask.courseId, null);
-    assert.equal(storedTask.assessmentId, null);
-    assert.equal(storedTask.subtasks.length, 2);
+    assert.equal(await db.task.findUnique({ where: { id: task.id } }), null);
+    assert.equal(await db.subtask.count({ where: { taskId: task.id } }), 0);
     assert.equal(await db.assessment.count({ where: { id: assessment.id } }), 0);
+    await deleteEntity('semesters', semester.id);
+    assert.equal(await db.course.count({ where: { semesterId: semester.id } }), 0);
     console.log(
       'PostgreSQL integration checks passed: concurrent weights, grades, task lifecycle, relationships, partial updates, deletion safety.',
     );
   } finally {
     await db.task.deleteMany({ where: { id: { in: taskIds } } });
     await db.course.deleteMany({ where: { semesterId: semester.id } });
-    await db.semester.delete({ where: { id: semester.id } });
+    await db.semester.deleteMany({ where: { id: semester.id } });
   }
 }
 

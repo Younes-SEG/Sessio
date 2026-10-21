@@ -1,6 +1,7 @@
 import { SYLLABUS_SERVICE_URL } from '../syllabus-service-config';
 import { syllabusPreviewSchema } from '../syllabus-result';
 import type { SyllabusAiInput } from './syllabus-ai';
+import { isHosted } from './hosting';
 import { ApiError } from './errors';
 
 const unavailable =
@@ -12,7 +13,7 @@ function serviceUrl(path: string) {
   try {
     const url = new URL(value);
     const local =
-      process.env.NODE_ENV !== 'production' &&
+      !isHosted() &&
       url.protocol === 'http:' &&
       ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname);
     if (
@@ -68,6 +69,14 @@ export async function readSyllabusThroughService(input: SyllabusAiInput, signal?
     if (!response.ok) {
       await response.body?.cancel();
       // Never echo upstream HTML, credentials, document content or arbitrary error strings.
+      if (
+        response.status === 503 &&
+        response.headers.get('X-Command-Reader-Error') === 'provider_unavailable'
+      )
+        throw new ApiError(
+          503,
+          'The AI provider is temporarily unavailable or busy. Please try again later. Nothing was saved.',
+        );
       if (response.status === 429)
         throw new ApiError(
           429,
@@ -78,7 +87,17 @@ export async function readSyllabusThroughService(input: SyllabusAiInput, signal?
       if (response.status === 400 || response.status === 422)
         throw new ApiError(
           422,
-          'The syllabus could not be read. Try an unlocked PDF or paste its text.',
+          'The syllabus could not be read. Try an unlocked PDF/DOCX, a clearer JPG/PNG, or paste the text.',
+        );
+      if (response.status === 502)
+        throw new ApiError(
+          502,
+          'The AI reader could not finish this request. Please try again later. Nothing was saved.',
+        );
+      if (response.status === 504)
+        throw new ApiError(
+          504,
+          'Reading took too long. Try a shorter syllabus. Nothing was saved.',
         );
       throw new ApiError(503, unavailable);
     }

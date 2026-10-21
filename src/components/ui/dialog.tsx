@@ -1,4 +1,5 @@
 'use client';
+import { useT } from '@/components/language-provider';
 import * as React from 'react';
 import { Dialog as Primitive } from 'radix-ui';
 import { X } from 'lucide-react';
@@ -11,12 +12,13 @@ export function DialogContent({
   children,
   ...props
 }: React.ComponentProps<typeof Primitive.Content>) {
+  const t = useT();
   return (
     <Primitive.Portal>
       <Primitive.Overlay className="dialog-overlay" />
       <Primitive.Content className={cn('dialog-content', className)} {...props}>
         {children}
-        <Primitive.Close className="dialog-close" aria-label="Close dialog">
+        <Primitive.Close className="dialog-close" aria-label={t('Close dialog')}>
           <X size={18} />
         </Primitive.Close>
       </Primitive.Content>

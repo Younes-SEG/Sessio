@@ -1,6 +1,8 @@
 'use client';
+import { T, useT } from '@/components/language-provider';
 import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import { scopeWorkspace } from '@/lib/workspace-scope';
 import {
   ArrowRight,
   BookOpen,
@@ -30,10 +32,12 @@ import {
   startOfDay,
 } from '@/lib/dates';
 import { getCalendarOccurrences } from '@/lib/calendar';
+import { studyFocusTasks, displayTaskTitle } from '@/lib/study-tasks';
 import { sortTasks } from '@/lib/tasks';
 import type { Task } from '@/lib/types';
 
 function FocusTask({ task }: { task: Task }) {
+  const t = useT();
   const { data, save, openEditor, now } = useWorkspace();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -65,7 +69,7 @@ function FocusTask({ task }: { task: Task }) {
           className={`row-title ${done ? 'line-through muted' : ''}`}
           onClick={() => openEditor('tasks', task.id)}
         >
-          {task.title}
+          {displayTaskTitle(task, t.locale)}
         </button>
         <div className="row-meta">
           {course && (
@@ -85,8 +89,8 @@ function FocusTask({ task }: { task: Task }) {
             </>
           )}
           <span className={isOverdue(task.dueDate, task.status, now) ? 'text-destructive' : ''}>
-            {isOverdue(task.dueDate, task.status, now) ? 'Overdue · ' : ''}
-            {dueLabel(task.dueDate, now)}
+            {isOverdue(task.dueDate, task.status, now) ? t('Overdue · ') : ''}
+            {dueLabel(task.dueDate, now, t.locale)}
           </span>
           {task.subtasks.length > 0 && (
             <>
@@ -98,7 +102,7 @@ function FocusTask({ task }: { task: Task }) {
         </div>
         {error && (
           <p role="alert" className="text-xs text-destructive mt-1">
-            {error}
+            {t(error)}
           </p>
         )}
       </div>
@@ -114,7 +118,9 @@ function FocusTask({ task }: { task: Task }) {
 }
 
 export function Dashboard() {
-  const { data, now, openEditor } = useWorkspace();
+  const t = useT();
+  const { data: workspace, now, openEditor } = useWorkspace();
+  const data = scopeWorkspace(workspace);
   const [focusView, setFocusView] = useState<'today' | 'upcoming'>('today');
   const today = startOfDay(now);
   const tomorrow = addDays(today, 1);
@@ -125,12 +131,14 @@ export function Dashboard() {
   );
   const archivedIds = new Set(data.courses.filter((c) => c.archived).map((c) => c.id));
   const visibleTasks = data.tasks.filter((t) => !t.courseId || !archivedIds.has(t.courseId));
+  const studyTasks = sortTasks(studyFocusTasks(visibleTasks, data.assessments, now), 'due');
   const pending = visibleTasks.filter((t) => t.status !== 'COMPLETED');
   const todayTasks = pending.filter((t) => isSameDay(t.dueDate, now));
   const overdue = pending.filter((t) => isOverdue(t.dueDate, t.status, now));
   const focus = sortTasks(
     visibleTasks.filter(
       (t) =>
+        !t.studyTask &&
         (t.status !== 'COMPLETED' || data.settings.showCompleted) &&
         (focusView === 'today'
           ? isSameDay(t.dueDate, now) || isOverdue(t.dueDate, t.status, now)
@@ -162,8 +170,14 @@ export function Dashboard() {
     return {
       date,
       count:
-        pending.filter((t) => isSameDay(t.dueDate, date)).length +
-        assessmentDeadlines.filter((a) => isSameDay(a.dueDate, date)).length,
+        pending.filter(
+          (t) =>
+            isSameDay(t.dueDate, date) &&
+            !(
+              t.calendarManaged &&
+              assessmentDeadlines.some((a) => a.id === t.assessmentId && a.dueDate === t.dueDate)
+            ),
+        ).length + assessmentDeadlines.filter((a) => isSameDay(a.dueDate, date)).length,
     };
   });
   const maximum = Math.max(1, ...workload.map((day) => day.count));
@@ -176,26 +190,32 @@ export function Dashboard() {
           <div className="eyebrow flex items-center gap-2">
             <Sun size={12} />
             <span suppressHydrationWarning>
-              {formatDate(now, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {formatDate(
+                now,
+                { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' },
+                t.locale,
+              )}
             </span>
           </div>
           <h1 suppressHydrationWarning>
-            {greeting}
+            {t(greeting)}
             {data.settings.displayName ? `, ${data.settings.displayName}` : ''}
             <span className="text-primary">.</span>
           </h1>
-          <p>A clear mind starts with a clear day. Let&apos;s make it a good one.</p>
+          <p>
+            <T text="A clear mind starts with a clear day. Let's make it a good one." />
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
             <Link href="/grades">
               <GraduationCap />
-              Enter grades
+              <T text="Enter grades" />
             </Link>
           </Button>
           <Button onClick={() => openEditor('tasks')}>
             <Plus />
-            Add a task
+            <T text="Add a task" />
           </Button>
         </div>
       </div>
@@ -216,39 +236,39 @@ export function Dashboard() {
                     data.courses.some((c) => c.id === a.courseId && !c.archived),
                 ).length
               }{' '}
-              completed assessments
+              <T text="completed assessments" />
             </strong>{' '}
-            are waiting for a grade. Keep track of them in Grades.
+            <T text="are waiting for a grade. Keep track of them in Grades." />
           </span>
           <ArrowRight aria-hidden size={18} className="shrink-0 text-primary" />
         </Link>
       )}
       <div className="stat-grid">
         <Stat
-          label="Due today"
+          label={t('Due today')}
           number={todayTasks.length}
           foot={
             overdue.length
-              ? `${overdue.length} overdue ${overdue.length === 1 ? 'task needs' : 'tasks need'} attention`
+              ? `${overdue.length} ${t('overdue')} ${t(overdue.length === 1 ? 'task needs' : 'tasks need')} ${t('attention')}`
               : 'A fresh start for your day'
           }
           icon={<CheckSquare2 size={14} />}
           alert={overdue.length > 0}
         />
         <Stat
-          label="Deadlines this week"
+          label={t('Deadlines this week')}
           number={dueThisWeek}
           foot="Assessments in the next 7 days"
           icon={<CalendarDays size={14} />}
         />
         <Stat
-          label="Planned focus time"
+          label={t('Planned focus time')}
           number={effort >= 60 ? `${(effort / 60).toFixed(1)}h` : `${effort}m`}
-          foot={`${todayTasks.filter((t) => t.estimatedMinutes).length} tasks with time estimates today`}
+          foot={`${todayTasks.filter((t) => t.estimatedMinutes).length} ${t('tasks with time estimates today')}`}
           icon={<Clock3 size={14} />}
         />
         <Stat
-          label="Active courses"
+          label={t('Active courses')}
           number={courses.length}
           foot={activeSemester?.name || 'Your academic workspace'}
           icon={<BookOpen size={14} />}
@@ -256,14 +276,14 @@ export function Dashboard() {
       </div>
       <div className="dashboard-grid">
         <div className="space-y-[22px]">
-          <section className="card overflow-hidden">
+          <section data-tour="focus" className="card overflow-hidden">
             <div className="card-heading">
               <h2>
                 <CheckSquare2 size={15} className="text-primary" />
-                Your focus
+                <T text="Your focus" />
               </h2>
               <Link href="/tasks" className="text-link">
-                All tasks
+                <T text="All tasks" />
                 <ArrowRight size={12} />
               </Link>
             </div>
@@ -272,11 +292,13 @@ export function Dashboard() {
                 className={`text-[10px] pb-1 border-b-2 ${focusView === 'today' ? 'text-primary border-primary' : 'muted border-transparent'}`}
                 onClick={() => setFocusView('today')}
               >
-                Today & overdue{' '}
+                <T text="Today & overdue" />{' '}
                 <span className="ml-1 text-[var(--muted-foreground)]">
                   {
                     pending.filter(
-                      (t) => isSameDay(t.dueDate, now) || isOverdue(t.dueDate, t.status, now),
+                      (t) =>
+                        !t.studyTask &&
+                        (isSameDay(t.dueDate, now) || isOverdue(t.dueDate, t.status, now)),
                     ).length
                   }
                 </span>
@@ -285,19 +307,37 @@ export function Dashboard() {
                 className={`text-[10px] pb-1 border-b-2 ${focusView === 'upcoming' ? 'text-primary border-primary' : 'muted border-transparent'}`}
                 onClick={() => setFocusView('upcoming')}
               >
-                Upcoming
+                <T text="Upcoming" />
               </button>
             </div>
+            {studyTasks.length > 0 && (
+              <div className="border-y border-border bg-primary/5">
+                <div className="px-[23px] py-3 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-primary flex items-center gap-2">
+                    <BookOpen size={14} />
+                    <T text="Study ahead" />
+                  </span>
+                  <span className="muted">
+                    <T text="Next 10 days" />
+                  </span>
+                </div>
+                {studyTasks.map((task) => (
+                  <FocusTask task={task} key={task.id} />
+                ))}
+              </div>
+            )}
             {focus.length ? (
               focus.map((t) => <FocusTask task={t} key={t.id} />)
-            ) : (
+            ) : studyTasks.length ? null : (
               <div className="empty-state min-h-48">
                 <CheckCheck size={27} strokeWidth={1.3} />
-                <strong className="text-foreground font-medium">A little breathing room.</strong>
+                <strong className="text-foreground font-medium">
+                  <T text="A little breathing room." />
+                </strong>
                 <p>
                   {focusView === 'today'
-                    ? 'Nothing due today. Plan your next small step.'
-                    : 'No upcoming tasks. Add one when you’re ready.'}
+                    ? t('Nothing due today. Plan your next small step.')
+                    : t('No upcoming tasks. Add one when you’re ready.')}
                 </p>
               </div>
             )}
@@ -306,7 +346,7 @@ export function Dashboard() {
               onClick={() => openEditor('tasks', undefined, { dueDate: dayAt(now, 17) })}
             >
               <Plus size={14} />
-              Add something to focus on
+              <T text="Add something to focus on" />
             </button>
           </section>
           <DeadlineList assessments={deadlines} />
@@ -316,19 +356,23 @@ export function Dashboard() {
             <div className="card-heading">
               <h2>
                 <CalendarDays size={15} className="text-primary" />
-                Today&apos;s schedule
+                <T text="Today's schedule" />
               </h2>
               <span className="badge">
-                {schedule.length} {schedule.length === 1 ? 'event' : 'events'}
+                {schedule.length} {schedule.length === 1 ? t('event') : t('events')}
               </span>
             </div>
             {schedule.length ? (
               schedule.slice(0, 5).map((item) => (
                 <div className="schedule-row" key={item.id}>
                   <div className="schedule-time">
-                    {item.allDay ? 'All day' : formatTime(item.start, data.settings.timeFormat)}
+                    {item.allDay
+                      ? t('All day')
+                      : formatTime(item.start, data.settings.timeFormat, t.locale)}
                     {!item.allDay && (
-                      <div className="mt-1">{formatTime(item.end, data.settings.timeFormat)}</div>
+                      <div className="mt-1">
+                        {formatTime(item.end, data.settings.timeFormat, t.locale)}
+                      </div>
                     )}
                   </div>
                   <button
@@ -338,7 +382,7 @@ export function Dashboard() {
                   >
                     <p className="text-[11px] font-semibold truncate">{item.title}</p>
                     <div className="text-[9px] muted mt-1.5 truncate">
-                      {data.courses.find((c) => c.id === item.courseId)?.code || 'Personal'}
+                      {data.courses.find((c) => c.id === item.courseId)?.code || t('Personal')}
                       {item.location && ` · ${item.location}`}
                     </div>
                   </button>
@@ -347,33 +391,42 @@ export function Dashboard() {
             ) : (
               <div className="empty-state min-h-40">
                 <Sun size={25} strokeWidth={1.3} />
-                <p>Your schedule is open today.</p>
+                <p>
+                  <T text="Your schedule is open today." />
+                </p>
                 <Button size="sm" variant="ghost" onClick={() => openEditor('events')}>
                   <Plus />
-                  Plan something
+                  <T text="Plan something" />
                 </Button>
               </div>
             )}
             <Link href="/calendar" className="text-link justify-center w-full mt-4">
-              See your week
+              <T text="See your week" />
               <ArrowRight size={12} />
             </Link>
           </section>
           <section className="card pb-5">
             <div className="card-heading">
               <div>
-                <h2>Room for what&apos;s next</h2>
-                <p className="text-[10px] muted mt-1">Your workload over the next 7 days</p>
+                <h2>
+                  <T text="Room for what's next" />
+                </h2>
+                <p className="text-[10px] muted mt-1">
+                  <T text="Your workload over the next 7 days" />
+                </p>
               </div>
               <span className="text-[10px] text-primary font-medium">
-                {workload.reduce((s, d) => s + d.count, 0)} due
+                {workload.reduce((s, d) => s + d.count, 0)} <T text="due" />
               </span>
             </div>
             <div
               className="workload-bars"
               role="img"
               aria-label={workload
-                .map((d) => `${formatDate(d.date, { weekday: 'long' })}: ${d.count} deadlines`)
+                .map(
+                  (d) =>
+                    `${formatDate(d.date, { weekday: 'long' }, t.locale)}: ${d.count} deadlines`,
+                )
                 .join(', ')}
             >
               {workload.map((day, i) => (
@@ -384,14 +437,14 @@ export function Dashboard() {
                     style={{ height: `${Math.max(4, (day.count / maximum) * 63)}px` }}
                   />
                   <span className={i === 0 ? '!text-primary font-semibold' : ''}>
-                    {i === 0 ? 'Today' : formatDate(day.date, { weekday: 'short' })}
+                    {i === 0 ? t('Today') : formatDate(day.date, { weekday: 'short' }, t.locale)}
                   </span>
                 </div>
               ))}
             </div>
             <div className="mt-4 pt-3 border-t border-border mx-5 text-[9px] muted flex gap-2 items-center">
               <span className="size-1.5 bg-primary rounded-sm" />
-              Tasks and assessments due each day
+              <T text="Tasks and assessments due each day" />
             </div>
           </section>
           {nextExam ? (
@@ -401,21 +454,24 @@ export function Dashboard() {
             >
               <div className="flex gap-2 text-primary text-[9px] uppercase tracking-widest font-semibold mb-3">
                 <GraduationCap size={14} />
-                Next assessment
+                <T text="Next assessment" />
               </div>
               <h3 className="text-sm font-semibold mb-2">{nextExam.name}</h3>
               <p className="text-[10px] muted">
                 {data.courses.find((c) => c.id === nextExam.courseId)?.code} ·{' '}
-                {formatDate(nextExam.dueDate, { month: 'short', day: 'numeric' })} ·{' '}
-                {nextExam.weight}% weight
+                {formatDate(nextExam.dueDate, { month: 'short', day: 'numeric' }, t.locale)} ·{' '}
+                {nextExam.weight}
+                <T text="% weight" />
               </p>
             </button>
           ) : (
             <div className="p-5 rounded-xl bg-[var(--accent)] border border-primary/10">
               <Sparkles size={18} className="text-primary mb-3" />
-              <p className="text-xs font-medium">Small steps. Steady progress.</p>
+              <p className="text-xs font-medium">
+                <T text="Small steps. Steady progress." />
+              </p>
               <p className="text-[10px] muted mt-1.5 leading-relaxed">
-                Leave a little space in your day for yourself.
+                <T text="Leave a little space in your day for yourself." />
               </p>
             </div>
           )}
@@ -423,9 +479,11 @@ export function Dashboard() {
       </div>
       <section className="mt-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">Your semester, at a glance</h2>
+          <h2 className="section-title">
+            <T text="Your semester, at a glance" />
+          </h2>
           <Link href="/courses" className="text-link">
-            All courses
+            <T text="All courses" />
             <ArrowRight size={12} />
           </Link>
         </div>
@@ -438,19 +496,23 @@ export function Dashboard() {
         ) : (
           <div className="card empty-state">
             <BookOpen size={28} />
-            <p>Bring your semester into focus.</p>
+            <p>
+              <T text="Bring your semester into focus." />
+            </p>
             <Button onClick={() => openEditor(data.semesters.length ? 'courses' : 'semesters')}>
               <Plus />
-              {data.semesters.length ? 'Add your first course' : 'Create your semester'}
+              {data.semesters.length ? t('Add your first course') : t('Create your semester')}
             </Button>
           </div>
         )}
       </section>
       <footer className="mt-9 flex justify-between text-[9px] muted">
-        <span>A little more organized. A little more you.</span>
+        <span>
+          <T text="A little more organized. A little more you." />
+        </span>
         <span className="flex gap-1.5 items-center">
           <span className="size-1.5 rounded-full bg-[var(--green)]" />
-          Your personal workspace
+          <T text="Your personal workspace" />
         </span>
       </footer>
     </>
@@ -469,14 +531,15 @@ function Stat({
   icon: React.ReactNode;
   alert?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="card stat-card">
       <div className="stat-top">
-        {label}
+        {t(label)}
         <span className="stat-icon">{icon}</span>
       </div>
       <strong className="stat-number">{number}</strong>
-      <p className={`stat-foot ${alert ? '!text-destructive' : ''}`}>{foot}</p>
+      <p className={`stat-foot ${alert ? '!text-destructive' : ''}`}>{t(foot)}</p>
     </div>
   );
 }

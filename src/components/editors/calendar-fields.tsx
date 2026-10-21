@@ -1,3 +1,5 @@
+'use client';
+import { T, useT } from '@/components/language-provider';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { CourseField, Field, localDateTime, NotesField, SelectField, TextField } from './fields';
@@ -18,6 +20,7 @@ export function EventFields({
   initial: Partial<CalendarEvent>;
   courses: Course[];
 }) {
+  const t = useT();
   const [allDay, setAllDay] = useState(initial.allDay ?? false);
   const [start, setStart] = useState(localDateTime(initial.startAt));
   const [end, setEnd] = useState(eventEnd(initial));
@@ -25,7 +28,7 @@ export function EventFields({
     <div className="form-grid">
       <TextField
         name="title"
-        label="Event title"
+        label={t('Event title')}
         value={initial.title}
         placeholder="e.g. Study session at the library"
         required
@@ -39,7 +42,7 @@ export function EventFields({
           onChange={(event) => setAllDay(event.target.checked)}
           className="size-4 accent-[var(--primary)]"
         />
-        All-day event
+        <T text="All-day event" />
       </label>
       <Field name="startAt" label={allDay ? 'Start date' : 'Starts'}>
         <Input
@@ -68,7 +71,11 @@ export function EventFields({
         />
       </Field>
       <CourseField courses={courses} value={initial.courseId} />
-      <Field name="color" label="Event color" hint="Associated events use their course’s color.">
+      <Field
+        name="color"
+        label={t('Event color')}
+        hint={t('Associated events use their course’s color.')}
+      >
         <Input
           id="editor-color"
           name="color"
@@ -79,12 +86,12 @@ export function EventFields({
       </Field>
       <TextField
         name="location"
-        label="Location (optional)"
+        label={t('Location (optional)')}
         value={initial.location}
         maxLength={300}
         wide
       />
-      <NotesField name="description" label="Description" value={initial.description} />
+      <NotesField name="description" label={t('Description')} value={initial.description} />
     </div>
   );
 }
@@ -96,11 +103,12 @@ export function ScheduleFields({
   initial: Partial<ScheduleEntry>;
   courses: Course[];
 }) {
+  const t = useT();
   return (
     <div className="form-grid">
       <TextField
         name="title"
-        label="Session name"
+        label={t('Session name')}
         value={initial.title}
         placeholder="e.g. Lecture, tutorial, or lab"
         required
@@ -109,7 +117,7 @@ export function ScheduleFields({
       <CourseField courses={courses} value={initial.courseId} required />
       <SelectField
         name="dayOfWeek"
-        label="Repeats every"
+        label={t('Repeats every')}
         value={String(initial.dayOfWeek ?? 1)}
         options={[
           { value: '1', label: 'Monday' },
@@ -123,29 +131,28 @@ export function ScheduleFields({
       />
       <TextField
         name="startTime"
-        label="Start time"
+        label={t('Start time')}
         type="time"
         value={initial.startTime ?? '09:00'}
         required
       />
       <TextField
         name="endTime"
-        label="End time"
+        label={t('End time')}
         type="time"
         value={initial.endTime ?? '10:00'}
         required
       />
       <TextField
         name="location"
-        label="Location (optional)"
+        label={t('Location (optional)')}
         value={initial.location}
         placeholder="e.g. SITE 0102"
         maxLength={300}
         wide
       />
       <p className="muted text-xs leading-relaxed sm:col-span-2">
-        This session repeats weekly during the course’s semester. Add one-time exams and deadlines
-        as assessments.
+        <T text="This session repeats weekly during the course’s semester. Add one-time exams and deadlines as assessments." />
       </p>
     </div>
   );
