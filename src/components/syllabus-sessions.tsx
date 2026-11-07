@@ -40,7 +40,7 @@ export function SyllabusSessions({
   );
   if (!available.length) return null;
   return (
-    <div className="space-y-4 rounded-lg border border-[var(--primary)] p-4">
+    <div className="space-y-4 rounded-sm border border-[var(--primary)] p-4">
       <h3 className="font-semibold">
         <T text="Confirm your sessions" />
       </h3>
@@ -119,7 +119,7 @@ export function SyllabusSessionDate({
   const t = useT();
   const choices = sessionDateChoices(timing, sessions, courseCode, exceptions);
   return (
-    <div className="space-y-3 rounded-lg bg-[var(--muted)] p-4 text-sm">
+    <div className="space-y-3 rounded-sm bg-[var(--muted)] p-4 text-sm">
       <p className="font-medium">
         <T text="Scheduled session" />: {timing.label}
       </p>

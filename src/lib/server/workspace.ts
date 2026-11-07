@@ -6,7 +6,7 @@ import { ensureStudyTasks } from './study-tasks';
 import { readGradingRules, withEqualWeights } from '../grading-rules';
 
 /** Read one consistent snapshot; all view-specific calculations happen outside persistence. */
-export async function getWorkspace(): Promise<Workspace> {
+export async function getWorkspace(includeDeleted = false): Promise<Workspace> {
   const workspaceId = await requireWorkspaceId();
   // Each authenticated identity starts empty; never seed demo data or copy another workspace.
   await db.settings.upsert({
@@ -18,26 +18,51 @@ export async function getWorkspace(): Promise<Workspace> {
     update: {},
   });
   await db.$transaction((tx) => ensureStudyTasks(tx, workspaceId));
-  const [semesters, courses, assessments, tasks, events, schedules, settings] =
+  const activeCourse = includeDeleted ? {} : { deletedAt: null };
+  const visibleTask = includeDeleted
+    ? {}
+    : {
+        AND: [
+          { OR: [{ courseId: null }, { course: { deletedAt: null } }] },
+          { OR: [{ assessmentId: null }, { assessment: { course: { deletedAt: null } } }] },
+        ],
+      };
+  const [semesters, courses, assessments, tasks, events, schedules, settings, deletedCourses] =
     await db.$transaction(
       [
         db.semester.findMany({ where: { workspaceId }, orderBy: { startDate: 'desc' } }),
-        db.course.findMany({ where: { semester: { workspaceId } }, orderBy: { code: 'asc' } }),
+        db.course.findMany({
+          where: { semester: { workspaceId }, ...activeCourse },
+          orderBy: { code: 'asc' },
+        }),
         db.assessment.findMany({
-          where: { course: { semester: { workspaceId } } },
+          where: { course: { semester: { workspaceId }, ...activeCourse } },
           orderBy: { dueDate: 'asc' },
         }),
         db.task.findMany({
-          where: { workspaceId },
+          where: { workspaceId, ...visibleTask },
           include: { subtasks: { orderBy: { position: 'asc' } } },
           orderBy: { createdAt: 'desc' },
         }),
-        db.calendarEvent.findMany({ where: { workspaceId }, orderBy: { startAt: 'asc' } }),
+        db.calendarEvent.findMany({
+          where: {
+            workspaceId,
+            ...(includeDeleted
+              ? {}
+              : { OR: [{ courseId: null }, { course: { deletedAt: null } }] }),
+          },
+          orderBy: { startAt: 'asc' },
+        }),
         db.scheduleEntry.findMany({
-          where: { course: { semester: { workspaceId } } },
+          where: { course: { semester: { workspaceId }, ...activeCourse } },
           orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
         }),
         db.settings.findUniqueOrThrow({ where: { workspaceId } }),
+        db.course.findMany({
+          where: { semester: { workspaceId }, deletedAt: { not: null } },
+          select: { id: true, code: true, name: true, semesterId: true, deletedAt: true },
+          orderBy: { deletedAt: 'desc' },
+        }),
       ],
       { isolationLevel: 'RepeatableRead' },
     );
@@ -50,6 +75,10 @@ export async function getWorkspace(): Promise<Workspace> {
   );
   const weights = new Map(effectiveAssessments.map((a) => [a.id, a.weight]));
   return {
+    deletedCourses: deletedCourses.map((course) => ({
+      ...course,
+      deletedAt: course.deletedAt!.toISOString(),
+    })),
     hosted: isHosted(),
     semesters: semesters.map((s) => ({
       ...s,
@@ -58,6 +87,7 @@ export async function getWorkspace(): Promise<Workspace> {
     })),
     courses: courses.map((c) => ({
       ...c,
+      deletedAt: c.deletedAt?.toISOString() ?? null,
       syllabusImportedAt: c.syllabusImportedAt?.toISOString() ?? null,
       // Older imports saved provenance in assessment notes, but no import date.
       syllabusImportDetected: assessments.some(

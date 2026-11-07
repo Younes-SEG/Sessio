@@ -231,7 +231,7 @@ export function CalendarView() {
             </Button>
           </div>
           <div
-            className="inline-flex gap-1 rounded-lg bg-[var(--muted)] p-1"
+            className="inline-flex gap-1 rounded-sm bg-[var(--muted)] p-1"
             role="group"
             aria-label={t('Calendar view')}
           >
@@ -241,7 +241,7 @@ export function CalendarView() {
                 type="button"
                 aria-pressed={mode === value}
                 onClick={() => selectMode(value)}
-                className={`rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors ${mode === value ? 'bg-[var(--background)] text-[var(--foreground)] shadow-sm' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
+                className={`rounded-sm px-4 py-1.5 text-sm font-medium capitalize transition-colors ${mode === value ? 'bg-[var(--background)] text-[var(--foreground)] shadow-none' : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'}`}
               >
                 {t(value)}
               </button>
@@ -267,7 +267,7 @@ export function CalendarView() {
             </label>
             <select
               id="calendar-course"
-              className="input h-8 max-w-56 rounded-lg border border-[var(--border)] bg-[var(--background)] px-2 text-xs"
+              className="input h-8 max-w-56 rounded-sm border border-[var(--border)] bg-[var(--background)] px-2 text-xs"
               value={courseId}
               onChange={(event) => setCourseId(event.target.value)}
             >
@@ -339,7 +339,7 @@ export function CalendarView() {
       </section>
 
       {mode === 'month' && (
-        <section className="card p-5 sm:p-6" aria-label={t('Selected day agenda')}>
+        <section className="card p-4 sm:p-5" aria-label={t('Selected day agenda')}>
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="eyebrow mb-1">
@@ -383,7 +383,7 @@ export function CalendarView() {
               ))}
             </div>
           ) : (
-            <div className="empty-state rounded-xl bg-[var(--muted)]/40 px-4 py-8">
+            <div className="empty-state rounded-sm bg-[var(--muted)]/40 px-4 py-8">
               <CalendarDays size={25} className="muted mx-auto mb-3" />
               <h3 className="text-sm font-medium">
                 <T text="A little room in your day" />
@@ -446,7 +446,7 @@ function MonthGrid({
           return (
             <div
               key={dateKey(day)}
-              className={`group min-h-[150px] min-w-0 border-[var(--border)] p-2 ${index % 7 !== 6 ? 'border-r' : ''} ${index < days.length - 7 ? 'border-b' : ''} ${!currentMonth ? 'bg-[var(--muted)]/30' : ''} ${selected ? 'bg-[var(--primary)]/5' : ''}`}
+              className={`group min-h-[112px] min-w-0 border-[var(--border)] p-2 ${index % 7 !== 6 ? 'border-r' : ''} ${index < days.length - 7 ? 'border-b' : ''} ${!currentMonth ? 'bg-[var(--muted)]/30' : ''} ${selected ? 'bg-[var(--primary)]/5' : ''}`}
             >
               <div className="mb-2 flex items-center justify-between">
                 <button
@@ -455,7 +455,7 @@ function MonthGrid({
                   aria-current={today ? 'date' : undefined}
                   aria-pressed={selected}
                   aria-label={`${t('Show agenda for')} ${formatDate(day, { weekday: 'long', month: 'long', day: 'numeric' }, t.locale)}`}
-                  className={`flex size-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : selected ? 'bg-[var(--muted)] text-[var(--primary)] ring-1 ring-[var(--primary)]/25' : currentMonth ? 'hover:bg-[var(--muted)]' : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'}`}
+                  className={`flex size-7 items-center justify-center rounded-sm text-xs font-medium transition-colors ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : selected ? 'bg-[var(--muted)] text-[var(--primary)] ring-1 ring-[var(--primary)]/25' : currentMonth ? 'hover:bg-[var(--muted)]' : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)]'}`}
                 >
                   {day.getDate()}
                 </button>
@@ -463,7 +463,7 @@ function MonthGrid({
                   type="button"
                   onClick={() => onAddEvent(day)}
                   aria-label={`${t('Add event on')} ${formatDate(day, { month: 'long', day: 'numeric' }, t.locale)}`}
-                  className="muted flex size-6 items-center justify-center rounded-md opacity-45 transition-opacity hover:bg-[var(--muted)] hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+                  className="muted flex size-6 items-center justify-center rounded-sm opacity-45 transition-opacity hover:bg-[var(--muted)] hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
                 >
                   <Plus size={13} />
                 </button>
@@ -480,7 +480,7 @@ function MonthGrid({
                 ))}
                 {dayItems.length > 3 && (
                   <button
-                    className="muted w-full rounded-md px-1.5 py-1 text-left text-[10px] font-medium hover:bg-[var(--muted)]"
+                    className="muted w-full rounded-sm px-1.5 py-1 text-left text-[10px] font-medium hover:bg-[var(--muted)]"
                     onClick={() => onSelectDay(day)}
                   >
                     +{dayItems.length - 3} <T text="more · view day" />
@@ -514,17 +514,24 @@ function MonthItem({
       type="button"
       onClick={onOpen}
       title={`${t(kindLabels[item.kind])}: ${item.title} · ${time}`}
-      className={`flex w-full min-w-0 items-center gap-1.5 rounded-md border-l-2 px-1.5 py-1.5 text-left text-[10px] hover:ring-1 hover:ring-[var(--control-border)] ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
-      style={{ borderLeftColor: item.color, backgroundColor: `${item.color}12` }}
+      className={`flex w-full min-w-0 items-center gap-1.5 rounded-sm border-l-2 px-1.5 py-1.5 text-left text-[10px] hover:ring-1 hover:ring-[var(--control-border)] ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
+      style={{
+        borderLeftColor: `color-mix(in srgb, ${item.color} 70%, var(--muted-foreground))`,
+        backgroundColor: 'var(--muted)',
+      }}
     >
-      <Icon size={10} className="shrink-0" style={{ color: item.color }} />
+      <Icon
+        size={10}
+        className="shrink-0"
+        style={{ color: `color-mix(in srgb, ${item.color} 70%, var(--muted-foreground))` }}
+      />
       <span
         className={`min-w-0 flex-1 truncate font-medium ${item.completed ? 'line-through' : ''}`}
       >
         {item.title}
       </span>
       {!item.allDay && (
-        <span className="hidden shrink-0 text-[9px] text-[var(--muted-foreground)] xl:inline">
+        <span className="hidden shrink-0 text-[10px] text-[var(--muted-foreground)] xl:inline">
           {time}
         </span>
       )}
@@ -563,7 +570,7 @@ function WeekGrid({
                   {formatDate(day, { weekday: 'short' }, t.locale)}
                 </p>
                 <p
-                  className={`mt-1 flex size-8 items-center justify-center rounded-full text-xl font-semibold ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : ''}`}
+                  className={`mt-1 flex size-8 items-center justify-center rounded-sm text-xl font-semibold ${today ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' : ''}`}
                 >
                   {day.getDate()}
                 </p>
@@ -571,13 +578,13 @@ function WeekGrid({
               <button
                 type="button"
                 onClick={() => onAddEvent(day)}
-                className="muted rounded-md p-1 hover:bg-[var(--muted)]"
+                className="muted rounded-sm p-1 hover:bg-[var(--muted)]"
                 aria-label={`${t('Add event on')} ${formatDate(day, { month: 'long', day: 'numeric' }, t.locale)}`}
               >
                 <Plus size={14} />
               </button>
             </div>
-            <div className="min-h-[420px] space-y-2 p-2.5">
+            <div className="min-h-[320px] space-y-2 p-2.5">
               {dayItems.length ? (
                 dayItems.map((item) => {
                   const Icon = kindIcons[item.kind];
@@ -587,8 +594,11 @@ function WeekGrid({
                       key={item.id}
                       type="button"
                       onClick={() => onOpen(item)}
-                      className={`w-full rounded-lg border border-[var(--border)] border-l-[3px] p-2.5 text-left transition-shadow hover:shadow-md ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
-                      style={{ borderLeftColor: item.color, backgroundColor: `${item.color}0c` }}
+                      className={`w-full rounded-sm border border-[var(--border)] border-l-[3px] p-2.5 text-left transition-colors hover:border-primary ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
+                      style={{
+                        borderLeftColor: `color-mix(in srgb, ${item.color} 70%, var(--muted-foreground))`,
+                        backgroundColor: 'var(--muted)',
+                      }}
                     >
                       <span className="mb-2 flex items-center gap-1.5 text-[10px] text-[var(--muted-foreground)]">
                         <Icon size={11} />
@@ -654,8 +664,11 @@ function AgendaItem({
       className={`flex w-full items-center gap-3 py-4 text-left first:pt-0 last:pb-0 sm:gap-5 ${item.completed ? 'text-[var(--muted-foreground)]' : ''}`}
     >
       <div
-        className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-        style={{ color: item.color, backgroundColor: `${item.color}18` }}
+        className="flex size-10 shrink-0 items-center justify-center rounded-sm"
+        style={{
+          color: `color-mix(in srgb, ${item.color} 70%, var(--muted-foreground))`,
+          backgroundColor: 'var(--muted)',
+        }}
       >
         <Icon size={18} />
       </div>

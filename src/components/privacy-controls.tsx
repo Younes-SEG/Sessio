@@ -43,7 +43,7 @@ export function PrivacyControls() {
   return (
     <section
       id="your-data"
-      className="card scroll-mt-6 space-y-4 p-5 sm:p-7"
+      className="card scroll-mt-6 space-y-4 p-4 sm:p-5"
       aria-labelledby="your-data-title"
     >
       <h2 id="your-data-title" className="section-title">

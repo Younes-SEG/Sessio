@@ -14,7 +14,6 @@ import {
   Flag,
   GraduationCap,
   Plus,
-  Sparkles,
   Sun,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
@@ -76,7 +75,11 @@ function FocusTask({ task }: { task: Task }) {
             <>
               <span
                 className="course-dot"
-                style={{ background: course.color, width: 5, height: 5 }}
+                style={{
+                  background: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))`,
+                  width: 5,
+                  height: 5,
+                }}
               />
               {course.code}
               <span>·</span>
@@ -109,7 +112,7 @@ function FocusTask({ task }: { task: Task }) {
       {['HIGH', 'URGENT'].includes(task.priority) && (
         <Flag
           size={13}
-          className={task.priority === 'URGENT' ? 'text-destructive' : 'text-amber-500'}
+          className={task.priority === 'URGENT' ? 'text-destructive' : 'text-[var(--warning)]'}
           aria-label={`${task.priority.toLowerCase()} priority`}
         />
       )}
@@ -130,9 +133,19 @@ export function Dashboard() {
     (c) => !c.archived && (!activeSemester || c.semesterId === activeSemester.id),
   );
   const archivedIds = new Set(data.courses.filter((c) => c.archived).map((c) => c.id));
-  const visibleTasks = data.tasks.filter((t) => !t.courseId || !archivedIds.has(t.courseId));
+  const assessmentIds = new Set(data.assessments.map((assessment) => assessment.id));
+  const visibleTasks = data.tasks.filter(
+    (task) =>
+      (!task.courseId || !archivedIds.has(task.courseId)) &&
+      !(task.calendarManaged && task.assessmentId && assessmentIds.has(task.assessmentId)),
+  );
   const studyTasks = sortTasks(studyFocusTasks(visibleTasks, data.assessments, now), 'due');
-  const pending = visibleTasks.filter((t) => t.status !== 'COMPLETED');
+  const studyIds = new Set(studyTasks.map((task) => task.id));
+  // Generated reminders stop being actionable with their assessment. Legacy
+  // calendar task copies are represented by the assessment itself, not twice.
+  const pending = visibleTasks.filter(
+    (task) => task.status !== 'COMPLETED' && (!task.studyTask || studyIds.has(task.id)),
+  );
   const todayTasks = pending.filter((t) => isSameDay(t.dueDate, now));
   const overdue = pending.filter((t) => isOverdue(t.dueDate, t.status, now));
   const focus = sortTasks(
@@ -164,20 +177,17 @@ export function Dashboard() {
   const dueThisWeek = assessmentDeadlines.filter(
     (a) => new Date(a.dueDate!) >= today && new Date(a.dueDate!) < weekEnd,
   ).length;
+  const dueToday =
+    todayTasks.length +
+    assessmentDeadlines.filter((assessment) => isSameDay(assessment.dueDate, now)).length;
   const effort = todayTasks.reduce((sum, t) => sum + (t.estimatedMinutes || 0), 0);
   const workload = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(today, i);
     return {
       date,
       count:
-        pending.filter(
-          (t) =>
-            isSameDay(t.dueDate, date) &&
-            !(
-              t.calendarManaged &&
-              assessmentDeadlines.some((a) => a.id === t.assessmentId && a.dueDate === t.dueDate)
-            ),
-        ).length + assessmentDeadlines.filter((a) => isSameDay(a.dueDate, date)).length,
+        pending.filter((task) => isSameDay(task.dueDate, date)).length +
+        assessmentDeadlines.filter((a) => isSameDay(a.dueDate, date)).length,
     };
   });
   const maximum = Math.max(1, ...workload.map((day) => day.count));
@@ -185,7 +195,7 @@ export function Dashboard() {
     now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening';
   return (
     <>
-      <div className="page-header">
+      <div className="page-header dashboard-welcome">
         <div>
           <div className="eyebrow flex items-center gap-2">
             <Sun size={12} />
@@ -246,11 +256,11 @@ export function Dashboard() {
       <div className="stat-grid">
         <Stat
           label={t('Due today')}
-          number={todayTasks.length}
+          number={dueToday}
           foot={
             overdue.length
               ? `${overdue.length} ${t('overdue')} ${t(overdue.length === 1 ? 'task needs' : 'tasks need')} ${t('attention')}`
-              : 'A fresh start for your day'
+              : 'Unfinished tasks and assessments'
           }
           icon={<CheckSquare2 size={14} />}
           alert={overdue.length > 0}
@@ -276,7 +286,7 @@ export function Dashboard() {
       </div>
       <div className="dashboard-grid">
         <div className="space-y-[22px]">
-          <section data-tour="focus" className="card overflow-hidden">
+          <section data-tour="focus" className="card planner-focus overflow-hidden">
             <div className="card-heading">
               <h2>
                 <CheckSquare2 size={15} className="text-primary" />
@@ -352,7 +362,7 @@ export function Dashboard() {
           <DeadlineList assessments={deadlines} />
         </div>
         <div className="space-y-[22px]">
-          <section className="card pb-4">
+          <section className="card planner-schedule pb-4">
             <div className="card-heading">
               <h2>
                 <CalendarDays size={15} className="text-primary" />
@@ -381,7 +391,7 @@ export function Dashboard() {
                     onClick={() => openEditor(item.kind, item.sourceId)}
                   >
                     <p className="text-[11px] font-semibold truncate">{item.title}</p>
-                    <div className="text-[9px] muted mt-1.5 truncate">
+                    <div className="text-[10px] muted mt-1.5 truncate">
                       {data.courses.find((c) => c.id === item.courseId)?.code || t('Personal')}
                       {item.location && ` · ${item.location}`}
                     </div>
@@ -405,7 +415,7 @@ export function Dashboard() {
               <ArrowRight size={12} />
             </Link>
           </section>
-          <section className="card pb-5">
+          <section className="card planner-workload pb-5">
             <div className="card-heading">
               <div>
                 <h2>
@@ -442,7 +452,7 @@ export function Dashboard() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 pt-3 border-t border-border mx-5 text-[9px] muted flex gap-2 items-center">
+            <div className="mt-4 pt-3 border-t border-border mx-5 text-[10px] muted flex gap-2 items-center">
               <span className="size-1.5 bg-primary rounded-sm" />
               <T text="Tasks and assessments due each day" />
             </div>
@@ -450,9 +460,9 @@ export function Dashboard() {
           {nextExam ? (
             <button
               onClick={() => openEditor('assessments', nextExam.id)}
-              className="card w-full text-left p-5 bg-[var(--accent)] border-primary/10"
+              className="card w-full text-left p-4 bg-[var(--accent)] border-primary/10"
             >
-              <div className="flex gap-2 text-primary text-[9px] uppercase tracking-widest font-semibold mb-3">
+              <div className="flex gap-2 text-primary text-[10px] uppercase tracking-widest font-semibold mb-3">
                 <GraduationCap size={14} />
                 <T text="Next assessment" />
               </div>
@@ -465,8 +475,7 @@ export function Dashboard() {
               </p>
             </button>
           ) : (
-            <div className="p-5 rounded-xl bg-[var(--accent)] border border-primary/10">
-              <Sparkles size={18} className="text-primary mb-3" />
+            <div className="p-4 rounded-sm bg-[var(--accent)] border border-primary/10">
               <p className="text-xs font-medium">
                 <T text="Small steps. Steady progress." />
               </p>
@@ -506,12 +515,12 @@ export function Dashboard() {
           </div>
         )}
       </section>
-      <footer className="mt-9 flex justify-between text-[9px] muted">
+      <footer className="mt-9 flex justify-between text-[10px] muted">
         <span>
           <T text="A little more organized. A little more you." />
         </span>
         <span className="flex gap-1.5 items-center">
-          <span className="size-1.5 rounded-full bg-[var(--green)]" />
+          <span className="size-1.5 rounded-sm bg-[var(--green)]" />
           <T text="Your personal workspace" />
         </span>
       </footer>

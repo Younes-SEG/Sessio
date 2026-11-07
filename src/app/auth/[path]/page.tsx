@@ -26,18 +26,18 @@ export default async function AuthPage({
   if (!views.has(path)) notFound();
   const { token } = await searchParams;
   return (
-    <main className="grid min-h-screen place-items-center px-5 py-12">
+    <main className="grid min-h-screen place-items-center px-5 py-8">
       <div className="w-full max-w-md">
         <Link
           href="/auth/sign-in"
           className="mb-8 inline-flex items-center gap-3 text-xl font-semibold"
         >
-          <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <span className="grid size-10 place-items-center rounded-sm bg-primary text-primary-foreground">
             <Terminal aria-hidden size={24} />
           </span>
           Command
         </Link>
-        <section className="card p-7 sm:p-9">
+        <section className="card p-4 sm:p-9">
           {isAuthConfigured() ? (
             <AuthPanel mode={path} token={typeof token === 'string' ? token : undefined} />
           ) : (

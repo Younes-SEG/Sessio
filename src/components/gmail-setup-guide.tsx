@@ -1,7 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 
 export function GmailSetupGuide({ french = false }: { french?: boolean }) {
-  const choose = (en: string, fr: string) => french ? fr : en;
+  const choose = (en: string, fr: string) => (french ? fr : en);
   const steps = [
     {
       title: choose('Choose a Google Cloud project', 'Choisissez un projet Google Cloud'),
@@ -48,7 +48,10 @@ export function GmailSetupGuide({ french = false }: { french?: boolean }) {
       code: 'http://127.0.0.1:3000/api/email/callback',
     },
     {
-      title: choose('Save the two values on your computer', 'Enregistrez les deux valeurs sur votre ordinateur'),
+      title: choose(
+        'Save the two values on your computer',
+        'Enregistrez les deux valeurs sur votre ordinateur',
+      ),
       text: choose(
         'Open .env.local in your Command project folder using your editor. Replace the values after = for the two entries below with your client ID and client secret. Keep each on its own line. Keep the existing redirect URI and encryption key unchanged. If these entries are missing, run node scripts/setup-gmail.mjs from the project folder first. Save the file. Keep this file private; do not paste secrets into chat or screenshots.',
         'Ouvrez .env.local dans le dossier du projet Command avec votre éditeur. Remplacez les valeurs après = des deux entrées ci-dessous par votre client ID et votre client secret, chacun sur sa propre ligne. Conservez l’URI de redirection et la clé de chiffrement existantes. Si ces entrées manquent, exécutez d’abord node scripts/setup-gmail.mjs dans le dossier du projet. Enregistrez le fichier et gardez-le privé; ne partagez pas les secrets dans le chat ou des captures.',
@@ -58,8 +61,8 @@ export function GmailSetupGuide({ french = false }: { french?: boolean }) {
     {
       title: choose('Restart Command and connect Gmail', 'Redémarrez Command et connectez Gmail'),
       text: choose(
-        'Restart the local app so it loads the saved settings. If you started it in a terminal, stop that app with Ctrl+C, then run npm run dev from the Command folder. Open http://127.0.0.1:3000 → Grades → Grade emails. Tick the permission checkbox, click Connect Gmail, choose your test account, and review Google’s consent screen. Once connected, click Check emails now. Review each suggested grade before saving it.',
-        'Redémarrez l’application pour charger les paramètres. Si vous l’avez lancée dans un terminal, arrêtez-la avec Ctrl+C, puis exécutez npm run dev dans le dossier Command. Ouvrez http://127.0.0.1:3000 → Notes → Courriels de notes. Cochez l’autorisation, cliquez sur Connecter Gmail, choisissez votre compte de test et vérifiez le consentement Google. Une fois connecté, vérifiez les courriels et chaque note proposée avant de l’enregistrer.',
+        'Restart the local app so it loads the saved settings. If you started it in a terminal, stop that app with Ctrl+C, then run npm run dev from the Command folder. Open http://127.0.0.1:3000 → Grades → Grade emails. Tick the permission checkbox, click Connect Gmail, choose your test account, and review Google’s consent screen. Once connected, click Check emails now. Clear assessment and score matches are saved automatically. Review only uncertain results or conflicts with manually entered grades.',
+        'Redémarrez l’application pour charger les paramètres. Si vous l’avez lancée dans un terminal, arrêtez-la avec Ctrl+C, puis exécutez npm run dev dans le dossier Command. Ouvrez http://127.0.0.1:3000 → Notes → Courriels de notes. Cochez l’autorisation, cliquez sur Connecter Gmail, choisissez votre compte de test et vérifiez le consentement Google. Une fois connecté, vérifiez les courriels. Les résultats clairement associés à une évaluation sont enregistrés automatiquement; seuls les cas incertains ou les conflits avec une note saisie manuellement restent à vérifier.',
       ),
     },
   ];
@@ -67,29 +70,47 @@ export function GmailSetupGuide({ french = false }: { french?: boolean }) {
   return (
     <details className="gmail-setup-guide space-y-4">
       <summary className="cursor-pointer font-medium text-primary">
-        {choose('One-time setup for your own installation', 'Configuration initiale de votre installation')}
+        {choose(
+          'One-time setup for your own installation',
+          'Configuration initiale de votre installation',
+        )}
       </summary>
-      <p>{choose(
-        'Start with step 1 if you are on Google Cloud’s welcome screen. Keep this guide open in one tab and Google Cloud in another. The menu labels below match Google’s English interface.',
-        'Commencez à l’étape 1 si vous êtes sur la page d’accueil Google Cloud. Gardez ce guide dans un onglet et Google Cloud dans un autre. Les noms de menus ci-dessous correspondent à l’interface anglaise de Google.',
-      )}</p>
-      <a className="setup-guide-link" href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">
+      <p>
+        {choose(
+          'Start with step 1 if you are on Google Cloud’s welcome screen. Keep this guide open in one tab and Google Cloud in another. The menu labels below match Google’s English interface.',
+          'Commencez à l’étape 1 si vous êtes sur la page d’accueil Google Cloud. Gardez ce guide dans un onglet et Google Cloud dans un autre. Les noms de menus ci-dessous correspondent à l’interface anglaise de Google.',
+        )}
+      </p>
+      <a
+        className="setup-guide-link"
+        href="https://console.cloud.google.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         Google Cloud Console <ExternalLink aria-hidden size={16} />
-        <span className="sr-only">{choose('(opens in a new tab)', '(s’ouvre dans un nouvel onglet)')}</span>
+        <span className="sr-only">
+          {choose('(opens in a new tab)', '(s’ouvre dans un nouvel onglet)')}
+        </span>
       </a>
       <ol className="gmail-setup-steps">
         {steps.map((step, index) => (
           <li key={index}>
             <h3 className="font-semibold">{step.title}</h3>
             <p>{step.text}</p>
-            {step.code && <pre className="rounded-lg bg-muted p-3 text-sm whitespace-pre-wrap break-all"><code>{step.code}</code></pre>}
+            {step.code && (
+              <pre className="rounded-sm bg-muted p-3 text-sm whitespace-pre-wrap break-all">
+                <code>{step.code}</code>
+              </pre>
+            )}
           </li>
         ))}
       </ol>
-      <p className="text-sm muted">{choose(
-        'If Google shows redirect_uri_mismatch, compare the address in step 6 character by character, including 127.0.0.1 and /api/email/callback. If access is denied, check the test-user email in step 4. If Command still says setup is incomplete, check both saved values and restart it. GMAIL_SETUP.md in the project folder has more details.',
-        'Si Google affiche redirect_uri_mismatch, comparez l’adresse de l’étape 6 caractère par caractère, y compris 127.0.0.1 et /api/email/callback. Si l’accès est refusé, vérifiez le compte de test à l’étape 4. Si Command indique toujours une configuration incomplète, vérifiez les deux valeurs enregistrées et redémarrez. Le fichier GMAIL_SETUP.md contient plus de détails.',
-      )}</p>
+      <p className="text-sm muted">
+        {choose(
+          'If Google shows redirect_uri_mismatch, compare the address in step 6 character by character, including 127.0.0.1 and /api/email/callback. If access is denied, check the test-user email in step 4. If Command still says setup is incomplete, check both saved values and restart it. GMAIL_SETUP.md in the project folder has more details.',
+          'Si Google affiche redirect_uri_mismatch, comparez l’adresse de l’étape 6 caractère par caractère, y compris 127.0.0.1 et /api/email/callback. Si l’accès est refusé, vérifiez le compte de test à l’étape 4. Si Command indique toujours une configuration incomplète, vérifiez les deux valeurs enregistrées et redémarrez. Le fichier GMAIL_SETUP.md contient plus de détails.',
+        )}
+      </p>
     </details>
   );
 }

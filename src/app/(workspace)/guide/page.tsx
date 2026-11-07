@@ -1,4 +1,6 @@
 import { GmailSetupGuide } from '@/components/gmail-setup-guide';
+import { AssistantGuide } from '@/components/assistant-guide';
+import { BrightspaceNotificationGuide } from '@/components/brightspace-notification-guide';
 import { TourReplay } from '@/components/onboarding';
 import { GuideLanguage } from '@/components/guide-language';
 import Link from 'next/link';
@@ -7,6 +9,7 @@ import { Button } from '@/components/ui/button';
 
 export const metadata = { title: 'User guide' };
 const topics = [
+  ['assistant', 'Ask Command'],
   ['start', 'Get started'],
   ['calendar', 'Connect and sync a calendar'],
   ['syllabus', 'Import a syllabus'],
@@ -32,7 +35,8 @@ export default function GuidePage() {
           <BookOpen aria-hidden size={28} className="text-primary" />
         </header>
         <TourReplay />
-        <section className="card space-y-4 p-6">
+        <AssistantGuide />
+        <section className="card space-y-4 p-4">
           <h2 className="section-title">Your everyday routine</h2>
           <p className="muted leading-relaxed">
             Check Home for upcoming work, mark assignments Completed after you finish and submit
@@ -59,13 +63,13 @@ export default function GuidePage() {
             <a
               key={id}
               href={`#${id}`}
-              className="rounded-lg px-3 py-2 text-sm text-primary underline underline-offset-4"
+              className="rounded-sm px-3 py-2 text-sm text-primary underline underline-offset-4"
             >
               {title}
             </a>
           ))}
         </nav>
-        <section id="start" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="start" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">1. Get started</h2>
           <ol className="list-decimal space-y-3 pl-5 leading-relaxed">
             <li>
@@ -102,7 +106,7 @@ export default function GuidePage() {
             to keep into another term first.
           </p>
         </section>
-        <section id="calendar" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="calendar" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">2. Connect and sync a calendar</h2>
           <ol className="list-decimal space-y-3 pl-5 leading-relaxed">
             <li>
@@ -143,7 +147,7 @@ export default function GuidePage() {
             create duplicates.
           </p>
         </section>
-        <section id="syllabus" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="syllabus" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">Import a syllabus</h2>
           <p className="leading-relaxed">
             Open{' '}
@@ -193,7 +197,7 @@ export default function GuidePage() {
             snapshot, so review later revisions again.
           </p>
         </section>
-        <section id="syllabus-setup" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="syllabus-setup" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">Syllabus reading: no setup needed</h2>
           <p className="leading-relaxed">
             Choose your term, select your syllabus and click Read syllabus. Command connects to its
@@ -207,7 +211,7 @@ export default function GuidePage() {
             network may share an allowance. A failed read does not save assessments or charge you.
           </p>
         </section>
-        <section id="syllabus-privacy" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="syllabus-privacy" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">How your syllabus is handled</h2>
           <p className="muted leading-relaxed">
             Uploading a syllabus or submitting pasted text sends its content and the selected course
@@ -234,7 +238,7 @@ export default function GuidePage() {
             a request already sent to the provider.
           </p>
         </section>
-        <section id="assignments" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="assignments" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">3. Complete assignments</h2>
           <p className="leading-relaxed">
             Click an assignment on Home, Calendar or a course’s Assessments tab to open its editor.
@@ -252,7 +256,7 @@ export default function GuidePage() {
             when you intend to remove the grade.
           </p>
         </section>
-        <section id="grades" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="grades" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">4. Enter and track grades</h2>
           <ol className="list-decimal space-y-3 pl-5 leading-relaxed">
             <li>
@@ -288,14 +292,15 @@ export default function GuidePage() {
             Command does not directly access your Brightspace gradebook.
           </p>
         </section>
-        <section id="email" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="email" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">Connect grade emails</h2>
           <p>
             Open Grades → Grade emails, connect the Gmail account receiving your forwarded school
             emails, and select Check emails now. Automatic checks run every five minutes while
-            Command is open and visible. Review the suggested assessment and score before saving.
-            Emails without a score remain notifications; Command cannot retrieve a score behind a
-            Brightspace login.
+            Command is open and visible. Clear assessment and score matches are saved directly to
+            Grades, with a record under Automatic grade updates. Uncertain matches and conflicts
+            with manually entered grades stay for review. Emails without a score remain
+            notifications; Command cannot retrieve a score behind a Brightspace login.
           </p>
           <p>
             Use Email preferences to change the Gmail search filter or pause automatic checks.
@@ -308,9 +313,10 @@ export default function GuidePage() {
             updates the existing assessment and its calendar date without creating a duplicate or
             changing its grade. Other changes stay as notices for you to review in Gmail.
           </p>
+          <BrightspaceNotificationGuide />
           <GmailSetupGuide />
         </section>
-        <section id="planning" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="planning" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">5. Tasks, classes and events</h2>
           <ul className="list-disc space-y-3 pl-5 leading-relaxed">
             <li>
@@ -338,7 +344,7 @@ export default function GuidePage() {
             </li>
           </ul>
         </section>
-        <section id="appearance" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="appearance" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">6. Appearance and study buddies</h2>
           <p className="leading-relaxed">
             In Settings → Appearance, choose Light, Dark or System, and pick Mochi, Sprout, Nimbus
@@ -350,7 +356,7 @@ export default function GuidePage() {
             does not make sounds or block clicks.
           </p>
         </section>
-        <section id="data" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="data" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">7. Your data</h2>
           <p className="leading-relaxed">
             Settings → Your data offers Download my data and Erase workspace data. The JSON download
@@ -367,7 +373,7 @@ export default function GuidePage() {
             .
           </p>
         </section>
-        <section id="troubleshooting" className="card scroll-mt-6 space-y-4 p-6">
+        <section id="troubleshooting" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">8. Troubleshooting</h2>
           <details className="border-b border-[var(--border)] pb-3">
             <summary className="cursor-pointer py-2 font-medium">

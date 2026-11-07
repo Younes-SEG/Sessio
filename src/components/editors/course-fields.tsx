@@ -106,7 +106,7 @@ export function SemesterFields({ initial }: { initial: Partial<Semester> }) {
         value={initial.endDate?.slice(0, 10)}
         required
       />
-      <label className="flex items-start gap-3 rounded-xl border border-[var(--border)] p-4 text-sm sm:col-span-2">
+      <label className="flex items-start gap-3 rounded-sm border border-[var(--border)] p-4 text-sm sm:col-span-2">
         <input
           type="checkbox"
           name="isActive"

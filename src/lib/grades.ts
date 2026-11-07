@@ -1,4 +1,4 @@
-import type { Assessment } from './types';
+import type { Assessment, AssessmentType } from './types';
 import {
   configuredCourseWeight,
   gradingRuleError,
@@ -23,6 +23,7 @@ export interface TargetResult extends GradeSummary {
   requiredAverage: number | null;
   status: 'possible' | 'impossible' | 'secured' | 'invalid';
   assumption: string;
+  projection?: 'best-of';
 }
 
 const EPSILON = 0.000001;
@@ -144,23 +145,13 @@ export function calculateTarget(
         : 'Assumes the course weights total 100% and remaining work can earn up to 100%, with no extra credit or dropped assessments.';
   const result = { ...summary, target, assumption };
 
-  if (
-    rules.length &&
-    (gradingRuleError(rules, assessments) ||
-      rules
-        .filter((r) => r.mode !== 'equal')
-        .some((r) =>
-          r.assessmentIds.some(
-            (id) => !assessments.some((a) => a.id === id && a.status === 'GRADED' && validGrade(a)),
-          ),
-        ))
-  ) {
+  const ruleError = rules.length ? gradingRuleError(rules, assessments) : null;
+  if (ruleError) {
     return {
       ...result,
       status: 'invalid',
       requiredAverage: null,
-      assumption:
-        'The target calculator is available after all scores in best-of groups are recorded. Later scores can replace earlier ones, so a single remaining average would be misleading.',
+      assumption: ruleError,
     };
   }
 
@@ -176,6 +167,45 @@ export function calculateTarget(
   ) {
     return { ...result, status: 'invalid', requiredAverage: null };
   }
+  const unfinishedBestOf = rules.some(
+    (rule) =>
+      rule.mode !== 'equal' &&
+      rule.assessmentIds.some(
+        (id) => !assessments.some((a) => a.id === id && a.status === 'GRADED' && validGrade(a)),
+      ),
+  );
+  if (unfinishedBestOf) {
+    // Best-of contributions are nonlinear: future scores can replace recorded ones.
+    // Solve an explicit equal-score scenario instead of treating missing grades as zero.
+    const finalAt = (percentage: number) =>
+      calculateGrades(
+        assessments.map((a) =>
+          a.status === 'GRADED'
+            ? a
+            : { ...a, status: 'GRADED', score: (a.maxScore * percentage) / 100 },
+        ),
+        rules,
+      ).earnedPoints +
+      (missingWeight * percentage) / 100;
+    const projection = {
+      ...result,
+      projection: 'best-of' as const,
+      assumption:
+        'Assumes the same percentage on every remaining assessment, including unconfigured course weight. Best-of rules replace lower scores automatically. Different combinations of scores can also reach your target.',
+    };
+    if (finalAt(0) >= target - EPSILON)
+      return { ...projection, status: 'secured', requiredAverage: 0 };
+    if (finalAt(100) < target - EPSILON)
+      return { ...projection, status: 'impossible', requiredAverage: null };
+    let low = 0;
+    let high = 100;
+    for (let i = 0; i < 60; i++) {
+      const middle = (low + high) / 2;
+      if (finalAt(middle) >= target) high = middle;
+      else low = middle;
+    }
+    return { ...projection, status: 'possible', requiredAverage: high };
+  }
   if (summary.earnedPoints >= target - EPSILON) {
     return { ...result, status: 'secured', requiredAverage: 0 };
   }
@@ -188,4 +218,22 @@ export function calculateTarget(
     requiredAverage,
     status: requiredAverage > 100 + EPSILON ? 'impossible' : 'possible',
   };
+}
+
+/** Category average uses recorded contributions, including only scores currently kept by a rule. */
+export function currentCategoryGrade(
+  assessments: readonly Assessment[],
+  type: AssessmentType,
+  rules: readonly GradingRule[] = [],
+) {
+  const contributions = ruleContributions(assessments, rules);
+  let earned = 0;
+  let weight = 0;
+  for (const a of assessments) {
+    if (a.type !== type || a.status !== 'GRADED' || !validGrade(a) || !validWeight(a)) continue;
+    const contribution = contributions.get(a.id)?.weight ?? a.weight;
+    earned += (a.score! / a.maxScore) * contribution;
+    weight += contribution;
+  }
+  return weight > 0 ? (earned / weight) * 100 : null;
 }

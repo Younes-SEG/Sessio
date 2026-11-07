@@ -87,10 +87,9 @@ test('course, grades, task, calendar and persistence work together', async ({ pa
     ).toBeVisible();
     await page.goto(`/courses/${courseId}`);
     await page.getByRole('tab', { name: 'Grades', exact: true }).click();
-    await page
-      .getByRole('button', { name: 'Enter grade for First assignment', exact: true })
-      .click();
-    await page.getByLabel('Score received', { exact: false }).fill('82');
+    await page.locator('[data-grade-group="ASSIGNMENT"] > summary').click();
+    await page.getByRole('button', { name: 'Edit grade: First assignment', exact: true }).click();
+    await page.getByLabel('Score received', { exact: true }).fill('82');
     await saved(page, 'Save changes');
     await expect(page.getByText('82%', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('79.4%', { exact: true })).toBeVisible();
@@ -170,7 +169,10 @@ test('course, grades, task, calendar and persistence work together', async ({ pa
     courseId ||= remaining.courses.find((c) => c.code === code)?.id ?? '';
     if (taskId) await request.delete(`/api/tasks/${taskId}`);
     if (eventId) await request.delete(`/api/events/${eventId}`);
-    if (courseId) await request.delete(`/api/courses/${courseId}`);
+    if (courseId) {
+      await request.delete(`/api/courses/${courseId}`);
+      await request.delete(`/api/deleted-courses/${courseId}`);
+    }
     if (semesterId) await request.delete(`/api/semesters/${semesterId}`);
   }
 });

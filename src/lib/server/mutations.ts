@@ -14,6 +14,15 @@ import {
 } from './validation';
 
 type Transaction = Prisma.TransactionClient;
+const visibleEvent = {
+  OR: [{ courseId: null }, { course: { deletedAt: null } }],
+} satisfies Prisma.CalendarEventWhereInput;
+const visibleTask = {
+  AND: [
+    { OR: [{ courseId: null }, { course: { deletedAt: null } }] },
+    { OR: [{ assessmentId: null }, { assessment: { course: { deletedAt: null } } }] },
+  ],
+} satisfies Prisma.TaskWhereInput;
 
 function exists<T>(record: T | null, name = 'Entry'): T {
   if (!record) throw new ApiError(404, `${name} no longer exists. Refresh and try again.`);
@@ -24,7 +33,7 @@ async function requireCourse(tx: Transaction, id: string | null, workspaceId: st
   if (id)
     exists(
       await tx.course.findUnique({
-        where: { id, semester: { workspaceId } },
+        where: { id, semester: { workspaceId }, deletedAt: null },
         select: { id: true },
       }),
       'Course',
@@ -67,7 +76,11 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
       }
       case 'courses': {
         const current = id
-          ? exists(await tx.course.findUnique({ where: { id, semester: { workspaceId } } }))
+          ? exists(
+              await tx.course.findUnique({
+                where: { id, semester: { workspaceId }, deletedAt: null },
+              }),
+            )
           : {};
         const data = courseSchema.parse({ ...current, ...body });
         const members = id ? await tx.assessment.findMany({ where: { courseId: id } }) : [];
@@ -83,7 +96,7 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
         const current = id
           ? exists(
               await tx.assessment.findUnique({
-                where: { id, course: { semester: { workspaceId } } },
+                where: { id, course: { semester: { workspaceId }, deletedAt: null } },
               }),
             )
           : null;
@@ -137,7 +150,7 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
         const current = id
           ? exists(
               await tx.task.findUnique({
-                where: { id, workspaceId },
+                where: { id, workspaceId, ...visibleTask },
                 include: { subtasks: { orderBy: { position: 'asc' } } },
               }),
             )
@@ -146,7 +159,10 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
         if (data.assessmentId) {
           const assessment = exists(
             await tx.assessment.findUnique({
-              where: { id: data.assessmentId, course: { semester: { workspaceId } } },
+              where: {
+                id: data.assessmentId,
+                course: { semester: { workspaceId }, deletedAt: null },
+              },
               select: { courseId: true },
             }),
             'Assessment',
@@ -200,7 +216,9 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
       }
       case 'events': {
         const current = id
-          ? exists(await tx.calendarEvent.findUnique({ where: { id, workspaceId } }))
+          ? exists(
+              await tx.calendarEvent.findUnique({ where: { id, workspaceId, ...visibleEvent } }),
+            )
           : {};
         const data = eventSchema.parse({ ...current, ...body });
         await requireCourse(tx, data.courseId, workspaceId);
@@ -212,7 +230,7 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
         const current = id
           ? exists(
               await tx.scheduleEntry.findUnique({
-                where: { id, course: { semester: { workspaceId } } },
+                where: { id, course: { semester: { workspaceId }, deletedAt: null } },
               }),
             )
           : {};
@@ -243,7 +261,7 @@ export async function saveEntity(entity: string, body: Record<string, unknown>, 
   });
 }
 
-export async function deleteEntity(entity: string, id: string) {
+export async function deleteEntity(entity: string, id: string, permanent = false) {
   const workspaceId = await requireWorkspaceId();
   return transaction(async (tx) => {
     switch (entity) {
@@ -271,18 +289,31 @@ export async function deleteEntity(entity: string, id: string) {
         }
         break;
       }
-      case 'courses':
-        exists(await tx.course.findUnique({ where: { id, semester: { workspaceId } } }));
+      case 'courses': {
+        const course = exists(
+          await tx.course.findUnique({ where: { id, semester: { workspaceId } } }),
+        );
+        if (!permanent) {
+          if (!course.deletedAt)
+            await tx.course.update({ where: { id }, data: { deletedAt: new Date() } });
+          break;
+        }
+        if (!course.deletedAt)
+          throw new ApiError(
+            409,
+            'Move this course to Deleted courses before deleting it permanently.',
+          );
         await tx.task.deleteMany({
           where: { workspaceId, OR: [{ courseId: id }, { assessment: { courseId: id } }] },
         });
         await tx.calendarEvent.deleteMany({ where: { workspaceId, courseId: id } });
         await tx.course.delete({ where: { id, semester: { workspaceId } } });
         break;
+      }
       case 'assessments': {
         const member = exists(
           await tx.assessment.findUnique({
-            where: { id, course: { semester: { workspaceId } } },
+            where: { id, course: { semester: { workspaceId }, deletedAt: null } },
             include: { course: true },
           }),
         );
@@ -296,21 +327,34 @@ export async function deleteEntity(entity: string, id: string) {
             'Remove this assessment from its grading rule in the course Grades tab before deleting it.',
           );
         await tx.task.deleteMany({ where: { workspaceId, assessmentId: id, studyTask: true } });
-        await tx.assessment.delete({ where: { id, course: { semester: { workspaceId } } } });
+        await tx.assessment.delete({
+          where: { id, course: { semester: { workspaceId }, deletedAt: null } },
+        });
         break;
       }
       case 'tasks':
-        await tx.task.delete({ where: { id, workspaceId } });
+        await tx.task.delete({ where: { id, workspaceId, ...visibleTask } });
         break;
       case 'events':
-        await tx.calendarEvent.delete({ where: { id, workspaceId } });
+        await tx.calendarEvent.delete({ where: { id, workspaceId, ...visibleEvent } });
         break;
       case 'schedules':
-        await tx.scheduleEntry.delete({ where: { id, course: { semester: { workspaceId } } } });
+        await tx.scheduleEntry.delete({
+          where: { id, course: { semester: { workspaceId }, deletedAt: null } },
+        });
         break;
       default:
         throw new ApiError(404, 'This type of entry cannot be deleted.');
     }
+    return {};
+  });
+}
+
+export async function restoreCourse(id: string) {
+  const workspaceId = await requireWorkspaceId();
+  return transaction(async (tx) => {
+    exists(await tx.course.findUnique({ where: { id, semester: { workspaceId } } }));
+    await tx.course.update({ where: { id }, data: { deletedAt: null } });
     return {};
   });
 }

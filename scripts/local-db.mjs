@@ -25,6 +25,8 @@ const pg = new EmbeddedPostgres({
   port: 54329,
   persistent: true,
   authMethod: 'scram-sha-256',
+  // Windows otherwise inherits its code page, which rejects Unicode email text.
+  initdbFlags: ['--encoding=UTF8', '--locale=C'],
   postgresFlags: ['-h', '127.0.0.1'],
   onLog: () => {},
   onError: (message) => {
@@ -59,7 +61,10 @@ try {
   const client = pg.getPgClient();
   await client.connect();
   const { rows } = await client.query("SELECT 1 FROM pg_database WHERE datname='folio'");
-  if (!rows.length) await client.query('CREATE DATABASE folio');
+  if (!rows.length)
+    await client.query(
+      "CREATE DATABASE folio WITH TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'",
+    );
   await client.end();
   console.log('PostgreSQL is ready on 127.0.0.1:54329. Data is saved in .postgres/.');
   console.log(

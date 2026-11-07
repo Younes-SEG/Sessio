@@ -1,4 +1,7 @@
 'use client';
+import { GradeGroups } from './grade-groups';
+import { GradeList } from './grade-list';
+import { DeleteCourse } from './delete-course';
 import { T, useT } from '@/components/language-provider';
 
 import Link from 'next/link';
@@ -49,7 +52,7 @@ export function CourseDetail({ id }: { id: string }) {
   const course = data.courses.find((item) => item.id === id);
   if (!course)
     return (
-      <div className="empty-state card py-20">
+      <div className="empty-state card py-8">
         <BookOpen className="mx-auto mb-4" size={32} />
         <h1 className="text-xl font-semibold">
           <T text="Course not found" />
@@ -98,7 +101,7 @@ export function CourseDetail({ id }: { id: string }) {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <Link
         href="/courses"
         className="muted inline-flex items-center gap-2 text-sm transition-colors hover:text-[var(--foreground)]"
@@ -109,8 +112,8 @@ export function CourseDetail({ id }: { id: string }) {
       <div className="page-header">
         <div className="flex min-w-0 items-start gap-4">
           <div
-            className="flex size-14 shrink-0 items-center justify-center rounded-2xl"
-            style={{ backgroundColor: `${course.color}18`, color: 'var(--foreground)' }}
+            className="flex size-14 shrink-0 items-center justify-center rounded-sm"
+            style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}
           >
             <BookOpen size={25} />
           </div>
@@ -140,6 +143,7 @@ export function CourseDetail({ id }: { id: string }) {
             <Pencil size={14} />
             <T text="Edit course" />
           </Button>
+          <DeleteCourse course={course} />
         </div>
       </div>
 
@@ -178,7 +182,7 @@ export function CourseDetail({ id }: { id: string }) {
           <>
             <GradeSummary assessments={assessments} rules={course.gradingRules} />
             <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
-              <section className="card p-5 sm:p-6">
+              <section className="card p-4 sm:p-5">
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <h2 className="section-title">
                     <T text="Coming up next" />
@@ -196,7 +200,7 @@ export function CourseDetail({ id }: { id: string }) {
                         onClick={() => openEditor('assessments', assessment.id)}
                         className="flex w-full items-center gap-4 py-4 text-left first:pt-0 last:pb-0"
                       >
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--muted)]">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-[var(--muted)]">
                           <FileText size={18} />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -225,7 +229,7 @@ export function CourseDetail({ id }: { id: string }) {
                   />
                 )}
               </section>
-              <section className="card p-5 sm:p-6">
+              <section className="card p-4 sm:p-5">
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <h2 className="section-title">
                     <T text="Your weekly rhythm" />
@@ -244,8 +248,10 @@ export function CourseDetail({ id }: { id: string }) {
                         className="flex w-full items-start gap-3 text-left"
                       >
                         <div
-                          className="mt-1 h-9 w-1 shrink-0 rounded-full"
-                          style={{ backgroundColor: course.color }}
+                          className="mt-1 h-9 w-1 shrink-0 rounded-sm"
+                          style={{
+                            backgroundColor: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))`,
+                          }}
                         />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">
@@ -274,7 +280,7 @@ export function CourseDetail({ id }: { id: string }) {
                 )}
               </section>
             </div>
-            <section className="card p-5 sm:p-6">
+            <section className="card p-4 sm:p-5">
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="section-title">
@@ -302,7 +308,7 @@ export function CourseDetail({ id }: { id: string }) {
                       className="flex w-full items-center gap-3 py-3 text-left"
                       onClick={() => openEditor('tasks', task.id)}
                     >
-                      <span className="size-4 shrink-0 rounded border border-[var(--border)]" />
+                      <span className="size-4 shrink-0 rounded-sm border border-[var(--border)]" />
                       <span className="min-w-0 flex-1 truncate text-sm">{task.title}</span>
                       <span className="badge">{t(statusLabel(task.priority))}</span>
                       <ArrowUpRight size={15} className="muted" />
@@ -328,7 +334,7 @@ export function CourseDetail({ id }: { id: string }) {
         )}
         {tab === 'Assessments' && (
           <section className="card overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
               <div>
                 <h2 className="section-title">
                   <T text="Assessments" />
@@ -375,8 +381,8 @@ function GradeSummary({
   const t = useT();
   const grades = calculateGrades(assessments, rules);
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <div className="card p-5 sm:p-6">
+    <div className="course-summary-strip grid sm:grid-cols-3">
+      <div className="card p-4 sm:p-5">
         <p className="muted text-sm">
           <T text="Current grade" />
         </p>
@@ -390,7 +396,7 @@ function GradeSummary({
           <T text="Weighted average of graded assessments only." />
         </p>
       </div>
-      <div className="card p-5 sm:p-6">
+      <div className="card p-4 sm:p-5">
         <p className="muted text-sm">
           <T text="Course graded" />
         </p>
@@ -398,7 +404,7 @@ function GradeSummary({
           {percent(grades.completedWeight)}
         </p>
         <div
-          className="mt-4 h-1.5 overflow-hidden rounded-full bg-[var(--muted)]"
+          className="mt-4 h-1.5 overflow-hidden rounded-sm bg-[var(--muted)]"
           role="progressbar"
           aria-label={t('Course weight graded')}
           aria-valuenow={Math.min(100, grades.completedWeight)}
@@ -406,12 +412,12 @@ function GradeSummary({
           aria-valuemax={100}
         >
           <div
-            className="h-full rounded-full bg-[var(--primary)]"
+            className="h-full rounded-sm bg-[var(--primary)]"
             style={{ width: `${Math.min(100, grades.completedWeight)}%` }}
           />
         </div>
       </div>
-      <div className="card p-5 sm:p-6">
+      <div className="card p-4 sm:p-5">
         <p className="muted text-sm">
           <T text="Earned toward final grade" />
         </p>
@@ -431,16 +437,18 @@ function GradeSummary({
 
 function AssessmentTable({
   assessments,
+  calculationAssessments = assessments,
   grades = false,
   rules = [],
 }: {
   assessments: Assessment[];
+  calculationAssessments?: Assessment[];
   grades?: boolean;
   rules?: GradingRule[];
 }) {
   const t = useT();
   const { openEditor, data, now } = useWorkspace();
-  const contributions = ruleContributions(assessments, rules);
+  const contributions = ruleContributions(calculationAssessments, rules);
   return (
     <div className="table-wrap relative">
       <table className="data-table">
@@ -584,7 +592,7 @@ function AssessmentTable({
 function GradeWarnings({ warnings }: { warnings: string[] }) {
   return warnings.length ? (
     <div
-      className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm leading-relaxed"
+      className="rounded-sm border border-[var(--warning)]/25 bg-[var(--warning)]/10 p-4 text-sm leading-relaxed"
       role="status"
     >
       {warnings.map((warning) => (
@@ -619,7 +627,7 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
         course={course}
         assessments={assessments}
       />
-      <section className="card grid gap-6 p-5 sm:p-6 md:grid-cols-2 md:gap-10">
+      <section className="card grid gap-6 p-4 sm:p-5 md:grid-cols-2 md:gap-10">
         <div>
           <div className="mb-3 flex items-center gap-2">
             <GraduationCap size={20} className="text-[var(--primary)]" />
@@ -647,7 +655,7 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
           </div>
         </div>
         <div
-          className="flex flex-col justify-center rounded-2xl bg-[var(--muted)] p-5"
+          className="flex flex-col justify-center rounded-sm bg-[var(--muted)] p-4"
           aria-live="polite"
         >
           {!result ? (
@@ -661,7 +669,9 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
                   ? t('You’ve already earned enough points')
                   : result.status === 'invalid'
                     ? t('Check your target and assessment weights')
-                    : `Average needed on the remaining ${percent(result.remainingWeight)}`}
+                    : result.projection === 'best-of'
+                      ? t('Score needed on each remaining assessment')
+                      : `Average needed on the remaining ${percent(result.remainingWeight)}`}
               </p>
               <p className="mt-2 text-3xl font-semibold tracking-tight">
                 {result.status === 'secured'
@@ -683,15 +693,19 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
                       ? t(
                           'Use a target between 0 and 100%, and keep course weights at or below 100%.',
                         )
-                      : t('This is a required average, not a prediction of your final grade.')}
+                      : result.projection === 'best-of'
+                        ? t(
+                            'Planning estimate: assumes the same percentage on all remaining work. Your best scores are kept automatically.',
+                          )
+                        : t('This is a required average, not a prediction of your final grade.')}
               </p>
-              <p className="muted mt-3 text-xs leading-relaxed">{result.assumption}</p>
+              <p className="muted mt-3 text-xs leading-relaxed">{t(result.assumption)}</p>
             </>
           )}
         </div>
       </section>
       <section className="card overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
           <div>
             <h2 className="section-title">
               <T text="Your gradebook" />
@@ -710,7 +724,9 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
           </Button>
         </div>
         {assessments.length ? (
-          <AssessmentTable assessments={assessments} rules={course.gradingRules} grades />
+          <GradeGroups key={course.id} assessments={assessments} rules={course.gradingRules}>
+            {(rows) => <GradeList assessments={rows} course={course} />}
+          </GradeGroups>
         ) : (
           <Empty
             icon="file"
@@ -737,7 +753,7 @@ function SchedulePanel({
   const t = useT();
   const { openEditor, data } = useWorkspace();
   return (
-    <section className="card p-5 sm:p-6">
+    <section className="card p-4 sm:p-5">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="section-title">
@@ -759,11 +775,11 @@ function SchedulePanel({
             <button
               key={entry.id}
               onClick={() => openEditor('schedules', entry.id)}
-              className="flex gap-4 rounded-xl border border-[var(--border)] p-5 text-left transition-colors hover:bg-[var(--muted)]"
+              className="flex gap-4 rounded-sm border border-[var(--border)] p-4 text-left transition-colors hover:bg-[var(--muted)]"
             >
               <div
-                className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl"
-                style={{ backgroundColor: `${course.color}18`, color: 'var(--foreground)' }}
+                className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-sm"
+                style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)' }}
               >
                 <span className="text-xs font-medium uppercase">
                   {dayNames[entry.dayOfWeek].slice(0, 3)}
@@ -828,7 +844,7 @@ function NotesPanel({ course }: { course: Course }) {
     }
   }
   return (
-    <section className="card p-5 sm:p-6">
+    <section className="card p-4 sm:p-5">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="section-title">
@@ -895,7 +911,7 @@ function Empty({
   const Icon = icon === 'file' ? FileText : CalendarDays;
   return (
     <div className="empty-state px-5 py-10">
-      <div className="mx-auto mb-4 flex size-11 items-center justify-center rounded-2xl bg-[var(--muted)] text-[var(--muted-foreground)]">
+      <div className="mx-auto mb-4 flex size-11 items-center justify-center rounded-sm bg-[var(--muted)] text-[var(--muted-foreground)]">
         <Icon size={22} />
       </div>
       <h3 className="text-sm font-semibold">{t(title)}</h3>

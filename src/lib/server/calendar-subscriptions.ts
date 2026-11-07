@@ -8,6 +8,7 @@ import { fetchCalendarFeed, normalizeFeedUrl } from './feed-fetch';
 import { requireWorkspaceId } from './auth';
 import { isHosted } from './hosting';
 import { brightspaceEventIdentity } from '@/lib/calendar-identity';
+import { matchingCourses } from '@/lib/course-matching';
 import {
   reconcileCalendarAssessments,
   retireCalendarTasks,
@@ -138,6 +139,24 @@ export async function applyCalendarFeed(
     ? await semesterForImport(tx, options, workspaceId)
     : null;
   const courses = new Map<string, string>();
+  const deleted = await tx.course.findMany({
+    where: { semester: { workspaceId }, deletedAt: { not: null } },
+    include: {
+      semester: true,
+      assessments: { select: { id: true } },
+      events: { select: { id: true } },
+    },
+  });
+  const deletedAssessments = new Set(deleted.flatMap((c) => c.assessments.map((a) => a.id)));
+  const deletedEvents = new Set(deleted.flatMap((c) => c.events.map((e) => e.id)));
+  const terms = [...deleted.map((c) => c.semester), ...(semester ? [semester] : [])];
+  // A deleted sample in a duplicate term must not block a real course in the selected term.
+  const termCourses = semester
+    ? await tx.course.findMany({
+        where: { semesterId: semester.id },
+        select: { id: true, code: true, semesterId: true, deletedAt: true },
+      })
+    : [];
   const existing = new Map(
     (await tx.importedCalendarItem.findMany({ where: { subscriptionId } })).map((item) => [
       item.sourceKey,
@@ -145,6 +164,16 @@ export async function applyCalendarFeed(
     ]),
   );
   for (const item of preview.items) {
+    // Keep the retained course untouched, including previously unseen feed items.
+    if (item.course && semester) {
+      const matches = matchingCourses(
+        [...termCourses, ...deleted],
+        terms,
+        item.course.code,
+        semester.id,
+      );
+      if (matches.length && matches.every((course) => course.deletedAt)) continue;
+    }
     let previous = existing.get(item.key);
     if (!previous) {
       const alias = aliases.find(
@@ -162,6 +191,11 @@ export async function applyCalendarFeed(
         existing.set(item.key, previous);
       }
     }
+    if (
+      (previous?.assessmentId && deletedAssessments.has(previous.assessmentId)) ||
+      (previous?.eventId && deletedEvents.has(previous.eventId))
+    )
+      continue;
     if (item.cancelled) {
       if (previous?.eventId)
         await tx.calendarEvent.update({

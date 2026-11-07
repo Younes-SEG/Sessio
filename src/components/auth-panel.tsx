@@ -228,7 +228,7 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
             </p>
           )}
           {notice && (
-            <p role="status" className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
+            <p role="status" className="rounded-sm bg-muted p-4 text-sm leading-relaxed">
               {t(notice)}
             </p>
           )}

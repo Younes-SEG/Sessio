@@ -172,7 +172,10 @@ test('upload automatically opens AI review; saving preserves existing grades and
     await expect(page.getByRole('heading', { name: 'Import syllabus', exact: true })).toBeVisible();
     expect(reads).toBe(1);
   } finally {
-    if (courseId) await request.delete(`/api/courses/${courseId}`);
+    if (courseId) {
+      await request.delete(`/api/courses/${courseId}`);
+      await request.delete(`/api/deleted-courses/${courseId}`);
+    }
     if (semesterId) await request.delete(`/api/semesters/${semesterId}`);
   }
 });

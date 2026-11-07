@@ -4,11 +4,14 @@ import type { Assessment, Course } from './types';
 
 export const LEGACY_GMAIL_QUERY =
   '{brightspace uottawa.ca} {grade grades graded score marks note notes résultat résultats}';
-export const SCHOOL_GMAIL_SCOPE =
+export const LEGACY_SCHOOL_GMAIL_QUERY =
   '{brightspace d2l from:uottawa.ca} {grade grades graded score marks "note publiée" "nouvelle note" résultat résultats announcement announcements annonce annonces deadline "due date" extended rescheduled cancelled canceled échéance reporté prolongée "date limite"} -category:promotions -category:social';
+// Direct course messages need not contain the template words used by notifications.
+// Fetch LMS senders broadly; the content classifier still removes routine noise.
+export const SCHOOL_GMAIL_SCOPE = `({from:brightspace.com from:d2l.com} OR (${LEGACY_SCHOOL_GMAIL_QUERY})) -category:promotions -category:social`;
 export const DEFAULT_GMAIL_QUERY = SCHOOL_GMAIL_SCOPE;
 export const effectiveGmailQuery = (query: string) =>
-  query === LEGACY_GMAIL_QUERY ? DEFAULT_GMAIL_QUERY : query;
+  query === LEGACY_GMAIL_QUERY || query === LEGACY_SCHOOL_GMAIL_QUERY ? DEFAULT_GMAIL_QUERY : query;
 export function scopedGmailQuery(query: string) {
   const effective = effectiveGmailQuery(query);
   return effective === DEFAULT_GMAIL_QUERY
@@ -24,9 +27,28 @@ const normalize = (value: string) =>
 
 // Names from Brightspace and syllabus imports use different punctuation/spacing.
 const assessmentTextKey = (value: string) =>
-  assessmentNameKey(value).replace(/([a-z])(\d)/g, '$1 $2');
+  assessmentNameKey(value)
+    .replace(/([a-z])(\d)/g, '$1 $2')
+    // Normalize labels on both sides, keeping assessment numbers and parts intact.
+    // Require "exam" after MT so a timezone or unrelated abbreviation is not a midterm.
+    .replace(/\b(?:mt|m t)\s*exam(?:ination)?\b/g, 'midterm')
+    .replace(/\bmid\s*term(?:\s+exam(?:ination)?)?\b/g, 'midterm')
+    .replace(/\b(?:examen\s+(?:de\s+)?mi\s+session|(?:examen\s+)?intra)\b/g, 'midterm')
+    .replace(/\b(?:examen|exam)\s+(?=test\b)/g, '');
 const assessmentMention =
-  /\b(?:lab(?:oratory|oratoire)?|tp|quiz|questionnaire|assignment|devoir|deliverable|livrable|midterm|mid term|examen de mi session|final exam|final examination|examen final)\s*(?:(?:no|n|numero|number)\s*)?\d*\b(?:\s+(?:part|partie|phase)\s+(?:[a-z]|\d+)\b)?/g;
+  /\b(?:lab(?:oratory|oratoire)?|tp|quiz|questionnaire|test|assignment|devoir|deliverable|livrable|midterm|mid term|examen de mi session|final exam|final examination|examen final)\s*(?:(?:no|n|numero|number)\s*)?\d*\b(?:\s+(?:part|partie|phase)\s+(?:[a-z]|\d+)\b)?/g;
+
+function emailAssessmentIdentity(item: Pick<Assessment, 'name' | 'type'>) {
+  const name = assessmentTextKey(item.name);
+  const identity = assessmentIdentity({ ...item, name });
+  // A named "Test 1" may be stored as a midterm, quiz or other assessment.
+  // Match the explicit test label on both sides without assuming every test is a quiz
+  // or confusing it with a differently named midterm that happens to share its number.
+  const namedType = assessmentIdentity({ name, type: 'OTHER' }).type;
+  return namedType === 'OTHER' && /\btest\b/.test(name)
+    ? { ...identity, type: 'TEST' as const }
+    : identity;
+}
 
 type EmailCourse = Pick<Course, 'id' | 'code' | 'archived'> & {
   semester?: { isActive: boolean; startDate: Date | string; endDate: Date | string };
@@ -106,20 +128,14 @@ function assessmentContext(text: string) {
   const contexts: string[] = [];
   for (let i = 0; i < lines.length; i++) {
     if (!emailScore(lines[i])) continue;
-    if (
-      /\b(?:lab(?:oratoire)?|quiz|questionnaire|assignment|devoir|deliverable|livrable|midterm|final exam|examen final)\s*(?:#|n[o°])?\s*\d*\b/.test(
-        lines[i],
-      )
-    ) {
+    if (new RegExp(assessmentMention.source).test(assessmentTextKey(lines[i]))) {
       contexts.push(lines[i]);
       continue;
     }
     const previous = lines[i - 1] || '';
     if (
       /^(?:updated|graded|mis(?:e)? a jour|note publiee)\s*[-:–—]/.test(previous) ||
-      /^(?:lab(?:oratoire)?|quiz|questionnaire|assignment|devoir|deliverable|livrable|midterm|final exam|examen final)\s*(?:#|n[o°])?\s*\d*\s*$/.test(
-        previous,
-      )
+      new RegExp(`^(?:${assessmentMention.source})$`).test(assessmentTextKey(previous))
     )
       contexts.push(previous, lines[i]);
   }
@@ -165,7 +181,7 @@ export function matchEmailAssessment(
   const content = assessmentTextKey(assessmentContext(text));
   const candidates = assessments.filter((a) => a.courseId === matchingCourses[0].id);
   const mentions = [...content.matchAll(assessmentMention)].map((m) =>
-    assessmentIdentity({ name: m[0], type: 'OTHER' }),
+    emailAssessmentIdentity({ name: m[0], type: 'OTHER' }),
   );
   // Do not let a known item hide a second, unknown numbered assessment in the email.
   const numbered = new Set(
@@ -175,7 +191,7 @@ export function matchEmailAssessment(
   const exact = candidates.filter((a) => {
     const name = assessmentTextKey(a.name);
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const identity = assessmentIdentity(a);
+    const identity = emailAssessmentIdentity(a);
     return (
       name.length >= 4 &&
       new RegExp(`\\b${escaped}\\b`).test(content) &&
@@ -189,7 +205,7 @@ export function matchEmailAssessment(
   if (exact.length === 1) return exact[0].id;
   if (exact.length > 1) return null;
   const matches = candidates.filter((a) => {
-    const identity = assessmentIdentity(a);
+    const identity = emailAssessmentIdentity(a);
     return mentions.some(
       (m) => m.type === identity.type && m.numbers === identity.numbers && m.part === identity.part,
     );
@@ -197,42 +213,4 @@ export function matchEmailAssessment(
   return matches.length === 1 ? matches[0].id : null;
 }
 
-export interface GmailPart {
-  mimeType?: string;
-  filename?: string;
-  body?: { data?: string };
-  parts?: GmailPart[];
-  headers?: { name: string; value: string }[];
-}
-export function gmailBody(part: GmailPart, depth = 0): string {
-  if (depth > 12 || part.filename) return '';
-  if (part.parts?.length) {
-    const children = part.parts.slice(0, 50);
-    if (part.mimeType === 'multipart/alternative') {
-      const plain = children.find((c) => c.mimeType === 'text/plain');
-      if (plain) return gmailBody(plain, depth + 1);
-    }
-    return children
-      .map((c) => gmailBody(c, depth + 1))
-      .join('\n')
-      .slice(0, 100000);
-  }
-  if (!['text/plain', 'text/html'].includes(part.mimeType || '') || !part.body?.data) return '';
-  const text = Buffer.from(part.body.data.slice(0, 160000), 'base64url').toString('utf8');
-  if (part.mimeType === 'text/plain') return text;
-  return text
-    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
-    .replace(/<(?:br|\/p|\/div|\/tr|\/li)\b[^>]*>/gi, '\n')
-    .replace(/<[^>]*>/g, ' ')
-    .replace(
-      /&(?:nbsp|amp|lt|gt|quot|apos);/g,
-      (e) =>
-        ({ '&nbsp;': ' ', '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'" })[
-          e
-        ]!,
-    )
-    .replace(/&#(x[\da-f]+|\d+);/gi, (_, n: string) => {
-      const code = n[0].toLowerCase() === 'x' ? parseInt(n.slice(1), 16) : Number(n);
-      return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : '';
-    });
-}
+export { gmailBody, gmailContent, type GmailPart } from './email-content';

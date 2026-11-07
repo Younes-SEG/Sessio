@@ -7,7 +7,7 @@ const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 const assessmentWords =
-  /\b(assignment|lab|laboratoire|devoir|quiz|questionnaire|midterm|final exam|exam|examen|deliverable|livrable|project|projet|evaluation)\b/;
+  /\b(assignment|lab|laboratoire|devoir|quiz|test|questionnaire|midterm|final exam|exam|examen|deliverable|livrable|project|projet|evaluation)(?=\b|\d)/;
 const changeWords =
   /\b(deadline|due date|now due|extended|extension|rescheduled|postponed|cancelled|canceled|date limite|echeance|reporte|reportee|prolonge|prolongee|annule|annulee|nouvelle date)\b/;
 
@@ -56,20 +56,35 @@ export function classifySchoolEmail(
   )
     return 'GRADE';
   if (assessmentWords.test(text) && changeWords.test(text)) return 'ASSESSMENT_CHANGE';
+  // English "please note ... published" describes an announcement, not a mark.
+  // Only pair the ambiguous French noun "note" with French grade-release wording;
+  // remove non-grade French note phrases before checking that wording.
+  const frenchGradeText = text.replace(/\bnotes?\s+(?:de cours|de reunion|importantes?)\b/g, '');
   const gradeNotice =
-    /\b(grades?|marks?|scores?|results?|notes?|resultats?)\b.{0,65}\b(released|published|posted|available|updated|received|graded|disponibles?|publiee?s?|affichee?s?|mise?s? a jour|obtenue?s?)\b/.test(
+    /\b(grades?|marks?|scores?|results?|resultats?)\b.{0,65}\b(released|published|posted|available|updated|received|graded|disponibles?|publiee?s?|affichee?s?|mise?s? a jour|obtenue?s?)\b/.test(
       text,
     ) ||
+    /\bnotes?\b.{0,65}\b(disponibles?|publiee?s?|affichee?s?|mise?s? a jour|obtenue?s?)\b/.test(
+      frenchGradeText,
+    ) ||
     /\b(new|updated)\s+(grades?|marks?|scores?|results?)\b/.test(text) ||
-    /\b(nouvelle|nouveau)\s+(note|resultat)\b/.test(text) ||
+    /\b(nouvelle|nouveau)\s+(note|resultat)\b/.test(frenchGradeText) ||
     /\b(has been graded|was graded|a ete (note|notee|corrige|corrigee))\b/.test(text);
   // Bare "note", lecture notes, grade weights and class averages aren't grade notifications.
   if (gradeNotice || emailScore(text)) return 'GRADE';
   if (
-    /\b(announcement|announcements|annonce|annonces|cancellation|cancelled|canceled|annule|annulee|rescheduled|postponed|room change|changement de salle|important update|avis important)\b/.test(
+    /\b(announcement|announcements|annonce|annonces|feedback|retroaction|commentaires?|cancellation|cancelled|canceled|annule|annulee|rescheduled|postponed|room change|changement de salle|important update|avis important)\b/.test(
       text,
     )
   )
+    return 'ANNOUNCEMENT';
+  // Brightspace's Email tool sends plain professor messages, without an
+  // "Announcements" label. A course-coded message from its direct-mail sender
+  // is useful even when it says "test1 demain" rather than a fixed keyword.
+  const address = (/<([^<>]+)>/.exec(message.sender)?.[1] || message.sender).trim().toLowerCase();
+  const directLmsMail = /^email@(?:[a-z0-9-]+\.)*(?:brightspace|d2l)\.com$/.test(address);
+  const subjectHasCourse = /\b[a-z]{2,4}[\s-]*\d{4}\b/.test(subject);
+  if (directLmsMail && subjectHasCourse && currentEmailText(message.text).trim())
     return 'ANNOUNCEMENT';
   return 'IGNORE';
 }
@@ -145,29 +160,12 @@ export function emailDeadline(text: string): { date: string; time: string | null
   return { date: dates[0], time: times.size === 1 ? [...times][0] : null };
 }
 
+/** Keep the readable message, not a keyword-selected summary. Limits are applied by gmailContent. */
 export function schoolEmailExcerpt(subject: string, body: string) {
-  const text = currentEmailText(body)
+  const text = body
     .split(/\r?\n/)
     .map((line) => line.trim())
     .join('\n')
     .replace(/\n{3,}/g, '\n\n');
-  // Keep source context and relevant lines even when a long footer/header is present.
-  const lines = text.split(/[\r\n]+/);
-  const relevantIndexes = new Set<number>();
-  lines.forEach((line, index) => {
-    const normalized = normalize(line);
-    if (
-      changeWords.test(normalized) ||
-      /\b(grades?|score|notes?|resultats?|brightspace|announcement|annonce)\b/.test(normalized)
-    ) {
-      // Keep the assessment heading beside a score even beyond the opening excerpt.
-      for (let i = Math.max(0, index - 2); i <= index; i++) relevantIndexes.add(i);
-    }
-  });
-  const relevant = [...relevantIndexes]
-    .sort((a, b) => a - b)
-    .map((i) => lines[i])
-    .join('\n')
-    .slice(0, 1600);
-  return `${subject}\n${text.slice(0, 1800)}${relevant ? `\n${relevant}` : ''}`.slice(0, 3800);
+  return `${subject}\n${text}`.trim();
 }

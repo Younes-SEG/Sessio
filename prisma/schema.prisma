@@ -7,6 +7,19 @@ datasource db {
   provider = "postgresql"
 }
 
+// Short-lived action receipts make chat retries and Undo safe across server restarts.
+// Conversation messages are not stored here.
+model AssistantRequest {
+  id String
+  workspaceId String
+  status String @default("PROCESSING")
+  plan Json?
+  result Json?
+  createdAt DateTime @default(now())
+  @@id([workspaceId, id])
+  @@index([workspaceId, createdAt])
+}
+
 model GmailConnection {
   id String @id @default(cuid())
   workspaceId String @unique
@@ -42,6 +55,8 @@ model EmailUpdate {
   sender String
   receivedAt DateTime
   excerpt String
+  contentVersion Int @default(0)
+  bodyTruncated Boolean @default(false)
   score Float?
   maxScore Float?
   suggestedAssessmentId String?
@@ -109,6 +124,7 @@ model Course {
   color       String          @default("#5b67e8")
   notes       String          @default("")
   archived    Boolean         @default(false)
+  deletedAt   DateTime?
   gradingRules Json            @default("[]")
   gradingNotes String          @default("")
   syllabusImportedAt DateTime?
@@ -120,6 +136,7 @@ model Course {
 
   @@unique([semesterId, code])
   @@index([semesterId, archived])
+  @@index([semesterId, deletedAt])
 }
 
 model Assessment {

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { interpretGradingNote, gradingRuleError, type GradingRule } from '../src/lib/grading-rules';
-import { calculateGrades, calculateTarget, ruleContributions } from '../src/lib/grades';
+import {
+  calculateGrades,
+  calculateTarget,
+  ruleContributions,
+  currentCategoryGrade,
+} from '../src/lib/grades';
 import { assessment } from './fixtures';
 
 const quizzes = [50, 60, 70, 80, 90].map((score, i) =>
@@ -22,6 +27,67 @@ const rule: GradingRule = {
   source: 'Best 4 of 5 quizzes count.',
 };
 describe('instructor grading instructions', () => {
+  it('shows three perfect results as 100% and 15 of 15 graded course points in best four of five', () => {
+    const partial = quizzes.map((a, i) => ({
+      ...a,
+      score: i < 3 ? 100 : null,
+      status: i < 3 ? ('GRADED' as const) : ('NOT_STARTED' as const),
+    }));
+    const course = [...partial, assessment({ id: 'final', type: 'FINAL_EXAM', weight: 80 })];
+    expect(calculateGrades(course, [rule])).toMatchObject({
+      currentGrade: 100,
+      earnedPoints: 15,
+      completedWeight: 15,
+    });
+    expect(currentCategoryGrade(course, 'QUIZ', [rule])).toBe(100);
+    expect(currentCategoryGrade(course, 'FINAL_EXAM', [rule])).toBeNull();
+    expect(calculateTarget(course, 100, [rule])).toMatchObject({
+      status: 'possible',
+      projection: 'best-of',
+    });
+    expect(calculateTarget(course, 100, [rule]).requiredAverage).toBeCloseTo(100);
+    expect(calculateTarget(course, 80, [rule]).requiredAverage).toBeCloseTo((65 / 85) * 100);
+    expect(calculateTarget(course, 15, [rule]).status).toBe('secured');
+    expect(calculateTarget(course, 101, [rule]).status).toBe('invalid');
+  });
+  it('lets a future quiz replace a low recorded score even when all four slots already have scores', () => {
+    const partial = quizzes.map((a, i) => ({
+      ...a,
+      score: i === 4 ? null : i === 0 ? 0 : 100,
+      status: i === 4 ? ('NOT_STARTED' as const) : ('GRADED' as const),
+    }));
+    const course = [
+      ...partial,
+      assessment({ id: 'final', type: 'FINAL_EXAM', weight: 80, status: 'GRADED', score: 100 }),
+    ];
+    expect(calculateGrades(course, [rule]).remainingWeight).toBe(0);
+    expect(currentCategoryGrade(course, 'QUIZ', [rule])).toBe(75);
+    expect(calculateTarget(course, 100, [rule])).toMatchObject({
+      status: 'possible',
+      projection: 'best-of',
+    });
+    expect(calculateTarget(course, 100, [rule]).requiredAverage).toBeCloseTo(100);
+    const finished = course.map((a) =>
+      a.id === 'q4' ? { ...a, score: 100, status: 'GRADED' as const } : a,
+    );
+    expect(currentCategoryGrade(finished, 'QUIZ', [rule])).toBe(100);
+    expect(calculateTarget(finished, 100, [rule]).status).toBe('secured');
+  });
+  it('handles unstarted best-of groups and genuinely unreachable targets', () => {
+    const pending = quizzes.map((a) => ({ ...a, score: null, status: 'NOT_STARTED' as const }));
+    expect(currentCategoryGrade(pending, 'QUIZ', [rule])).toBeNull();
+    expect(calculateTarget(pending, 80, [rule]).requiredAverage).toBeCloseTo(80);
+    const course = [
+      ...pending,
+      assessment({ id: 'final', weight: 80, status: 'GRADED', score: 50 }),
+    ];
+    expect(calculateTarget(course, 80, [rule])).toMatchObject({
+      status: 'impossible',
+      requiredAverage: null,
+    });
+    expect(calculateTarget(course, 40, [rule]).status).toBe('secured');
+    expect(calculateTarget(course, 60, [rule]).requiredAverage).toBeCloseTo(100);
+  });
   it.each([
     'Best 4 of 5 quizzes count',
     'Only the highest 4 out of 5 quizzes count.',
@@ -62,7 +128,7 @@ describe('instructor grading instructions', () => {
     expect(calculateGrades(changed, [rule]).earnedPoints).toBeCloseTo(16.75);
     expect(ruleContributions(changed, [rule]).get('q0')?.counted).toBe(true);
   });
-  it('does not turn unknown grades into zero and avoids misleading targets before the group is complete', () => {
+  it('keeps unknown grades out of the average and labels the equal-score target scenario', () => {
     const pending = quizzes.map((a, i) =>
       i > 1 ? { ...a, status: 'NOT_STARTED' as const, score: null } : a,
     );
@@ -72,9 +138,10 @@ describe('instructor grading instructions', () => {
     });
     expect(calculateGrades(pending, [rule]).currentGrade).toBeCloseTo(55);
     expect(calculateTarget(pending, 80, [rule])).toMatchObject({
-      status: 'invalid',
-      requiredAverage: null,
+      status: 'possible',
+      projection: 'best-of',
     });
+    expect(calculateTarget(pending, 80, [rule]).requiredAverage).toBeCloseTo((77 / 95) * 100);
     expect(
       calculateGrades(
         quizzes.map((a) => ({ ...a, status: 'NOT_STARTED' as const, score: null })),

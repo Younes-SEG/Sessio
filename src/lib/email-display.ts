@@ -7,7 +7,12 @@ const comparable = (value: string) =>
     .toLowerCase();
 
 /** Presentation only: retain the stored source for classification and deadline review. */
-export function emailMessageText(message: { subject: string; sender: string; excerpt: string }) {
+export function emailMessageText(message: {
+  subject: string;
+  sender: string;
+  excerpt: string;
+  contentVersion?: number;
+}) {
   const subject = message.subject.replace(/^(?:(?:re|fw|fwd|tr)\s*:\s*)+/i, '');
   const courseHeading = subject.split(
     /\s+[-–—]\s+(?:announcements?|annonces?|news|nouvelles)\s*:/i,
@@ -36,6 +41,9 @@ export function emailMessageText(message: { subject: string; sender: string; exc
         line,
       ) &&
       /\b(?:19|20|21)\d{2}\b/.test(line) &&
+      /(?:\b\d{1,2}[:h]\d{2}\b|\b(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\b)/i.test(
+        line,
+      ) &&
       !/\b(deadline|due|echeance|échéance|limite|report|extended)\b/i.test(line)
     )
       continue;
@@ -54,7 +62,7 @@ export function emailMessageText(message: { subject: string; sender: string; exc
     if (/^[-_]{3,}\s*(?:forwarded message|message transf[eé]r[eé])\s*[-_]{3,}$/i.test(line))
       continue;
     // The importer may append relevant source lines after the body. Show each once.
-    if (key.length >= 35 && seen.has(key)) continue;
+    if (!message.contentVersion && key.length >= 35 && seen.has(key)) continue;
     seen.add(key);
     lines.push(line);
   }

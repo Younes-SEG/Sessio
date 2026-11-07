@@ -25,7 +25,7 @@ export function SyllabusCategoryWeights({
   const same = active?.weight === category.weight;
   return (
     <section
-      className="card space-y-4 p-5 sm:p-6"
+      className="card space-y-4 p-4 sm:p-5"
       aria-label={`${t('Category weight')}: ${category.name}`}
     >
       <h3 className="section-title">

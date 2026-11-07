@@ -133,7 +133,7 @@ export function GradingRulesEditor({
   }
   return (
     <section
-      className="card space-y-4 p-5 sm:p-6"
+      className="card space-y-4 p-4 sm:p-5"
       aria-label={t('Instructor instructions and grading rules')}
     >
       <h2 className="section-title">
@@ -148,7 +148,7 @@ export function GradingRulesEditor({
         <T text="Add automatic equal split" />
       </Button>
       {equalDraft && (
-        <div className="space-y-4 rounded-xl border border-[var(--border)] p-4">
+        <div className="space-y-4 rounded-sm border border-[var(--border)] p-4">
           <label className="grid gap-2 text-sm">
             <T text="Category" />
             <select
@@ -229,7 +229,7 @@ export function GradingRulesEditor({
         </p>
       )}
       {draft && (
-        <div className="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 p-4">
+        <div className="space-y-4 rounded-sm border border-[var(--border)] bg-[var(--muted)]/30 p-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="grid gap-2 text-sm">
               <T text="Group name" />
@@ -272,7 +272,7 @@ export function GradingRulesEditor({
               .map((a) => (
                 <label
                   key={a.id}
-                  className="flex items-center gap-3 rounded-lg p-2 text-sm hover:bg-[var(--muted)]"
+                  className="flex items-center gap-3 rounded-sm p-2 text-sm hover:bg-[var(--muted)]"
                 >
                   <input
                     type="checkbox"
@@ -304,7 +304,7 @@ export function GradingRulesEditor({
         </div>
       )}
       {resolved.map((r) => (
-        <div key={r.id} className="rounded-xl border border-[var(--border)] p-4 text-sm">
+        <div key={r.id} className="rounded-sm border border-[var(--border)] p-4 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <strong>
               {r.name}:{' '}

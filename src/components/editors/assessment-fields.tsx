@@ -95,7 +95,7 @@ export function AssessmentFields({
         </p>
       )}
       <div className="space-y-3">
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--control-border)] p-3">
+        <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-[var(--control-border)] p-3">
           <input
             type="checkbox"
             checked={status === 'SUBMITTED' || status === 'GRADED'}

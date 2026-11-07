@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BookOpen, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
 import { CourseCard } from './course-card';
+import { DeletedCourses } from './deleted-courses';
 import { Button } from './ui/button';
 export function CoursesView() {
   const t = useT();
@@ -112,12 +113,12 @@ export function CoursesView() {
             ))}
           </div>
           <p className="text-[10px] muted mt-6 flex gap-2 items-center">
-            <span className="size-1 rounded-full bg-primary mt-1" />
+            <span className="size-1 rounded-sm bg-primary mt-1" />
             <T text="Current grades reflect only graded work, weighted by its contribution to the course." />
           </p>
         </>
       ) : (
-        <div data-tour="course-list" className="card empty-state py-20">
+        <div data-tour="course-list" className="card empty-state py-8">
           <BookOpen size={30} strokeWidth={1.2} />
           <h2 className="text-lg font-semibold text-foreground">
             {data.courses.length ? t('No courses match this view') : t('Your semester starts here')}
@@ -136,6 +137,7 @@ export function CoursesView() {
           </Button>
         </div>
       )}
+      <DeletedCourses />
     </>
   );
 }

@@ -68,7 +68,7 @@ export function SettingsView() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-7">
+    <div className="mx-auto max-w-4xl space-y-5">
       <header className="page-header">
         <div>
           <p className="eyebrow mb-2">
@@ -82,12 +82,12 @@ export function SettingsView() {
           </p>
         </div>
       </header>
-      <section className="card flex items-center justify-between gap-4 p-5">
+      <section className="card flex items-center justify-between gap-4 p-4">
         <h2 className="section-title">{t('Language')}</h2>
         <LanguageSwitch />
       </section>
       <CalendarSubscriptions />
-      <section className="card flex flex-wrap items-center justify-between gap-4 p-5">
+      <section className="card flex flex-wrap items-center justify-between gap-4 p-4">
         <div>
           <h2 className="section-title">{t('Email updates')}</h2>
           <p className="muted mt-2 text-sm">
@@ -103,8 +103,8 @@ export function SettingsView() {
         className="card overflow-hidden"
       >
         <fieldset disabled={busy} className="min-w-0">
-          <div className="flex items-center gap-3 border-b border-[var(--border)] p-5 sm:px-7">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--muted)] text-[var(--primary)]">
+          <div className="flex items-center gap-3 border-b border-[var(--border)] p-4 sm:px-5">
+            <div className="flex size-9 items-center justify-center rounded-sm bg-[var(--muted)] text-[var(--primary)]">
               <Settings2 size={18} />
             </div>
             <div>
@@ -118,7 +118,7 @@ export function SettingsView() {
           </div>
           <PreferenceFields key={JSON.stringify(data.settings)} settings={data.settings} />
         </fieldset>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] bg-[var(--muted)]/30 px-5 py-4 sm:px-7">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] bg-[var(--muted)]/30 px-5 py-4 sm:px-5">
           <div className="min-w-0 flex-1">
             {error ? (
               <p role="alert" className="text-sm text-[var(--destructive)]">
@@ -142,9 +142,9 @@ export function SettingsView() {
         </div>
       </form>
       <section className="card overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-5 sm:px-7">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-4 sm:px-5">
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--muted)] text-[var(--primary)]">
+            <div className="flex size-9 items-center justify-center rounded-sm bg-[var(--muted)] text-[var(--primary)]">
               <CalendarDays size={18} />
             </div>
             <div>
@@ -172,10 +172,10 @@ export function SettingsView() {
                   type="button"
                   key={semester.id}
                   onClick={() => openEditor('semesters', semester.id)}
-                  className="flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-[var(--muted)]/50 sm:px-7"
+                  className="flex w-full items-center gap-4 px-5 py-5 text-left transition-colors hover:bg-[var(--muted)]/50 sm:px-5"
                 >
                   <div
-                    className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${semester.isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
+                    className={`flex size-11 shrink-0 items-center justify-center rounded-sm ${semester.isActive ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}
                   >
                     <CalendarDays size={21} />
                   </div>
@@ -221,7 +221,7 @@ export function SettingsView() {
             })}
           </div>
         ) : (
-          <div className="empty-state px-6 py-12">
+          <div className="empty-state px-6 py-8">
             <CalendarDays size={30} className="muted mx-auto mb-4" />
             <h3 className="font-semibold">
               <T text="Your next chapter starts here" />
@@ -235,7 +235,7 @@ export function SettingsView() {
             </Button>
           </div>
         )}
-        <p className="muted border-t border-[var(--border)] px-5 py-4 text-xs leading-relaxed sm:px-7">
+        <p className="muted border-t border-[var(--border)] px-5 py-4 text-xs leading-relaxed sm:px-5">
           <T text="The active semester is selected by default for new courses. Select a semester to edit its dates, change its active status, or delete it." />
         </p>
       </section>
@@ -246,7 +246,7 @@ export function SettingsView() {
 function PreferenceFields({ settings }: { settings: Settings }) {
   const t = useT();
   return (
-    <div className="divide-y divide-[var(--border)] px-5 sm:px-7">
+    <div className="divide-y divide-[var(--border)] px-5 sm:px-5">
       <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
         <div>
           <Label htmlFor="settings-name">
@@ -289,7 +289,7 @@ function PreferenceFields({ settings }: { settings: Settings }) {
                   defaultChecked={settings.theme === value}
                   className="peer sr-only"
                 />
-                <div className="rounded-xl border-2 border-[var(--border)] p-2 transition-colors peer-checked:border-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)] peer-focus-visible:ring-offset-2 sm:p-3">
+                <div className="rounded-sm border-2 border-[var(--border)] p-2 transition-colors peer-checked:border-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)] peer-focus-visible:ring-offset-2 sm:p-3">
                   <ThemePreview theme={value} />
                   <span className="mt-3 flex items-center justify-center gap-1.5 text-xs font-medium sm:text-sm">
                     <Icon size={14} />
@@ -318,7 +318,7 @@ function PreferenceFields({ settings }: { settings: Settings }) {
                     defaultChecked={settings.studyBuddy === option.value}
                     className="peer sr-only"
                   />
-                  <div className="rounded-xl border-2 border-[var(--border)] p-3 text-center transition-colors peer-checked:border-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)] peer-focus-visible:ring-offset-2">
+                  <div className="rounded-sm border-2 border-[var(--border)] p-3 text-center transition-colors peer-checked:border-[var(--primary)] peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--primary)] peer-focus-visible:ring-offset-2">
                     <div className="mx-auto mb-2 size-16">
                       <BuddyCharacter character={option.value} />
                     </div>
@@ -430,34 +430,37 @@ function ThemePreview({ theme }: { theme: Settings['theme'] }) {
   return (
     <div
       aria-hidden="true"
-      className="relative flex h-16 overflow-hidden rounded-md border border-black/10 sm:h-20"
-      style={{ backgroundColor: dark ? '#24252b' : '#faf9f6' }}
+      className="relative flex h-16 overflow-hidden rounded-sm border border-border sm:h-20"
+      style={{ backgroundColor: dark ? '#1b1b1d' : '#faf9f6' }}
     >
       <div
-        className="w-[25%] border-r border-black/5 px-1.5 py-2 sm:px-2"
-        style={{ backgroundColor: dark ? '#1a1b20' : '#eeede9' }}
+        className="w-[25%] border-r border-border px-1.5 py-2 sm:px-2"
+        style={{ backgroundColor: dark ? '#242426' : '#f3f1ec' }}
       >
-        <div className="mb-2 h-1.5 w-3 rounded bg-[#9b8bdd]" />
+        <div className="mb-2 h-1.5 w-3 rounded-sm bg-[#536982]" />
         {[0, 1, 2].map((item) => (
           <div
             key={item}
-            className="mb-1.5 h-1 rounded"
-            style={{ backgroundColor: dark ? '#393941' : '#d8d6d1' }}
+            className="mb-1.5 h-1 rounded-sm"
+            style={{ backgroundColor: dark ? '#424145' : '#e1ddd6' }}
           />
         ))}
       </div>
       <div className="flex-1 px-2 py-3">
         <div
-          className="mb-3 h-1.5 w-1/2 rounded"
-          style={{ backgroundColor: dark ? '#65636e' : '#bbb8b1' }}
+          className="mb-3 h-1.5 w-1/2 rounded-sm"
+          style={{ backgroundColor: dark ? '#aaa7a2' : '#9b9690' }}
         />
         <div className="grid grid-cols-2 gap-1.5">
-          <div className="h-6 rounded border border-[#9b8bdd]/30 bg-[#9b8bdd]/15" />
-          <div className="h-6 rounded" style={{ backgroundColor: dark ? '#32333a' : '#e9e7e2' }} />
+          <div className="h-6 rounded-sm border border-[#536982]/30 bg-[#536982]/15" />
+          <div
+            className="h-6 rounded-sm"
+            style={{ backgroundColor: dark ? '#303033' : '#efede8' }}
+          />
         </div>
       </div>
       {theme === 'SYSTEM' && (
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[#12121c]/75 mix-blend-multiply" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[#1b1b1d]/75 mix-blend-multiply" />
       )}
     </div>
   );

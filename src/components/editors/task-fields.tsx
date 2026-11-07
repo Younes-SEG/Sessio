@@ -93,7 +93,7 @@ export function TaskFields({
         options={optionsFor(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])}
       />
       <div className="space-y-3">
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--control-border)] p-3">
+        <label className="flex cursor-pointer items-start gap-3 rounded-sm border border-[var(--control-border)] p-3">
           <input
             type="checkbox"
             checked={status === 'COMPLETED'}

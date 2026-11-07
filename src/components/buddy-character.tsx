@@ -12,12 +12,12 @@ function PixelFace({ y = 17 }: { y?: number }) {
   return (
     <g className="buddy-face">
       <g className="buddy-eyes">
-        <path d={`M10 ${y}h3v3h-3Zm9 0h3v3h-3Z`} fill="#665064" />
+        <path d={`M10 ${y}h3v3h-3Zm9 0h3v3h-3Z`} fill="#434b3f" />
         <path d={`M10 ${y}h1v1h-1Zm9 0h1v1h-1Z`} fill="#fffaf0" />
       </g>
-      <path d={`M7 ${y + 3}h3v2H7Zm15 0h3v2h-3Z`} fill="#efa5ac" />
-      <path d={`M8 ${y + 3}h1v1H8Zm15 0h1v1h-1Z`} fill="#ffd0ca" />
-      <path d={`M14 ${y + 4}h1v1h2v-1h1v2h-1v1h-2v-1h-1Z`} fill="#9b6a79" />
+      <path d={`M7 ${y + 3}h3v2H7Zm15 0h3v2h-3Z`} fill="#c38b72" />
+      <path d={`M8 ${y + 3}h1v1H8Zm15 0h1v1h-1Z`} fill="#e8c9ac" />
+      <path d={`M14 ${y + 4}h1v1h2v-1h1v2h-1v1h-2v-1h-1Z`} fill="#82685c" />
     </g>
   );
 }
@@ -48,7 +48,7 @@ export function BuddyCharacter({ character }: { character: Settings['studyBuddy'
       shapeRendering="crispEdges"
       fill="none"
     >
-      <path d="M9 29h14v1h3v1H6v-1h3Z" fill="#6f617b" opacity=".1" />
+      <path d="M9 29h14v1h3v1H6v-1h3Z" fill="#666d5a" opacity=".1" />
       <g className="buddy-body">
         {character === 'CAT' && (
           <>
@@ -100,16 +100,16 @@ export function BuddyCharacter({ character }: { character: Settings['studyBuddy'
           <>
             <path
               d="M4 15h2v-3h4V8h2V6h6v1h3v3h4v2h3v3h2v6h-2v3h-3v2h-4v1h-4v-1h-4v1H8v-2H5v-2H3v-5h1Z"
-              fill="#a69ab9"
+              fill="#8a9682"
             />
             <path
               d="M5 16h2v-3h4V9h2V7h5v1h2v3h5v2h2v3h2v5h-2v2h-3v2h-3v1h-4v-1h-4v1H9v-2H6v-2H4v-4h1Z"
-              fill="#eee5f5"
+              fill="#e1e5d6"
             />
-            <path d="M12 10V9h2V8h3v1h-3v2h-2v2h-1v-3Zm-5 5h2v1H7Z" fill="#fff7fa" />
+            <path d="M12 10V9h2V8h3v1h-3v2h-2v2h-1v-3Zm-5 5h2v1H7Z" fill="#f8f7ee" />
             <path
               d="M27 18h2v3h-2v2h-3v2h-3v1h-4v-1h-4v1H9v-2H6v-2H5v-2h2v2h4v1h3v-1h3v2h4v-1h3v-2h3Z"
-              fill="#d6c9e8"
+              fill="#bfc9b2"
             />
             <PixelFace y={17} />
             <path d="M24 8h1v2h2v1h-2v2h-1v-2h-2v-1h2Z" fill="#d3b383" />

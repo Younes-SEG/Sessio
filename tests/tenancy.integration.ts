@@ -1,14 +1,20 @@
 import 'dotenv/config';
 import { randomBytes } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { Client } from 'pg';
 import { beforeAll, afterAll, expect, it, vi } from 'vitest';
 
 // The identity substitute exists only in this test. Production always uses Neon Auth.
 const identity = vi.hoisted(() => ({ current: 'local' }));
+const chatAI = vi.hoisted(() => vi.fn());
+vi.mock('../src/lib/server/assistant-ai', () => ({ interpretAssistant: chatAI }));
+import { assistantRequest } from '../src/lib/server/assistant';
+import type { AssistantIntent } from '../src/lib/assistant';
 vi.mock('../src/lib/server/auth', () => ({ requireWorkspaceId: async () => identity.current }));
 import { db } from '../src/lib/server/db';
-import { saveEntity, deleteEntity } from '../src/lib/server/mutations';
+import { saveEntity, deleteEntity, restoreCourse, transaction } from '../src/lib/server/mutations';
+import { applyPendingEmailGrades } from '../src/lib/server/automatic-email-grades';
 import { getWorkspace } from '../src/lib/server/workspace';
 import { eraseWorkspace, exportWorkspace } from '../src/lib/server/privacy';
 import { importSyllabus } from '../src/lib/server/syllabus-import';
@@ -27,9 +33,442 @@ import {
   disconnectEmail,
 } from '../src/lib/server/email-updates';
 import { GMAIL_SCOPE, sealGmail } from '../src/lib/server/gmail-client';
-import { GMAIL_NOTICE, scopedGmailQuery } from '../src/lib/email-grades';
+import {
+  GMAIL_NOTICE,
+  scopedGmailQuery,
+  LEGACY_SCHOOL_GMAIL_QUERY,
+  DEFAULT_GMAIL_QUERY,
+} from '../src/lib/email-grades';
 
 const original = process.env.DATABASE_URL;
+
+it('chat combines read filters within the owned course and never records a queried grade', async () => {
+  const outsider = await chatFixture('chat-query-outsider');
+  await db.assessment.update({ where: { id: outsider.assessment.id }, data: { score: 99, maxScore: 100, status: 'GRADED' } });
+  const { course, assessment } = await chatFixture('chat-query-owner');
+  await db.assessment.update({ where: { id: assessment.id }, data: { score: 0, maxScore: 10, status: 'GRADED' } });
+  await db.assessment.create({ data: { courseId: course.id, name: 'Midterm', type: 'MIDTERM', dueDate: new Date('2090-11-05T23:00:00Z') } });
+  await db.calendarEvent.create({ data: { workspaceId: identity.current, title: 'Study session', startAt: new Date('2090-11-05T23:00:00Z'), endAt: new Date('2090-11-06T00:00:00Z'), courseId: course.id } });
+  const query = { include: ['assessments', 'study_sessions'], exclude: [], assessmentTypes: ['MIDTERM'], excludeAssessmentTypes: [], completion: 'open', timing: 'any', selection: 'all', text: null } as NonNullable<AssistantIntent['query']>;
+  chatAI.mockResolvedValue(chatIntent({ kind: 'query', course: '3102', query }));
+  const mixed = await assistantRequest(chatMessage());
+  expect(mixed.status).toBe('answer');
+  expect(mixed.items).toHaveLength(2);
+  expect(mixed.items?.every(item => item.title.includes('Midterm') || item.title.includes('Study session'))).toBe(true);
+  chatAI.mockResolvedValue(chatIntent({ kind: 'query', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10, query: { ...query, include: ['grades'], assessmentTypes: [], completion: 'all' } }));
+  const grade = await assistantRequest(chatMessage());
+  expect(grade.status).toBe('answer');
+  expect(grade.items).toHaveLength(1);
+  expect(grade.items?.[0].detail).toContain('0/10');
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(0);
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: outsider.assessment.id } })).score).toBe(99);
+});
+
+it('chat filters study sessions and treats casual conversation as read-only even if other fields are present', async () => {
+  const { course, assessment } = await chatFixture('chat-social');
+  const event = { workspaceId: identity.current, title: 'Study session', startAt: new Date('2090-11-05T23:00:00Z'), endAt: new Date('2090-11-06T00:00:00Z'), courseId: course.id };
+  await db.calendarEvent.create({ data: event });
+  await db.calendarEvent.create({ data: { ...event, title: 'Career fair' } });
+  await db.assessment.update({ where: { id: assessment.id }, data: { dueDate: new Date('2090-11-06T04:59:00Z') } });
+  chatAI.mockResolvedValue(chatIntent({ kind: 'agenda', agendaScope: 'study_sessions', fromDate: '2090-11-01', toDate: '2090-11-30' }));
+  const result = await assistantRequest(chatMessage());
+  expect(result.items).toHaveLength(1);
+  expect(result.items?.[0].title).toContain('Study session');
+  expect(result.text).toContain('1 study session');
+  expect(result.context).toContain('study_sessions');
+  expect(result.context).not.toContain('Career fair');
+  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'I’m good, thanks for asking! How about you?', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  const greeting = await assistantRequest(chatMessage());
+  expect(greeting.status).toBe('answer');
+  expect(greeting.text).toContain('How about you?');
+  expect(greeting.context).toBe(greeting.text);
+  expect(greeting.items).toBeUndefined();
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBeNull();
+  expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(2);
+});
+
+it('chat answers next-assessment questions without saving or returning unrelated agenda entries', async () => {
+  const { course } = await chatFixture('chat-next-quiz');
+  await db.assessment.create({ data: { courseId: course.id, name: 'Quiz 4', type: 'QUIZ', dueDate: new Date('2090-11-20T22:30:00Z') } });
+  chatAI.mockResolvedValue(chatIntent({ kind: 'next_assessment', assessmentType: 'QUIZ' }));
+  const reply = await assistantRequest(chatMessage());
+  expect(reply.status).toBe('answer');
+  expect(reply.items).toHaveLength(1);
+  expect(reply.items?.[0].title).toBe('SEG3102 · Quiz 4');
+  expect(reply.items?.[0].detail).toContain('2090');
+  expect(reply.text).toContain('next quiz');
+  expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(0);
+  expect(await db.assessment.count({ where: { courseId: course.id, status: 'GRADED' } })).toBe(0);
+  chatAI.mockResolvedValue(chatIntent({ kind: 'agenda', assessmentType: 'LAB', fromDate: '2090-11-01', toDate: '2090-11-30' }));
+  expect((await assistantRequest(chatMessage())).items).toEqual([]);
+});
+
+const chatIntent = (values: Partial<AssistantIntent>): AssistantIntent => ({ kind: 'clarify', course: null, assessment: null, score: null, maxScore: null, startLocal: null, endLocal: null, fromDate: null, toDate: null, question: null, ...values });
+const chatMessage = () => ({ action: 'message', id: randomUUID(), language: 'en', timeZone: 'America/Toronto', messages: [{ role: 'user', text: 'Synthetic test request' }] });
+async function chatFixture(owner: string) {
+  identity.current = owner;
+  const term = await db.semester.create({ data: { workspaceId: owner, name: 'Test term', startDate: new Date('2090-01-01'), endDate: new Date('2090-12-31'), isActive: true } });
+  const course = await db.course.create({ data: { semesterId: term.id, code: 'SEG3102', name: 'Design' } });
+  const assessment = await db.assessment.create({ data: { courseId: course.id, name: 'Assignment 1', type: 'ASSIGNMENT', weight: 10 } });
+  return { course, assessment };
+}
+it('chat saves an exact grade once, isolates ownership, and supports conditional Undo', async () => {
+  const { assessment } = await chatFixture('chat-grade');
+  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  const input = chatMessage();
+  expect((await assistantRequest(input)).status).toBe('saved');
+  expect((await assistantRequest(input)).status).toBe('saved');
+  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({ score: 9, maxScore: 10, weight: 10, status: 'GRADED' });
+  identity.current = 'chat-outsider';
+  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({ status: 404 });
+  identity.current = 'chat-grade';
+  expect((await assistantRequest({ action: 'undo', id: input.id })).status).toBe('undone');
+  expect((await assistantRequest({ action: 'undo', id: input.id })).status).toBe('undone');
+  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({ score: null, maxScore: 100, weight: 10, status: 'NOT_STARTED' });
+  const second = chatMessage();
+  await assistantRequest(second);
+  await db.assessment.update({ where: { id: assessment.id }, data: { score: 8 } });
+  await expect(assistantRequest({ action: 'undo', id: second.id })).rejects.toMatchObject({ status: 409 });
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(8);
+});
+it('chat confirms overwrites, rejects stale confirmations, and never invents an assessment', async () => {
+  const { assessment } = await chatFixture('chat-confirm');
+  await db.assessment.update({ where: { id: assessment.id }, data: { score: 7, maxScore: 10, status: 'GRADED' } });
+  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  const pending = chatMessage();
+  expect((await assistantRequest(pending)).status).toBe('confirm');
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(7);
+  await db.assessment.update({ where: { id: assessment.id }, data: { score: 6 } });
+  await expect(assistantRequest({ action: 'confirm', id: pending.id })).rejects.toMatchObject({ status: 409 });
+  await assistantRequest({ action: 'cancel', id: pending.id });
+  const fresh = chatMessage();
+  await assistantRequest(fresh);
+  expect((await assistantRequest({ action: 'confirm', id: fresh.id })).status).toBe('saved');
+  expect((await assistantRequest({ action: 'confirm', id: fresh.id })).status).toBe('saved');
+  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A99', score: 1, maxScore: 10 }));
+  expect((await assistantRequest(chatMessage())).status).toBe('clarify');
+  expect(await db.assessment.count({ where: { courseId: assessment.courseId } })).toBe(1);
+});
+it('chat schedules in the device zone, asks about conflicts, and cannot Undo a subsequently edited event', async () => {
+  const { course } = await chatFixture('chat-calendar');
+  chatAI.mockResolvedValue(chatIntent({ kind: 'schedule', course: 'SEG3102', startLocal: '2090-11-05T18:00', endLocal: '2090-11-05T19:00' }));
+  const input = chatMessage();
+  expect((await assistantRequest(input)).status).toBe('saved');
+  await assistantRequest(input);
+  let events = await db.calendarEvent.findMany({ where: { workspaceId: identity.current } });
+  expect(events).toHaveLength(1);
+  expect(events[0].startAt.toISOString()).toBe('2090-11-05T23:00:00.000Z');
+  expect(events[0].courseId).toBe(course.id);
+  expect((await assistantRequest(chatMessage())).status).toBe('answer');
+  chatAI.mockResolvedValue(chatIntent({ kind: 'schedule', startLocal: '2090-11-05T18:30', endLocal: '2090-11-05T19:30' }));
+  const overlapping = chatMessage();
+  expect((await assistantRequest(overlapping)).status).toBe('confirm');
+  expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(1);
+  await assistantRequest({ action: 'confirm', id: overlapping.id });
+  await assistantRequest({ action: 'undo', id: overlapping.id });
+  events = await db.calendarEvent.findMany({ where: { workspaceId: identity.current } });
+  expect(events).toHaveLength(1);
+  await db.calendarEvent.update({ where: { id: events[0].id }, data: { title: 'Edited by user' } });
+  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({ status: 409 });
+  await eraseWorkspace();
+  expect(await db.assistantRequest.count({ where: { workspaceId: identity.current } })).toBe(0);
+});
+
+it('groups matching announcement/direct emails and marks only their same-workspace copies read', async () => {
+  identity.current = 'announcement-duplicates';
+  const connection = await db.gmailConnection.create({
+    data: {
+      workspaceId: identity.current,
+      email: 'test@example.test',
+      refreshToken: 'unused',
+      query: DEFAULT_GMAIL_QUERY,
+    },
+  });
+  const otherConnection = await db.gmailConnection.create({
+    data: {
+      workspaceId: 'duplicate-other',
+      email: 'other@example.test',
+      refreshToken: 'unused',
+      query: DEFAULT_GMAIL_QUERY,
+    },
+  });
+  const text =
+    'Please review the Design Structure lecture before the midterm. Bring one single-sided formula sheet, a pencil and your student ID.';
+  const base = {
+    connectionId: connection.id,
+    sender: 'email@uottawa.brightspace.com',
+    subject: 'SEG3102 Midterm review',
+    receivedAt: new Date('2090-11-05T15:00:00Z'),
+    excerpt: text,
+    contentVersion: 1,
+  };
+  const direct = await db.emailUpdate.create({ data: { ...base, messageId: 'direct' } });
+  const announcement = await db.emailUpdate.create({
+    data: {
+      ...base,
+      messageId: 'announcement',
+      subject: 'SEG3102 - Announcements: Midterm review',
+      sender: 'Notifications@uottawa.brightspace.com',
+      excerpt: `Hello everyone,\n${text}\nGo to Announcements >>`,
+    },
+  });
+  const changed = await db.emailUpdate.create({
+    data: { ...base, messageId: 'changed', excerpt: text.replace('single-sided', 'double-sided') },
+  });
+  const other = await db.emailUpdate.create({
+    data: { ...base, connectionId: otherConnection.id, messageId: 'other' },
+  });
+  const before = await emailOverview();
+  expect(before.updates).toHaveLength(2);
+  const grouped = before.updates.find((update) => update.sourceEmails.length === 2)!;
+  expect(grouped.read).toBe(false);
+  expect(grouped.sourceEmails.map((source) => source.id).sort()).toEqual(
+    [direct.id, announcement.id].sort(),
+  );
+  identity.current = 'duplicate-other';
+  await expect(reviewEmail({ action: 'read', id: grouped.id })).rejects.toMatchObject({
+    status: 404,
+  });
+  identity.current = 'announcement-duplicates';
+  await reviewEmail({ action: 'read', id: grouped.id });
+  for (const id of [direct.id, announcement.id])
+    expect(await db.emailUpdate.findUnique({ where: { id } })).toMatchObject({ status: 'READ' });
+  for (const id of [changed.id, other.id])
+    expect(await db.emailUpdate.findUnique({ where: { id } })).toMatchObject({ status: 'PENDING' });
+  const firstRead = await db.emailUpdate.findUniqueOrThrow({ where: { id: direct.id } });
+  await reviewEmail({ action: 'read', id: direct.id });
+  expect((await db.emailUpdate.findUniqueOrThrow({ where: { id: direct.id } })).reviewedAt).toEqual(
+    firstRead.reviewedAt,
+  );
+  await db.emailUpdate.create({
+    data: { ...base, messageId: 'late-copy', receivedAt: new Date('2090-11-05T16:00:00Z') },
+  });
+  const after = await emailOverview();
+  expect(after.updates).toHaveLength(2);
+  expect(after.updates.find((update) => update.sourceEmails.length === 3)?.read).toBe(true);
+});
+
+it('automatically saves clear grades atomically, handles corrections, and protects manual or ambiguous results', async () => {
+  identity.current = 'automatic-grades';
+  const workspaceId = identity.current;
+  const term = await saveEntity('semesters', {
+    name: 'Fall',
+    startDate: '2090-09-01',
+    endDate: '2090-12-31',
+  });
+  const course = await saveEntity('courses', {
+    semesterId: term.id,
+    code: 'STA2791',
+    name: 'Statistics',
+  });
+  const assessments = [];
+  for (let n = 1; n <= 3; n++)
+    assessments.push(
+      await saveEntity('assessments', {
+        courseId: course.id,
+        name: `Examen Test ${n}`,
+        type: 'MIDTERM',
+        weight: 25,
+      }),
+    );
+  const connection = await db.gmailConnection.create({
+    data: {
+      workspaceId,
+      email: 'test@example.test',
+      refreshToken: 'unused',
+      query: DEFAULT_GMAIL_QUERY,
+    },
+  });
+  let sequence = 0;
+  const message = (label: string, score: number, day: number, extra = {}) =>
+    db.emailUpdate.create({
+      data: {
+        connectionId: connection.id,
+        messageId: `auto-${++sequence}`,
+        subject: 'Activity summary for STA2791',
+        sender: 'Notifications@uottawa.brightspace.com',
+        receivedAt: new Date(`2090-11-${String(day).padStart(2, '0')}T12:00:00Z`),
+        excerpt: `Course Grades (1)\nUpdated - ${label}\nYour grade: ${score}/25\nGo to Grades>>`,
+        contentVersion: 1,
+        ...extra,
+      },
+    });
+  const apply = (owner = workspaceId) =>
+    transaction((tx) => applyPendingEmailGrades(tx, owner, connection.id));
+  const older = await message('Test1', 12, 1);
+  const newer = await message('Test1', 17, 2, {
+    suggestedAssessmentId: assessments[1].id,
+    score: 99,
+    maxScore: 100,
+  });
+  const unknown = await message('Test9', 20, 2);
+  const incomplete = await message('Test2', 20, 2, { bodyTruncated: true });
+  const dismissed = await message('Test2', 20, 2, { status: 'DISMISSED' });
+  const multiple = await message('Test2', 20, 2, {
+    excerpt:
+      'Course Grades (2)\nUpdated - Test2\nYour grade: 20/25\nUpdated - Test3\nYour grade: 20/25',
+  });
+  expect(await apply('other-workspace')).toBe(0);
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: assessments[0].id } })).score,
+  ).toBeNull();
+  expect((await Promise.all([apply(), apply()])).reduce((a, b) => a + b, 0)).toBe(1);
+  expect(await db.assessment.findUnique({ where: { id: assessments[0].id } })).toMatchObject({
+    score: 17,
+    maxScore: 25,
+    status: 'GRADED',
+    weight: 25,
+  });
+  expect(await db.emailUpdate.findUnique({ where: { id: newer.id } })).toMatchObject({
+    status: 'AUTO_APPLIED',
+    suggestedAssessmentId: assessments[0].id,
+    score: 17,
+    maxScore: 25,
+  });
+  expect(await db.emailUpdate.findUnique({ where: { id: older.id } })).toMatchObject({
+    status: 'SUPERSEDED',
+  });
+  for (const row of [unknown, incomplete, multiple])
+    expect(await db.emailUpdate.findUnique({ where: { id: row.id } })).toMatchObject({
+      status: 'PENDING',
+    });
+  expect(await db.emailUpdate.findUnique({ where: { id: dismissed.id } })).toMatchObject({
+    status: 'DISMISSED',
+  });
+  expect((await emailOverview()).automaticGrades).toHaveLength(1);
+  expect(await apply()).toBe(0);
+
+  await message('Test1', 20, 3);
+  expect(await apply()).toBe(1);
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessments[0].id } })).score).toBe(
+    20,
+  );
+  const lateOld = await message('Test1', 10, 1);
+  expect(await apply()).toBe(0);
+  expect(await db.emailUpdate.findUnique({ where: { id: lateOld.id } })).toMatchObject({
+    status: 'SUPERSEDED',
+  });
+  await db.assessment.update({ where: { id: assessments[0].id }, data: { score: 21 } });
+  const conflict = await message('Test1', 22, 4);
+  expect(await apply()).toBe(0);
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessments[0].id } })).score).toBe(
+    21,
+  );
+  expect(await db.emailUpdate.findUnique({ where: { id: conflict.id } })).toMatchObject({
+    status: 'PENDING',
+  });
+
+  await db.assessment.update({
+    where: { id: assessments[1].id },
+    data: { score: 10, maxScore: 25, status: 'GRADED' },
+  });
+  const identical = await message('Test2', 10, 3);
+  expect(await apply()).toBe(1);
+  expect(await db.emailUpdate.findUnique({ where: { id: identical.id } })).toMatchObject({
+    status: 'AUTO_MATCHED',
+  });
+  await message('Test2', 11, 4);
+  expect(await apply()).toBe(0);
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessments[1].id } })).score).toBe(
+    10,
+  );
+
+  const rollback = await message('Test3', 15, 3);
+  await expect(
+    transaction(async (tx) => {
+      await applyPendingEmailGrades(tx, workspaceId, connection.id);
+      throw new Error('rollback');
+    }),
+  ).rejects.toThrow('rollback');
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: assessments[2].id } })).score,
+  ).toBeNull();
+  expect(await db.emailUpdate.findUnique({ where: { id: rollback.id } })).toMatchObject({
+    status: 'PENDING',
+  });
+  await message('Test3', 16, 3);
+  expect(await apply()).toBe(0);
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: assessments[2].id } })).score,
+  ).toBeNull();
+});
+
+it('restores complete messages once and preserves read status', async () => {
+  configureTestGmail();
+  identity.current = 'gmail-full-content';
+  try {
+    const connection = await db.gmailConnection.create({
+      data: {
+        workspaceId: identity.current,
+        email: 'student@example.test',
+        refreshToken: sealGmail('test-refresh', identity.current),
+        query: DEFAULT_GMAIL_QUERY,
+      },
+    });
+    const reviewedAt = new Date();
+    for (const status of ['READ', 'PENDING', 'APPLIED', 'DISMISSED']) {
+      await db.emailUpdate.create({
+        data: {
+          connectionId: connection.id,
+          messageId: status,
+          status,
+          subject: 'SEG3102 Midterm Information and Review Session',
+          sender: 'Professor <email@uottawa.brightspace.com>',
+          receivedAt: new Date(),
+          excerpt: 'Crib Sheet: It can be handwritten or printed, but the',
+          reviewedAt,
+        },
+      });
+    }
+    const text = `${'Exam instructions.\n'.repeat(250)}Crib Sheet: The text must be clearly legible. No other notes or electronic devices will be permitted during the exam.\nMidterm Review Session\nAn in-person review session will be held this Friday.\nBest regards,\nBoqi`;
+    const fetcher = vi.fn(async (url: string | URL) => {
+      const path = new URL(url).pathname;
+      if (path.endsWith('/token')) return Response.json({ access_token: 'access' });
+      if (path.endsWith('/messages')) return Response.json({ messages: [] });
+      expect(path).toMatch(/\/(READ|PENDING)$/);
+      return Response.json({
+        internalDate: String(Date.now()),
+        payload: {
+          mimeType: 'text/plain',
+          headers: [
+            { name: 'Subject', value: 'SEG3102 Midterm Information and Review Session' },
+            { name: 'From', value: 'Professor <email@uottawa.brightspace.com>' },
+          ],
+          body: { data: Buffer.from(text).toString('base64url') },
+        },
+      });
+    });
+    vi.stubGlobal('fetch', fetcher);
+    await syncEmail();
+    const rows = await db.emailUpdate.findMany({ where: { connectionId: connection.id } });
+    expect(rows).toHaveLength(4);
+    for (const status of ['READ', 'PENDING']) {
+      expect(rows.find((row) => row.messageId === status)).toMatchObject({
+        status,
+        reviewedAt,
+        contentVersion: 1,
+        bodyTruncated: false,
+        excerpt: expect.stringContaining(text),
+      });
+    }
+    for (const status of ['APPLIED', 'DISMISSED'])
+      expect(rows.find((row) => row.messageId === status)).toMatchObject({
+        status,
+        contentVersion: 0,
+      });
+    expect((await emailOverview()).updates.find((row) => row.messageId === 'READ')?.read).toBe(
+      true,
+    );
+    const reads = () =>
+      fetcher.mock.calls.filter(([url]) => /\/messages\//.test(new URL(url).pathname)).length;
+    expect(reads()).toBe(2);
+    await syncEmail();
+    expect(reads()).toBe(2);
+  } finally {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  }
+});
 
 function configureTestGmail() {
   vi.stubEnv('GOOGLE_GMAIL_CLIENT_ID', 'test-client');
@@ -39,6 +478,73 @@ function configureTestGmail() {
   vi.stubEnv('VERCEL', '');
   vi.stubEnv('COMMAND_HOSTED', 'false');
 }
+
+it('upgrades the school search and imports direct professor messages without creating grades or deadlines', async () => {
+  configureTestGmail();
+  identity.current = 'gmail-direct-professor';
+  try {
+    await db.gmailConnection.create({
+      data: {
+        workspaceId: identity.current,
+        email: 'student@example.test',
+        refreshToken: sealGmail('test-refresh', identity.current),
+        query: LEGACY_SCHOOL_GMAIL_QUERY,
+        lastCheckedAt: new Date(),
+        pageToken: 'obsolete-page',
+        pageQuery: `(${LEGACY_SCHOOL_GMAIL_QUERY}) after:1 before:2`,
+      },
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string | URL) => {
+        const parsed = new URL(url);
+        if (parsed.pathname.endsWith('/token')) return Response.json({ access_token: 'access' });
+        if (parsed.pathname.endsWith('/messages')) {
+          expect(parsed.searchParams.get('q')).toContain('from:brightspace.com');
+          expect(parsed.searchParams.has('pageToken')).toBe(false);
+          const after = Number(/after:(\d+)/.exec(parsed.searchParams.get('q')!)?.[1]);
+          expect(after).toBeLessThan(Date.now() / 1000 - 29 * 86400);
+          return Response.json({ messages: [{ id: 'professor' }] });
+        }
+        return Response.json({
+          internalDate: String(Date.now()),
+          payload: {
+            mimeType: 'text/plain',
+            headers: [
+              { name: 'Subject', value: 'STA2791 B00 Prob. et stats.' },
+              { name: 'From', value: 'Professor <email@uottawa.brightspace.com>' },
+            ],
+            body: {
+              data: Buffer.from(
+                'Demain, jeudi vous avez le test1 à 8:30. Deux feuilles de formules sont permises.',
+              ).toString('base64url'),
+            },
+          },
+        });
+      }),
+    );
+    await syncEmail();
+    const overview = await emailOverview();
+    expect(overview.connection?.query).toBe(DEFAULT_GMAIL_QUERY);
+    expect(overview.updates).toHaveLength(1);
+    expect(overview.updates[0]).toMatchObject({
+      kind: 'ANNOUNCEMENT',
+      score: null,
+      maxScore: null,
+      proposedDeadline: null,
+      suggestedAssessmentId: null,
+    });
+    expect(overview.updates[0].excerpt).toContain('test1 à 8:30');
+    expect(
+      await db.assessment.count({
+        where: { course: { semester: { workspaceId: identity.current } } },
+      }),
+    ).toBe(0);
+  } finally {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  }
+});
 
 it('resumes an old email page without skipping emails that arrived during the pause', async () => {
   configureTestGmail();
@@ -144,7 +650,7 @@ it('binds Gmail OAuth to the initiating browser and workspace, and rejects reuse
   }
 });
 
-it('deduplicates Gmail notifications, isolates them, and only saves reviewed scores with stale-grade protection', async () => {
+it('deduplicates Gmail notifications and leaves conflicting manual scores for review with stale-grade protection', async () => {
   configureTestGmail();
   identity.current = 'gmail-review';
   try {
@@ -163,6 +669,9 @@ it('deduplicates Gmail notifications, isolates them, and only saves reviewed sco
       name: 'Lab 1',
       type: 'LAB',
       weight: 10,
+      score: 17,
+      maxScore: 20,
+      status: 'GRADED',
     });
     await db.gmailConnection.create({
       data: {
@@ -204,7 +713,7 @@ it('deduplicates Gmail notifications, isolates them, and only saves reviewed sco
     expect(message.suggestedAssessmentId).toBe(assessment.id);
     expect(overview.updates.find((m) => m.score === null)).toBeDefined();
     const before = await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } });
-    expect(before.score).toBeNull();
+    expect(before.score).toBe(17);
     const apply = {
       action: 'apply',
       id: message.id,
@@ -340,13 +849,13 @@ it('matches an already imported activity summary to the graded lab without chang
     vi.stubGlobal('fetch', fetcher);
     await syncEmail();
     expect(
-      (await emailOverview()).updates.find((m) => m.id === message.id)?.suggestedAssessmentId,
+      (await emailOverview()).automaticGrades.find((m) => m.id === message.id)?.assessmentId,
     ).toBe(lab3.id);
     expect(await db.emailUpdate.count({ where: { connectionId: connection.id } })).toBe(1);
-    expect((await db.assessment.findUniqueOrThrow({ where: { id: lab3.id } })).score).toBeNull();
-    expect(
-      (await db.emailUpdate.findUniqueOrThrow({ where: { id: message.id } })).excerpt,
-    ).toContain('Updated - Lab 3');
+    expect((await db.assessment.findUniqueOrThrow({ where: { id: lab3.id } })).score).toBe(9);
+    expect((await db.emailUpdate.findUniqueOrThrow({ where: { id: message.id } })).excerpt).toBe(
+      '',
+    );
     const reads = () =>
       fetcher.mock.calls.filter(([url]) => new URL(url).pathname.endsWith('/messages/digest'))
         .length;
@@ -396,6 +905,7 @@ it('separates school updates, filters legacy noise, and reviews deadline changes
       data: {
         connectionId: connection.id,
         messageId: 'legacy-noise',
+        contentVersion: 1,
         subject: 'Meeting notes',
         sender: 'personal@example.test',
         excerpt: 'Tomorrow is fine.',
@@ -406,7 +916,7 @@ it('separates school updates, filters legacy noise, and reviews deadline changes
       notice: ['SEG3102 New announcement', 'Bring your laptop to the next lecture.'],
       deadline: ['SEG3102 Lab 1 deadline extended', 'Now due November 2, 2090 at 23:59.'],
       noise: ['Your shopping receipt', 'Enjoy your purchase.'],
-      grade: ['SEG3102 Lab 1 grade published', 'Score: 18/20'],
+      grade: ['SEG3102 Lab 1 grade published', 'Your grade is available on Brightspace.'],
     };
     const fetcher = vi.fn(async (url: string | URL) => {
       const parsed = new URL(url);
@@ -520,7 +1030,7 @@ beforeAll(async () => {
     throw new Error('Run tenancy checks against local PostgreSQL');
   admin = new Client({ connectionString: original });
   await admin.connect();
-  await admin.query(`CREATE DATABASE "${name}"`);
+  await admin.query(`CREATE DATABASE "${name}" TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`);
   created = true;
   url.pathname = `/${name}`;
   process.env.DATABASE_URL = url.toString();
@@ -595,9 +1105,80 @@ it('creates a syllabus course and its assessments atomically with ownership and 
     name: 'Midterm',
     weight: 25,
   });
-  await expect(importSyllabus({ newCourse, reviewed: true, items: [item] })).rejects.toMatchObject({
-    status: 409,
+  await expect(importSyllabus({ newCourse, reviewed: true, items: [item] })).resolves.toMatchObject(
+    {
+      courseId: result.courseId,
+      courseCreated: false,
+      created: 0,
+      updated: 1,
+    },
+  );
+  const assessment = await db.assessment.findFirstOrThrow({ where: { courseId: result.courseId } });
+  await db.assessment.update({
+    where: { id: assessment.id },
+    data: { score: 90, maxScore: 100, status: 'GRADED', notes: 'Keep these notes' },
   });
+  const rules = [
+    {
+      id: 'midterms',
+      mode: 'equal',
+      name: 'Midterms',
+      assessmentType: 'MIDTERM',
+      keep: 1,
+      weight: 25,
+      assessmentIds: [],
+      source: 'Instructor rule',
+    },
+  ];
+  await db.course.update({
+    where: { id: result.courseId },
+    data: { gradingRules: rules, gradingNotes: 'Instructor notes' },
+  });
+  await expect(
+    importSyllabus({
+      newCourse: { ...newCourse, code: 'NEW-101' },
+      reviewed: true,
+      items: [item],
+      gradingRules: [],
+      gradingNotes: '',
+    }),
+  ).resolves.toMatchObject({
+    courseId: result.courseId,
+    courseCreated: false,
+    created: 0,
+    updated: 1,
+  });
+  expect(await db.course.count({ where: { semesterId: term.id } })).toBe(1);
+  expect(await db.course.findUnique({ where: { id: result.courseId } })).toMatchObject({
+    gradingRules: rules,
+    gradingNotes: 'Instructor notes',
+  });
+  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({
+    score: 90,
+    status: 'GRADED',
+    notes: 'Keep these notes',
+  });
+  const duplicateTerm = await saveEntity('semesters', {
+    name: 'Import term',
+    startDate: '2090-09-01',
+    endDate: '2090-12-31',
+  });
+  await expect(
+    importSyllabus({
+      newCourse: { ...newCourse, semesterId: duplicateTerm.id },
+      reviewed: true,
+      items: [],
+    }),
+  ).rejects.toMatchObject({ status: 409 });
+  expect(await db.course.count({ where: { semesterId: duplicateTerm.id } })).toBe(0);
+  await expect(
+    importSyllabus({
+      newCourse: { ...newCourse, semesterId: otherTerm.id },
+      reviewed: true,
+      items: [item],
+    }),
+  ).resolves.toMatchObject({ courseCreated: true, created: 1 });
+  await deleteEntity('semesters', duplicateTerm.id);
   const empty = await importSyllabus({
     newCourse: { ...newCourse, code: 'EMPTY101' },
     reviewed: true,
@@ -706,6 +1287,49 @@ it.each(['courses', 'semesters'])(
     expect(await db.task.findUnique({ where: { id: linkedTask.id } })).not.toBeNull();
     identity.current = `user:deletion-test-${entity}`;
     await deleteEntity(entity, entity === 'courses' ? course.id : semester.id);
+    if (entity === 'courses') {
+      const hidden = await getWorkspace();
+      expect(hidden.courses.some((c) => c.id === course.id)).toBe(false);
+      expect(hidden.deletedCourses).toEqual([expect.objectContaining({ id: course.id })]);
+      expect(hidden.assessments.some((a) => a.id === assessment.id)).toBe(false);
+      expect(hidden.tasks.some((t) => [linkedTask.id, directTask.id].includes(t.id))).toBe(false);
+      expect(hidden.events.some((e) => e.id === linkedEvent.id)).toBe(false);
+      expect(hidden.schedules.some((s) => s.id === schedule.id)).toBe(false);
+      expect(await db.subtask.count({ where: { taskId: linkedTask.id } })).toBe(1);
+      expect(
+        (await exportWorkspace()).workspace.assessments.some((a) => a.id === assessment.id),
+      ).toBe(true);
+      await expect(saveEntity('courses', { name: 'Changed' }, course.id)).rejects.toMatchObject({
+        status: 404,
+      });
+      await expect(
+        importSyllabus({
+          newCourse: { semesterId: semester.id, code: 'DELETE101', name: 'Duplicate' },
+          reviewed: true,
+          items: [],
+        }),
+      ).rejects.toMatchObject({ status: 409 });
+      identity.current = 'user:other';
+      await expect(restoreCourse(course.id)).rejects.toMatchObject({ status: 404 });
+      await expect(deleteEntity('courses', course.id, true)).rejects.toMatchObject({ status: 404 });
+      identity.current = `user:deletion-test-${entity}`;
+      await restoreCourse(course.id);
+      const restored = await getWorkspace();
+      expect(restored.courses.some((c) => c.id === course.id)).toBe(true);
+      expect(restored.assessments.find((a) => a.id === assessment.id)).toMatchObject({
+        name: 'Graded work',
+        score: 90,
+        weight: 0,
+      });
+      expect(restored.tasks.find((t) => t.id === linkedTask.id)?.subtasks).toHaveLength(1);
+      expect(restored.tasks.some((t) => t.id === directTask.id)).toBe(true);
+      expect(restored.events.some((e) => e.id === linkedEvent.id)).toBe(true);
+      expect(restored.schedules.some((s) => s.id === schedule.id)).toBe(true);
+      await expect(deleteEntity('courses', course.id, true)).rejects.toMatchObject({ status: 409 });
+      await deleteEntity('courses', course.id);
+      await deleteEntity('courses', course.id, true);
+      expect((await getWorkspace()).deletedCourses).toHaveLength(0);
+    }
     expect(await db.course.findUnique({ where: { id: course.id } })).toBeNull();
     expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toBeNull();
     expect(await db.scheduleEntry.findUnique({ where: { id: schedule.id } })).toBeNull();
@@ -1020,6 +1644,39 @@ END:VCALENDAR`,
   await db.assessment.delete({ where: { id: mapping.assessmentId! } });
   await apply(second.id, { ...different, items: [{ ...different.items[0], cancelled: false }] });
   expect(await db.assessment.count({ where: { courseId: course.id } })).toBe(1);
+  identity.current = workspaceId;
+  const beforeTrash = await db.assessment.findUniqueOrThrow({ where: { id: legacy.id } });
+  await deleteEntity('courses', course.id);
+  await apply(
+    second.id,
+    feed('Should not overwrite', 'stable@school.brightspace.com', '20261005T120000Z'),
+  );
+  const unseen = feed('Lab 9 - Due', 'brand-new');
+  unseen.items[0].description = source.replace('/123/', '/999/');
+  await apply(second.id, unseen);
+  expect(await db.assessment.findUnique({ where: { id: legacy.id } })).toEqual(beforeTrash);
+  expect(await db.assessment.count({ where: { courseId: course.id } })).toBe(1);
+  expect((await getWorkspace()).courses).toHaveLength(0);
+  await restoreCourse(course.id);
+  const originalTerm = await db.semester.findUniqueOrThrow({ where: { id: course.semesterId } });
+  const duplicateTerm = await db.semester.create({
+    data: {
+      workspaceId,
+      name: originalTerm.name,
+      startDate: originalTerm.startDate,
+      endDate: originalTerm.endDate,
+    },
+  });
+  await db.course.create({
+    data: {
+      semesterId: duplicateTerm.id,
+      code: 'TST1234',
+      name: 'Deleted sample',
+      deletedAt: new Date(),
+    },
+  });
+  await apply(second.id, unseen);
+  expect(await db.assessment.count({ where: { courseId: course.id } })).toBe(2);
 });
 
 it('keeps recurring deadlines separate even when Brightspace links share the same event ID', async () => {

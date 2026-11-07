@@ -92,6 +92,7 @@ async function verify() {
     await saveEntity('assessments', { courseId: second.id }, assessment.id);
     assert.equal((await db.task.findUniqueOrThrow({ where: { id: task.id } })).courseId, second.id);
     await deleteEntity('courses', second.id);
+    await deleteEntity('courses', second.id, true);
     assert.equal(await db.task.findUnique({ where: { id: task.id } }), null);
     assert.equal(await db.subtask.count({ where: { taskId: task.id } }), 0);
     assert.equal(await db.assessment.count({ where: { id: assessment.id } }), 0);

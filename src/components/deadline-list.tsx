@@ -48,7 +48,7 @@ export function DeadlineList({ assessments }: { assessments: Assessment[] }) {
                 <div className="row-meta">
                   <span
                     className="course-dot"
-                    style={{ background: course?.color, width: 5, height: 5 }}
+                    style={{ background: 'var(--primary)', width: 5, height: 5 }}
                   />
                   {course?.code}
                   <span>·</span>
@@ -60,7 +60,7 @@ export function DeadlineList({ assessments }: { assessments: Assessment[] }) {
                   {overdue ? t('Overdue · ') : ''}
                   {dueLabel(assessment.dueDate, now, t.locale)}
                 </div>
-                <div className="text-[9px] muted mt-1">
+                <div className="text-[10px] muted mt-1">
                   {assessment.weight}
                   <T text="% of grade" />
                 </div>

@@ -26,7 +26,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
           <AppShell>{children}</AppShell>
         </WorkspaceProvider>
       ) : (
-        <main className="min-h-screen grid place-items-center p-6">
+        <main className="min-h-screen grid place-items-center p-4">
           <div className="card p-9 max-w-lg">
             <div className="eyebrow mb-4">Command · Personal workspace</div>
             <h1 className="text-2xl font-semibold tracking-tight mb-3">
@@ -38,7 +38,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
                 : 'Command could not connect to your database. Start your local database, then return here to pick up where you left off.'}
             </p>
             {!isHosted() && (
-              <div className="bg-muted rounded-lg p-4 text-xs font-mono space-y-2">
+              <div className="bg-muted rounded-sm p-4 text-xs font-mono space-y-2">
                 <p>npm run db:local</p>
                 <p>npm run setup</p>
               </div>

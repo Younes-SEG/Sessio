@@ -87,8 +87,9 @@ export function SchoolUpdatesBadge() {
   return count > 0 ? <span className="nav-count">{count}</span> : null;
 }
 
-/** Polling runs only while Command is open and visible, and never applies grades. */
+/** Polling runs while Command is open and visible; the server saves clear grades. */
 export function EmailAutoSync() {
+  const { refresh } = useWorkspace();
   useEffect(() => {
     let stopped = false,
       running = false,
@@ -106,6 +107,10 @@ export function EmailAutoSync() {
       } catch {
         /* The connection panel displays the stored sync error. */
       } finally {
+        if (!stopped) {
+          window.dispatchEvent(new Event('command-email-updated'));
+          void refresh().catch(() => {});
+        }
         running = false;
       }
     }
@@ -120,7 +125,7 @@ export function EmailAutoSync() {
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onFocus);
     };
-  }, []);
+  }, [refresh]);
   return null;
 }
 
@@ -188,7 +193,8 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
       await load();
       await refresh();
       window.dispatchEvent(new Event('command-email-updated'));
-      if (body.action === 'sync') setNotice('Email check finished. Review any updates below.');
+      if (body.action === 'sync')
+        setNotice('Email check finished. Clear grade matches are saved automatically.');
       if (body.action === 'settings') setNotice('Email preferences saved.');
       if (body.action === 'apply') setNotice('Grade saved from your email review.');
       if (body.action === 'apply-deadline')
@@ -207,6 +213,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to load email updates.');
       await load().catch(() => {});
+      await refresh().catch(() => {});
     } finally {
       setBusy(false);
     }
@@ -254,13 +261,13 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-destructive/40 p-4 text-sm text-destructive"
+          className="rounded-sm border border-destructive/40 p-4 text-sm text-destructive"
         >
           {t(error)}
         </p>
       )}
       {notice && (
-        <p role="status" className="rounded-xl border border-primary/40 bg-primary/10 p-4 text-sm">
+        <p role="status" className="rounded-sm border border-primary/40 bg-primary/10 p-4 text-sm">
           {t(notice)}
         </p>
       )}
@@ -281,18 +288,18 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
         </Button>
       )}
       {data && !data.connection && (
-        <section className="card space-y-4 p-5 sm:p-6">
+        <section className="card space-y-4 p-4 sm:p-5">
           <h2 className="section-title">{t('Connect Gmail')}</h2>
           <p className="muted text-sm">
             {t(
-              'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps a short excerpt for review. It does not send email, change your inbox, download attachments, or send email to AI services.',
+              'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.',
             )}
           </p>
           {!data.configured ? (
             <>
               <p
                 role="status"
-                className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+                className="flex items-start gap-3 rounded-sm border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
               >
                 <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
                 <span>{t('Gmail connection setup is not complete.')}</span>
@@ -320,7 +327,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
                 />
                 <span>
                   {t(
-                    'Allow Command to read matching emails and check every five minutes while the app is open. I will review each grade before it is saved.',
+                    'Allow Command to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.',
                   )}
                 </span>
               </label>
@@ -333,7 +340,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
         </section>
       )}
       {data?.connection && (
-        <section className="card space-y-4 p-5 sm:p-6">
+        <section className="card space-y-4 p-4 sm:p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="section-title">{t('Connected Gmail')}</h2>
@@ -371,13 +378,19 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
           )}
           <p className="muted text-sm">
             {t(
-              'Checks cover the last 30 days initially, then recent updates. Grades only change after you review and save them. Local checks stop when Command is closed.',
+              'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Command is closed.',
             )}
           </p>
           <details className="space-y-4">
             <summary className="cursor-pointer text-sm font-medium text-primary">
               {t('Email preferences')}
             </summary>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/guide#brightspace-notifications">
+                {t('Recommended Brightspace notifications')}
+                <ArrowRight aria-hidden />
+              </Link>
+            </Button>
             <label className="block space-y-2 text-sm">
               <span>{t('Gmail search filter')}</span>
               <Input
@@ -471,7 +484,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
             </p>
           )}
           {updates.length === 0 ? (
-            <div className="card p-6 text-sm muted">
+            <div className="card p-4 text-sm muted">
               {t(
                 announcements
                   ? 'No course announcements or assessment changes to review.'
@@ -500,6 +513,54 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
               ),
             )
           )}
+        </section>
+      )}
+      {!announcements && Boolean(data?.automaticGrades?.length) && (
+        <section className="space-y-3" aria-label={t('Automatic grade updates')}>
+          <h2 className="section-title">{t('Automatic grade updates')}</h2>
+          <p className="muted text-sm">
+            {t(
+              'Already in Grades. You can edit any result there. Recent email results are shown below.',
+            )}
+          </p>
+          <div className="card divide-y divide-border">
+            {data!.automaticGrades!.map((update) => {
+              const assessment = data!.assessments.find((item) => item.id === update.assessmentId);
+              return (
+                <article
+                  key={update.id}
+                  className="flex flex-wrap items-center justify-between gap-3 p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">
+                      {assessment ? `${assessment.course} · ${assessment.name}` : update.subject}
+                    </p>
+                    <p className="muted text-xs">
+                      {t(update.alreadyRecorded ? 'Already recorded' : 'Saved automatically')} ·{' '}
+                      {new Date(update.receivedAt).toLocaleDateString(t.locale)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-semibold tabular-nums">
+                      {update.score} / {update.maxScore}
+                    </span>
+                    <Button asChild variant="outline" size="sm">
+                      <a href={update.gmailUrl} target="_blank" rel="noopener noreferrer">
+                        {t('Open in Gmail')}
+                        <ExternalLink aria-hidden />
+                      </a>
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <Button asChild variant="outline">
+            <Link href="/grades">
+              {t('View grades')}
+              <ArrowRight aria-hidden />
+            </Link>
+          </Button>
         </section>
       )}
     </div>
@@ -536,7 +597,7 @@ function SchoolAnnouncement({
   const valid = proposed && Number.isFinite(proposed.getTime());
   const change = update.kind === 'ASSESSMENT_CHANGE';
   return (
-    <article className="card space-y-4 p-5 sm:p-6">
+    <article className="card space-y-4 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="eyebrow mb-2">{t(change ? 'Assessment change' : 'Announcement')}</p>
@@ -554,10 +615,44 @@ function SchoolAnnouncement({
       </div>
       <p
         ref={messageRef}
-        className="whitespace-pre-wrap break-words rounded-lg bg-muted p-3 text-sm"
+        className="whitespace-pre-wrap break-words rounded-sm bg-muted p-3 text-sm"
       >
         {emailMessageText(update) || t('Open the email in Gmail to read the message.')}
       </p>
+      {(update.sourceEmails?.length || 0) > 1 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer font-medium text-primary">
+            {t('Matching emails grouped')} · {update.sourceEmails!.length}
+          </summary>
+          <p className="muted mt-2">
+            {t('Same announcement, delivered more than once. The original emails stay in Gmail.')}
+          </p>
+          <ul className="mt-3 space-y-2">
+            {update.sourceEmails!.map((source) => (
+              <li key={source.id}>
+                <a
+                  className="break-words text-primary underline underline-offset-4"
+                  href={source.gmailUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {source.sender} · {new Date(source.receivedAt).toLocaleString(t.locale)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {update.bodyTruncated && (
+        <p
+          role="status"
+          className="rounded-sm border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-3 text-sm"
+        >
+          {t(
+            'Only part of this message could be imported. Open in Gmail to read the complete email.',
+          )}
+        </p>
+      )}
       {change && (
         <details className="space-y-4">
           <summary className="cursor-pointer font-medium text-primary">
@@ -710,7 +805,7 @@ function EmailReview({
     Number(maxScore) > 0 &&
     Number(score) <= Number(maxScore);
   return (
-    <article className="card space-y-4 p-5 sm:p-6">
+    <article className="card space-y-4 p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold break-words">{update.subject}</h3>
@@ -729,11 +824,21 @@ function EmailReview({
       {update.excerpt && (
         <details>
           <summary className="cursor-pointer text-sm text-primary">
-            {t('Show email excerpt')}
+            {t('Show email message')}
           </summary>
-          <p className="mt-3 whitespace-pre-wrap break-words rounded-lg bg-muted p-3 text-sm">
+          <p className="mt-3 whitespace-pre-wrap break-words rounded-sm bg-muted p-3 text-sm">
             {emailMessageText(update) || t('Open the email in Gmail to read the message.')}
           </p>
+          {update.bodyTruncated && (
+            <p
+              role="status"
+              className="rounded-sm border border-[var(--warning)]/50 bg-[var(--warning)]/10 p-3 text-sm"
+            >
+              {t(
+                'Only part of this message could be imported. Open in Gmail to read the complete email.',
+              )}
+            </p>
+          )}
         </details>
       )}
       {update.score === null && (

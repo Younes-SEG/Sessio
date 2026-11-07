@@ -1,4 +1,33 @@
 export const french: Record<string, string> = {
+  'Unfinished tasks and assessments': 'Tâches et évaluations restant à terminer',
+  'Matching emails grouped': 'Courriels identiques regroupés',
+  'Same announcement, delivered more than once. The original emails stay in Gmail.':
+    'Même annonce reçue plusieurs fois. Les originaux restent dans Gmail.',
+  'Recommended Brightspace notifications': 'Notifications Brightspace recommandées',
+  'Study & personal tasks': 'Étude et tâches personnelles',
+  'Study reminders, preparation and your own to-dos.':
+    'Rappels d’étude, préparation et tâches personnelles.',
+  'Labs, assignments and exams. Check off finished work; grades stay in Grades.':
+    'Laboratoires, devoirs et examens. Cochez le travail terminé; les résultats restent dans Notes.',
+  'Assessment views': 'Vues des évaluations',
+  'Assessment course': 'Cours des évaluations',
+  'Search assessments': 'Rechercher des évaluations',
+  'Search assessments…': 'Rechercher des évaluations…',
+  'No assessments in this view.': 'Aucune évaluation dans cette vue.',
+  'Unable to update this assessment. Please try again.':
+    'Impossible de modifier cette évaluation. Réessayez.',
+  'Automatic grade updates': 'Mises à jour automatiques des notes',
+  'Saved automatically': 'Enregistrée automatiquement',
+  'Already recorded': 'Déjà enregistrée',
+  'View grades': 'Voir les notes',
+  'Already in Grades. You can edit any result there. Recent email results are shown below.':
+    'Déjà dans Notes. Vous pouvez y modifier chaque résultat. Les résultats récents reçus par courriel sont affichés ci-dessous.',
+  'Email check finished. Clear grade matches are saved automatically.':
+    'Vérification terminée. Les notes clairement associées à une évaluation sont enregistrées automatiquement.',
+  'Allow Command to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.':
+    'Autoriser Command à lire les courriels pertinents toutes les cinq minutes pendant que l’application est ouverte. Les résultats clairement associés à une évaluation sont enregistrés automatiquement; les cas incertains restent à vérifier.',
+  'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Command is closed.':
+    'Les résultats clairement associés à une évaluation vont directement dans Notes. Les cas incertains et les conflits avec les notes saisies manuellement restent à vérifier. La recherche couvre les 30 derniers jours au départ, puis les nouveautés, et s’arrête lorsque Command est fermé.',
   Read: 'Lu',
   'Could not mark as read. Please try again.': 'Impossible de marquer comme lu. Réessayez.',
   'Notifications are marked as read after two seconds in view. Read messages stay here; assessment changes still need your confirmation.':
@@ -59,8 +88,8 @@ export const french: Record<string, string> = {
   'Gmail connection setup is not complete.':
     'La configuration de la connexion Gmail est incomplète.',
   'Set up Gmail for this local installation': 'Configurer Gmail pour cette installation locale',
-  'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps a short excerpt for review. It does not send email, change your inbox, download attachments, or send email to AI services.':
-    'Google accorde un accès en lecture seule à votre boîte de réception. Command recherche les avis scolaires correspondants, lit leur texte et conserve un court extrait à vérifier. Il n’envoie aucun courriel, ne modifie pas votre boîte de réception, ne télécharge pas les pièces jointes et ne transmet pas vos courriels à des services d’IA.',
+  'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.':
+    'Google accorde un accès en lecture seule à votre boîte de réception. Command recherche les avis scolaires correspondants, lit leur texte et conserve le texte lisible du message à vérifier. Il n’envoie aucun courriel, ne modifie pas votre boîte de réception, ne télécharge pas les pièces jointes et ne transmet pas vos courriels à des services d’IA.',
   'Allow Command to read matching emails and check every five minutes while the app is open. I will review each grade before it is saved.':
     'Autoriser Command à lire les courriels correspondants et à vérifier toutes les cinq minutes lorsque l’application est ouverte. Je vérifierai chaque note avant son enregistrement.',
   'Gmail was not connected. Try again and allow read-only email access.':
@@ -90,6 +119,9 @@ export const french: Record<string, string> = {
   'No email updates to review yet. A notification may only say a grade is available; it cannot reveal a score that is not in the email.':
     'Aucun avis à vérifier pour le moment. Un avis peut seulement annoncer la disponibilité d’une note ; il ne peut pas révéler un résultat absent du courriel.',
   'Open in Gmail': 'Ouvrir dans Gmail',
+  'Show email message': 'Afficher le message',
+  'Only part of this message could be imported. Open in Gmail to read the complete email.':
+    'Seule une partie du message a pu être importée. Ouvrez Gmail pour lire le courriel complet.',
   'Show email excerpt': 'Afficher l’extrait du courriel',
   'No clear score found. Open the email or Brightspace, then enter the result if available.':
     'Aucun résultat clair trouvé. Ouvrez le courriel ou Brightspace, puis saisissez le résultat s’il est disponible.',
@@ -203,6 +235,66 @@ export const french: Record<string, string> = {
     'Une note seule ne change pas les calculs. Ajoutez et confirmez une règle ci-dessous.',
   'Review a best-of rule': 'Vérifier une règle des meilleurs résultats',
   'Best-of group': 'Groupe des meilleurs résultats',
+  Assignments: 'Devoirs',
+  Projects: 'Projets',
+  'Expand a group to view or enter its grades.':
+    'Dépliez un groupe pour consulter ou saisir ses notes.',
+  'Choose a course, then expand a group to enter your score and the total possible points. Save the grade when ready. Edit details lets you adjust the assessment weight.':
+    'Choisissez un cours, puis dépliez un groupe pour saisir votre note et le total des points possibles. Enregistrez la note lorsque vous avez terminé. Modifier les détails permet de changer la pondération.',
+  'Edit grade': 'Modifier la note',
+  'Not graded': 'Non noté',
+  'group weight': 'pour le groupe',
+  weight: 'de pondération',
+  'Update the name, score, or weight.': 'Modifiez le nom, la note ou la pondération.',
+  'Leave the score blank if it has not been graded.':
+    'Laissez la note vide si elle n’a pas encore été attribuée.',
+  'This weight is managed by the course grading rule.':
+    'Cette pondération est gérée par la règle de notation du cours.',
+  'Your results, course by course.': 'Vos résultats, cours par cours.',
+  'Expand a group to view its grades.': 'Dépliez un groupe pour consulter ses notes.',
+  'Use Edit to update a grade. A blank score means ungraded, not zero.':
+    'Utilisez Modifier pour changer une note. Une note vide signifie non noté, pas zéro.',
+  'Choose a course and expand a group to see your grades. Use Edit to change a name, score or weight.':
+    'Choisissez un cours et dépliez un groupe pour voir vos notes. Utilisez Modifier pour changer un nom, une note ou une pondération.',
+  'Other courses': 'Autres cours',
+  'Add a course to start tracking your grades.':
+    'Ajoutez un cours pour commencer à suivre vos notes.',
+  'Pick a course card to see its grades. Search by course name or code; other terms and archived courses are under Other courses.':
+    'Choisissez une carte de cours pour voir ses notes. Recherchez un nom ou un code ; les autres sessions et les cours archivés sont sous Autres cours.',
+  'so far': 'à ce jour',
+  'Score needed on each remaining assessment': 'Note nécessaire à chaque évaluation restante',
+  'Planning estimate: assumes the same percentage on all remaining work. Your best scores are kept automatically.':
+    'Estimation : suppose le même pourcentage pour tous les travaux restants. Vos meilleurs résultats sont retenus automatiquement.',
+  'Assumes the same percentage on every remaining assessment, including unconfigured course weight. Best-of rules replace lower scores automatically. Different combinations of scores can also reach your target.':
+    'Suppose le même pourcentage à chaque évaluation restante, y compris la pondération non configurée. Les règles des meilleurs résultats remplacent automatiquement les notes inférieures. D’autres combinaisons de notes peuvent aussi atteindre votre objectif.',
+  'Deleted courses': 'Cours supprimés',
+  Restore: 'Restaurer',
+  'Delete permanently': 'Supprimer définitivement',
+  'No deleted courses.': 'Aucun cours supprimé.',
+  'Course permanently deleted.': 'Cours supprimé définitivement.',
+  'Course restored to its original term.': 'Cours restauré dans sa session d’origine.',
+  'This moves the course and its linked work to Deleted courses. It will disappear from your workspace, but you can restore it from the Courses page.':
+    'Ce cours et ses éléments associés seront déplacés vers les cours supprimés. Ils disparaîtront de votre espace de travail, mais vous pourrez les restaurer depuis la page Cours.',
+  'Deleted courses keep their grades, assessments and linked work until you restore them or delete them permanently. They do not appear in your calendar, tasks or grades.':
+    'Les cours supprimés conservent leurs notes, évaluations et éléments associés jusqu’à leur restauration ou leur suppression définitive. Ils n’apparaissent pas dans votre calendrier, vos tâches ou vos notes.',
+  'A matching course is in Deleted courses. Restore it on the Courses page before importing its syllabus.':
+    'Un cours correspondant se trouve dans les cours supprimés. Restaurez-le sur la page Cours avant d’importer son plan de cours.',
+  'Move this course to Deleted courses before deleting it permanently.':
+    'Déplacez ce cours dans les cours supprimés avant de le supprimer définitivement.',
+  'Delete course': 'Supprimer le cours',
+  'Deleting…': 'Suppression…',
+  'Could not delete this course.': 'Impossible de supprimer ce cours.',
+  'This permanently removes this course and its assessments, grades, class schedule, linked tasks and calendar events. This cannot be undone.':
+    'Cette action supprime définitivement ce cours ainsi que ses évaluations, notes, horaires, tâches liées et événements du calendrier. Elle est irréversible.',
+  'A matching course already exists. Choose the existing course before saving; no new course was created.':
+    'Un cours correspondant existe déjà. Choisissez le cours existant avant d’enregistrer ; aucun nouveau cours n’a été créé.',
+  'Matched your existing course. Review the updates below; a second course will not be created.':
+    'Votre cours existant a été reconnu. Vérifiez les mises à jour ci-dessous ; aucun deuxième cours ne sera créé.',
+  'A matching course already exists. Use it to avoid creating a duplicate.':
+    'Un cours correspondant existe déjà. Utilisez-le pour éviter de créer un doublon.',
+  'Use existing course': 'Utiliser le cours existant',
+  'Unarchive this course first to import into it.':
+    'Désarchivez ce cours avant d’y importer un plan de cours.',
   Quizzes: 'Quiz',
   Labs: 'Laboratoires',
   'I could not turn that note into a best-of rule. Use the fields below, or keep it as a note. Other instructions do not change calculations automatically.':

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import type { Workspace } from '../src/lib/types';
 
-test('completion, awaiting grades and direct grade entry persist without changing other assessment details', async ({
+test('compact grade display edits only grading fields and preserves assessment details', async ({
   page,
   request,
 }) => {
@@ -29,25 +29,40 @@ test('completion, awaiting grades and direct grade entry persist without changin
     expect(
       (
         await request.post('/api/assessments', {
-          data: { name, courseId, weight: 20, maxScore: 20, notes: 'Preserve these notes' },
+          data: {
+            name,
+            courseId,
+            type: 'LAB',
+            weight: 20,
+            maxScore: 20,
+            status: 'SUBMITTED',
+            dueDate: '2090-03-01T20:00:00Z',
+            notes: 'Preserve these notes',
+          },
         })
       ).ok(),
     ).toBeTruthy();
+    const assessment = (await workspace()).assessments.find((a) => a.name === name)!;
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/grades');
-    await page.getByLabel('Course', { exact: true }).selectOption(courseId);
-    const row = page.getByRole('form', { name: `Grade for ${name}`, exact: true });
-    await row.getByRole('button', { name: 'Edit details' }).click();
-    await page.getByRole('checkbox', { name: 'Completed', exact: true }).check();
-    await expect(page.getByLabel('Status', { exact: true })).toHaveValue('SUBMITTED');
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click();
-    await expect(page.getByRole('dialog')).toHaveCount(0);
-    await page.getByRole('button', { name: /^Awaiting grades/ }).click();
-    await expect(row).toContainText('Awaiting grade');
-    await page.reload();
-    await page.getByLabel('Course', { exact: true }).selectOption(courseId);
-    await page.getByRole('button', { name: /^Awaiting grades/ }).click();
-    await expect(row).toBeVisible();
+    await page.getByLabel('Search courses', { exact: true }).fill(name);
+    await page.locator(`[data-grade-course="${courseId}"]`).click();
+    await page.locator('[data-grade-group="LAB"] > summary').click();
+    const row = page.locator(`[data-grade-item="${assessment.id}"]`);
+    await expect(row).toContainText('Not graded');
+    await expect(row.locator('input')).toHaveCount(0);
+    await row.getByRole('button', { name: `Edit grade: ${name}`, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Edit grade', exact: true });
+    await expect(dialog.locator('input')).toHaveCount(4);
+    await expect(dialog.locator('select, textarea, input[type="datetime-local"]')).toHaveCount(0);
+    await dialog.getByLabel('Score received', { exact: true }).fill('18');
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(row).toContainText('Not graded');
+    await row.getByRole('button').click();
+    await expect(dialog.getByLabel('Score received', { exact: true })).toHaveValue('');
+    await dialog.getByLabel('Score received', { exact: true }).fill('18');
+    await dialog.getByLabel('Assessment name', { exact: true }).fill(name + ' revised');
+    await dialog.getByLabel('Course weight (%)', { exact: true }).fill('25');
     for (const dark of [false, true]) {
       await page.evaluate(
         (value) => document.documentElement.classList.toggle('dark', value),
@@ -60,30 +75,42 @@ test('completion, awaiting grades and direct grade entry persist without changin
         result.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.failureSummary) })),
       ).toEqual([]);
     }
-    await row.getByLabel('Score received').fill('18');
-    await row.getByRole('button', { name: 'Save grade', exact: true }).click();
-    await expect(row).toHaveCount(0);
-    await page.getByRole('button', { name: /^Recorded/ }).click();
-    await expect(row).toContainText('Recorded: 90.0%');
-    await row.getByRole('button', { name: 'Edit details' }).click();
-    await expect(page.getByRole('checkbox', { name: 'Completed', exact: true })).toBeChecked();
-    await expect(page.getByRole('checkbox', { name: 'Completed', exact: true })).toBeDisabled();
-    await page.keyboard.press('Escape');
-    await page.reload();
-    const saved = (await workspace()).assessments.find((a) => a.name === name)!;
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toContainText('90%');
+    await expect(row).toContainText('18 / 20');
+    await expect(row).toContainText('25% weight');
+    const saved = (await workspace()).assessments.find((a) => a.id === assessment.id)!;
     expect(saved).toMatchObject({
+      name: name + ' revised',
       score: 18,
       maxScore: 20,
       status: 'GRADED',
-      weight: 20,
-      notes: 'Preserve these notes',
+      weight: 25,
+      courseId,
+      type: assessment.type,
+      dueDate: assessment.dueDate,
+      notes: assessment.notes,
+    });
+    await row.getByRole('button').click();
+    await dialog.getByLabel('Score received', { exact: true }).fill('');
+    await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(row).toContainText('Not graded');
+    expect((await workspace()).assessments.find((a) => a.id === assessment.id)).toMatchObject({
+      score: null,
+      status: 'SUBMITTED',
+      notes: assessment.notes,
     });
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
   } finally {
-    if (courseId) await request.delete(`/api/courses/${courseId}`);
+    if (courseId) {
+      await request.delete(`/api/courses/${courseId}`);
+      await request.delete(`/api/deleted-courses/${courseId}`);
+    }
     if (semesterId) await request.delete(`/api/semesters/${semesterId}`);
   }
 });

@@ -9,7 +9,7 @@ export async function ensureStudyTasks(
 ) {
   const assessments = await tx.assessment.findMany({
     where: {
-      course: { archived: false, semester: { workspaceId, isActive: true } },
+      course: { archived: false, deletedAt: null, semester: { workspaceId, isActive: true } },
       type: { in: [...STUDY_TYPES] },
       status: { in: ['NOT_STARTED', 'IN_PROGRESS'] },
       dueDate: { gte: now, lte: new Date(now.getTime() + STUDY_WINDOW_MS) },

@@ -12,6 +12,7 @@ export function GradeNumberInput({
   min = 0,
   max,
   placeholder,
+  required = true,
 }: {
   id: string;
   value: string;
@@ -20,6 +21,7 @@ export function GradeNumberInput({
   min?: number;
   max?: number;
   placeholder?: string;
+  required?: boolean;
 }) {
   const t = useT();
   function adjust(delta: number) {
@@ -34,9 +36,9 @@ export function GradeNumberInput({
         step="any"
         min={min}
         max={max}
-        required
+        required={required}
         value={value}
-        className="grade-number-input pr-8"
+        className="grade-number-input min-h-14 pr-8"
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
@@ -49,7 +51,7 @@ export function GradeNumberInput({
       <div className="absolute right-1 top-1 bottom-1 grid w-6 grid-rows-2">
         <button
           type="button"
-          className="rounded hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary"
+          className="rounded-sm hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary"
           aria-label={`${t('Increase by 1')}: ${label}`}
           onClick={() => adjust(1)}
         >
@@ -57,7 +59,7 @@ export function GradeNumberInput({
         </button>
         <button
           type="button"
-          className="rounded hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary"
+          className="rounded-sm hover:bg-accent focus-visible:outline-2 focus-visible:outline-primary"
           aria-label={`${t('Decrease by 1')}: ${label}`}
           onClick={() => adjust(-1)}
         >

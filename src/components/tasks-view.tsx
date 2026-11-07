@@ -5,6 +5,7 @@ import { T, useT } from '@/components/language-provider';
 import { useState } from 'react';
 import { scopeWorkspace } from '@/lib/workspace-scope';
 import { SemesterFilter } from './semester-filter';
+import { AssessmentWork } from './assessment-work';
 import {
   ArrowUpRight,
   Check,
@@ -126,7 +127,7 @@ export function TasksView() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <header data-tour="tasks" className="page-header">
         <div>
           <p className="eyebrow mb-2">
@@ -165,6 +166,11 @@ export function TasksView() {
           />
           <T text="Include archived courses" />
         </label>
+      </div>
+      <AssessmentWork assessments={data.assessments} courses={data.courses} />
+      <div className="border-t border-border pt-5">
+        <h2 className="section-title">{t('Study & personal tasks')}</h2>
+        <p className="muted text-sm">{t('Study reminders, preparation and your own to-dos.')}</p>
       </div>
       <div data-tour="task-views" className="tabs overflow-x-auto" aria-label={t('Task views')}>
         {views.map((item) => (
@@ -212,7 +218,7 @@ export function TasksView() {
               <SlidersHorizontal size={15} />
               <T text="Filters" />
               {filterCount > 0 && (
-                <span className="flex size-5 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] text-[var(--primary-foreground)]">
+                <span className="flex size-5 items-center justify-center rounded-sm bg-[var(--primary)] text-[10px] text-[var(--primary-foreground)]">
                   {filterCount}
                 </span>
               )}
@@ -352,7 +358,7 @@ export function TasksView() {
         {error && (
           <div
             role="alert"
-            className="flex items-center justify-between gap-3 border-b border-red-500/20 bg-red-500/10 px-5 py-3 text-sm text-[var(--destructive)]"
+            className="flex items-center justify-between gap-3 border-b border-destructive/20 bg-destructive/10 px-5 py-3 text-sm text-[var(--destructive)]"
           >
             <p>{t(error)}</p>
             <button type="button" aria-label={t('Dismiss error')} onClick={() => setError('')}>
@@ -372,8 +378,8 @@ export function TasksView() {
             ))}
           </ul>
         ) : (
-          <div data-tour="task-list" className="empty-state px-6 py-16">
-            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl bg-[var(--muted)] text-[var(--primary)]">
+          <div data-tour="task-list" className="empty-state px-6 py-8">
+            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-sm bg-[var(--muted)] text-[var(--primary)]">
               {view === 'overdue' || view === 'completed' ? (
                 <CheckCheck size={26} />
               ) : (
@@ -433,9 +439,9 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
   const overdue = isOverdue(task.dueDate, task.status, now);
   const completedSubtasks = task.subtasks.filter((subtask) => subtask.completed).length;
   const priorityClass = {
-    URGENT: 'text-red-600 dark:text-red-400',
-    HIGH: 'text-orange-700 dark:text-orange-400',
-    MEDIUM: 'text-amber-700 dark:text-amber-400',
+    URGENT: 'text-destructive dark:text-destructive',
+    HIGH: 'text-[var(--warning)] dark:text-[var(--warning)]',
+    MEDIUM: 'text-[var(--warning)] dark:text-[var(--warning)]',
     LOW: 'text-[var(--muted-foreground)]',
   }[task.priority];
   return (
@@ -447,7 +453,7 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
         aria-label={`${completed ? 'Reopen' : 'Complete'} ${task.title}`}
         disabled={busy}
         onClick={onToggle}
-        className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--primary)] disabled:opacity-50 ${completed ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]' : 'border-[var(--control-border)] hover:border-[var(--primary)]'}`}
+        className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-sm border transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--primary)] disabled:opacity-50 ${completed ? 'border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)]' : 'border-[var(--control-border)] hover:border-[var(--primary)]'}`}
       >
         {busy ? (
           <Loader2 size={12} className="animate-spin" />
@@ -466,10 +472,15 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
         <div className="muted mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           {course ? (
             <span
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1"
-              style={{ color: 'var(--foreground)', backgroundColor: `${course.color}15` }}
+              className="inline-flex items-center gap-1.5 rounded-sm px-2 py-1"
+              style={{ color: 'var(--foreground)', backgroundColor: 'var(--muted)' }}
             >
-              <span className="size-1.5 rounded-full" style={{ backgroundColor: course.color }} />
+              <span
+                className="size-1.5 rounded-sm"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))`,
+                }}
+              />
               {course.code}
             </span>
           ) : (
@@ -478,7 +489,7 @@ function TaskRow({ task, busy, onToggle }: { task: Task; busy: boolean; onToggle
             </span>
           )}
           <span className={`inline-flex items-center gap-1.5 ${priorityClass}`}>
-            <span className="size-1.5 rounded-full bg-current" />
+            <span className="size-1.5 rounded-sm bg-current" />
             {t(statusLabel(task.priority))}
           </span>
           {task.status === 'IN_PROGRESS' && (

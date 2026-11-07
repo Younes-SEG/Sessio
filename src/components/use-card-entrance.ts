@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 
-/** Replay entrances on navigation, including cards revealed by streamed page content. */
+/** Keep navigation measurement and cleanup intact; editorial surfaces appear without motion. */
 export function useCardEntrance(pathname: string, enabled = true) {
   const container = useRef<HTMLElement>(null);
 
@@ -25,13 +25,13 @@ export function useCardEntrance(pathname: string, enabled = true) {
         entered.add(card);
         const animation = card.animate(
           [
-            { opacity: 0, transform: 'translateY(22px) scale(0.97)' },
-            { opacity: 1, transform: 'translateY(-2px) scale(1.004)', offset: 0.78 },
-            { opacity: 1, transform: 'translateY(0) scale(1)' },
+            { opacity: 1, transform: 'none' },
+            { opacity: 1, transform: 'none', offset: 0.78 },
+            { opacity: 1, transform: 'none' },
           ],
           {
-            duration: 480,
-            delay: Math.min(index * 45, 225),
+            duration: 0,
+            delay: Math.min(index * 0, 0),
             easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
             fill: 'backwards',
           },

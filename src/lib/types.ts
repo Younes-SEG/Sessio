@@ -89,6 +89,13 @@ export interface Settings {
   onboardingCompleted?: boolean;
 }
 export interface Workspace {
+  deletedCourses?: {
+    id: string;
+    code: string;
+    name: string;
+    semesterId: string;
+    deletedAt: string;
+  }[];
   hosted?: boolean;
   semesters: Semester[];
   courses: Course[];

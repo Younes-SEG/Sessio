@@ -1,5 +1,7 @@
 'use client';
 import { GmailSetupGuide } from './gmail-setup-guide';
+import { AssistantGuide } from './assistant-guide';
+import { BrightspaceNotificationGuide } from './brightspace-notification-guide';
 import { TourReplay } from './onboarding';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
@@ -18,14 +20,16 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         </div>
       </header>
       <TourReplay />
-      <section id="email" className="card scroll-mt-6 space-y-3 p-6">
+      <AssistantGuide french />
+      <section id="email" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">Avis de notes par courriel</h2>
         <p>
           Dans Notes → Courriels de notes, connectez le compte Gmail qui reçoit vos courriels
           scolaires. Command vérifie les avis toutes les cinq minutes lorsque l’application est
-          ouverte et visible. Vérifiez l’évaluation et le résultat proposés avant de les
-          enregistrer. Si le courriel ne contient pas de résultat, consultez Brightspace et
-          saisissez-le manuellement.
+          ouverte et visible. Les résultats clairement associés à une évaluation sont enregistrés
+          automatiquement dans Notes. Les cas incertains et les conflits avec une note saisie
+          manuellement restent à vérifier. Si le courriel ne contient pas de résultat, consultez
+          Brightspace et saisissez-le manuellement.
         </p>
         <p>
           Vous pouvez modifier le filtre Gmail, désactiver les vérifications automatiques ou
@@ -35,13 +39,14 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         <p>
           Les résultats et avis de publication restent dans Notes. Ouvrez Actualités dans le menu
           pour les annonces et modifications d’évaluations. Vérifiez l’évaluation, la date et
-          l’heure proposées avant d’enregistrer une nouvelle échéance. L’évaluation existante et
-          son calendrier sont mis à jour sans doublon ni changement de note. Les autres changements
+          l’heure proposées avant d’enregistrer une nouvelle échéance. L’évaluation existante et son
+          calendrier sont mis à jour sans doublon ni changement de note. Les autres changements
           restent des avis à consulter dans Gmail.
         </p>
+        <BrightspaceNotificationGuide french />
         <GmailSetupGuide french />
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">1. Vos cours et sessions</h2>
         <p>
           Dans{' '}
@@ -60,7 +65,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           conservés.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">2. Connecter Brightspace</h2>
         <p>
           Dans Brightspace, ouvrez Calendrier → Paramètres, activez les flux et copiez le lien dans
@@ -97,7 +102,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           doublons si le fournisseur n’offre plus d’identifiant reconnaissable.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">3. Importer un plan de cours</h2>
         <p>
           Ouvrez{' '}
@@ -144,7 +149,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           ou ajoutez les évaluations manuellement.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">4. Terminer le travail et saisir les notes</h2>
         <p>
           Ouvrez une évaluation et cochez Terminé, puis enregistrez. Elle prend l’état Remis et
@@ -168,7 +173,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           votre établissement.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">5. Tâches, séances et calendrier</h2>
         <p>
           Dans Tâches, ajoutez des priorités, durées et sous-tâches. Utilisez l’onglet Horaire d’un
@@ -181,7 +186,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           l’autre ; Échap ferme une fenêtre.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">6. Apparence, langue et données</h2>
         <p>
           Dans Paramètres, choisissez un thème et un compagnon d’étude. Désactivez Mouvements doux
@@ -200,7 +205,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           votre établissement. Les textes des politiques détaillées restent actuellement en anglais.
         </p>
       </section>
-      <section className="card space-y-3 p-6">
+      <section className="card space-y-3 p-4">
         <h2 className="section-title">7. Dépannage</h2>
         <p>
           Pour un calendrier inaccessible, vérifiez que vous utilisez le lien HTTPS ou webcal

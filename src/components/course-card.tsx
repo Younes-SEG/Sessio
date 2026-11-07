@@ -24,14 +24,14 @@ export function CourseCard({ course }: { course: Course }) {
       href={`/courses/${course.id}`}
       style={{ '--course-color': course.color } as CSSProperties}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="course-card-mark flex justify-between items-start">
         <div className="course-icon">
           <BookOpen size={18} />
         </div>
         <ArrowUpRight size={15} className="muted" />
       </div>
       <div
-        className="text-[10px] font-semibold tracking-wide mb-1"
+        className="course-card-code text-xs font-semibold tracking-wide"
         style={{ color: 'var(--foreground)' }}
       >
         {course.code}
@@ -41,9 +41,9 @@ export function CourseCard({ course }: { course: Course }) {
           </span>
         )}
       </div>
-      <h2 className="font-semibold text-[14px] leading-relaxed min-h-11">{course.name}</h2>
+      <h2 className="course-card-title text-base leading-snug">{course.name}</h2>
       <CourseSyllabusStatus course={course} compact />
-      <div className="flex items-end justify-between mt-4 mb-3">
+      <div className="course-card-score flex items-end justify-between">
         <div>
           <div className="text-[10px] muted mb-1">
             <T text="Current grade" />
@@ -52,24 +52,24 @@ export function CourseCard({ course }: { course: Course }) {
             {grade.currentGrade === null ? '—' : `${grade.currentGrade.toFixed(1)}%`}
           </span>
         </div>
-        <span className="text-[9px] muted mb-1">
+        <span className="text-[10px] muted mb-1">
           {Math.round(grade.completedWeight)}
           <T text="% graded" />
         </span>
       </div>
-      <div className="progress-track">
+      <div className="progress-track course-card-progress">
         <div
           className="progress-fill"
           style={{ width: `${Math.min(100, grade.completedWeight)}%` }}
         />
       </div>
-      <div className="mt-4 pt-3 border-t border-border flex items-center gap-2 text-[10px] muted">
+      <div className="course-card-deadline flex items-center gap-2 text-xs muted">
         <CalendarClock size={12} />
         <span className="truncate flex-1">{next?.name || t('No pending assessments')}</span>
         {next && <span className="shrink-0">{dueLabel(next.dueDate, now, t.locale)}</span>}
       </div>
       {exam && exam.id !== next?.id && (
-        <p className="text-[9px] muted mt-2 truncate">
+        <p className="course-card-exam text-xs muted truncate">
           <T text="Next assessment:" /> {exam.name} · {dueLabel(exam.dueDate, now, t.locale)}
         </p>
       )}

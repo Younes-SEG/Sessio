@@ -157,7 +157,7 @@ const steps: TourStep[] = [
     path: '/grades',
     target: 'grades-filters',
     title: 'Find an assessment quickly',
-    body: 'Search by name or choose a course and term to narrow the list.',
+    body: 'Pick a course card to see its grades. Search by course name or code; other terms and archived courses are under Other courses.',
   },
   {
     path: '/grades',
@@ -169,7 +169,7 @@ const steps: TourStep[] = [
     path: '/grades',
     target: 'grades-results',
     title: 'Record your results here',
-    body: 'Enter your score and the total possible points, then save the grade. Edit details lets you adjust the assessment weight.',
+    body: 'Choose a course and expand a group to see your grades. Use Edit to change a name, score or weight.',
     hint: 'A blank score means ungraded, not zero.',
   },
   {
@@ -480,7 +480,7 @@ function SpotlightTour({
                 {box && (
                   <rect
                     {...{ x: box.x, y: box.y, width: box.width, height: box.height }}
-                    rx="14"
+                    rx="4"
                     className="tour-spotlight"
                     style={{ opacity: visible ? 1 : 0 }}
                     fill="black"
@@ -491,7 +491,7 @@ function SpotlightTour({
             <rect
               width="100%"
               height="100%"
-              fill="#0b0b14"
+              fill="#1b1b1d"
               fillOpacity="0.78"
               mask="url(#command-tour-mask)"
             />
@@ -501,7 +501,7 @@ function SpotlightTour({
                 y={box.y}
                 width={box.width}
                 height={box.height}
-                rx="14"
+                rx="4"
                 fill="none"
                 className="tour-spotlight"
                 style={{ opacity: visible ? 1 : 0 }}

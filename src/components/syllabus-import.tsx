@@ -21,7 +21,8 @@ import { Textarea } from './ui/textarea';
 import { type SyllabusSuggestion } from '@/lib/syllabus';
 import type { SyllabusPreview, SyllabusCategory } from '@/lib/syllabus-result';
 import { dateKey, toDateTimeLocal } from '@/lib/dates';
-import type { AssessmentType } from '@/lib/types';
+import type { AssessmentType, Course } from '@/lib/types';
+import { matchingCourses } from '@/lib/course-matching';
 import { reconcileSyllabusPreview } from '@/lib/syllabus-matching';
 import { SyllabusCategoryWeights } from './syllabus-category-weights';
 import { GradingRulesEditor } from './grading-rules-editor';
@@ -86,6 +87,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
   const [statusAttempt, setStatusAttempt] = useState(0);
   const pendingRead = useRef<AbortController | null>(null);
   const nextId = useRef(0);
+  const lastPreview = useRef<SyllabusPreview | null>(null);
   const reviewHeading = useRef<HTMLHeadingElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -117,12 +119,13 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
   const canRead = Boolean(semester && (mode === 'new' || course));
   const existing =
     mode === 'existing' ? data.assessments.filter((item) => item.courseId === course?.id) : [];
-  const duplicateCourse =
-    mode === 'new' &&
-    data.courses.find(
-      (c) =>
-        c.semesterId === termId && c.code.trim().toUpperCase() === courseCode.trim().toUpperCase(),
-    );
+  const duplicateCourses =
+    mode === 'new' ? matchingCourses(data.courses, data.semesters, courseCode, termId) : [];
+  const deletedMatches =
+    mode === 'new'
+      ? matchingCourses(data.deletedCourses || [], data.semesters, courseCode, termId)
+      : [];
+  const duplicateCourse = duplicateCourses.length > 0 || deletedMatches.length > 0;
   const selected = rows?.filter((row) => row.selected) || [];
   const ruleAssessments = [
     ...existing.filter((a) => !selected.some((r) => r.existingId === a.id)),
@@ -242,11 +245,33 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
     setText('');
     setSelectedFile(file);
   }
-  function showSuggestions(result: SyllabusPreview) {
-    setGradingRules(course?.gradingRules || []);
-    const reconciled = reconcileSyllabusPreview(result, existing);
+  function showSuggestions(result: SyllabusPreview, chosenCourse?: Course) {
+    lastPreview.current = result;
+    const matches =
+      mode === 'new'
+        ? matchingCourses(data.courses, data.semesters, result.course?.code || '', termId)
+        : [];
+    const target =
+      chosenCourse ||
+      course ||
+      (matches.length === 1 && matches[0].semesterId === termId && !matches[0].archived
+        ? matches[0]
+        : undefined);
+    if (target && mode === 'new') {
+      setMode('existing');
+      setCourseId(target.id);
+      setTermId(target.semesterId);
+      setNotice(
+        'Matched your existing course. Review the updates below; a second course will not be created.',
+      );
+    }
+    const targetAssessments = target
+      ? data.assessments.filter((item) => item.courseId === target.id)
+      : [];
+    setGradingRules(target?.gradingRules || []);
+    const reconciled = reconcileSyllabusPreview(result, targetAssessments);
     setCategories(reconciled.categories);
-    setGradingNotes(course?.gradingNotes || '');
+    setGradingNotes(target?.gradingNotes || '');
     setSessions(result.sessions || []);
     setExceptions(result.exceptions || []);
     setSessionNotice('');
@@ -400,7 +425,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
         <T text="Upload a syllabus to create a course, or add assessments to one you already have. Review the course details, dates and weights before saving." />
       </p>
       {configured === false && (
-        <div role="status" className="card space-y-2 p-5">
+        <div role="status" className="card space-y-2 p-4">
           <p className="font-medium">
             <T text="Syllabus reading is currently unavailable" />
           </p>
@@ -423,20 +448,22 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
       {error && (
         <p
           role="alert"
-          className="rounded-lg border border-[var(--danger)] p-4 text-sm text-[var(--danger)]"
+          className="rounded-sm border border-[var(--danger)] p-4 text-sm text-[var(--danger)]"
         >
           {t(error)}
         </p>
       )}
       {notice && (
-        <div role="status" className="card space-y-3 p-5">
+        <div role="status" className="card space-y-3 p-4">
           <p>{t(notice)}</p>
-          <Link className="text-primary underline" href={`/courses/${savedCourseId}`}>
-            <T text="View course assessments" />
-          </Link>
+          {savedCourseId && (
+            <Link className="text-primary underline" href={`/courses/${savedCourseId}`}>
+              <T text="View course assessments" />
+            </Link>
+          )}
         </div>
       )}
-      <form onSubmit={extract} className="card space-y-5 p-5 sm:p-6">
+      <form onSubmit={extract} className="card space-y-5 p-4 sm:p-5">
         <h2 className="section-title">
           <T text="1. Import your syllabus" />
         </h2>
@@ -447,7 +474,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
           {(['new', 'existing'] as const).map((value) => (
             <label
               key={value}
-              className={`flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)] ${mode === value ? 'border-[var(--primary)] text-primary' : 'border-[var(--border)]'}`}
+              className={`flex cursor-pointer items-center gap-2 rounded-sm border px-4 py-3 text-sm transition-colors hover:bg-[var(--muted)] ${mode === value ? 'border-[var(--primary)] text-primary' : 'border-[var(--border)]'}`}
             >
               <input
                 type="radio"
@@ -624,7 +651,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className="flex items-start gap-4 rounded-xl border border-primary/40 bg-primary/10 p-4 sm:p-5"
+            className="flex items-start gap-4 rounded-sm border border-primary/40 bg-primary/10 p-4 sm:p-5"
           >
             <LoaderCircle
               aria-hidden
@@ -683,7 +710,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
       </form>
       {rows !== null && (
         <form onSubmit={save} className="space-y-4">
-          <div className="card space-y-3 p-5 sm:p-6">
+          <div className="card space-y-3 p-4 sm:p-5">
             <h2 ref={reviewHeading} tabIndex={-1} className="section-title">
               <T text="2. Review suggestions" />
             </h2>
@@ -727,9 +754,41 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                 </div>
                 {courseEvidence && <p className="muted text-xs">{courseEvidence}</p>}
                 {duplicateCourse && (
-                  <p role="alert" className="text-sm text-[var(--danger)]">
-                    <T text="This code already exists in this term. Choose Existing course to import into it, or correct the code." />
-                  </p>
+                  <div className="rounded-sm border border-primary/40 bg-primary/5 p-4 space-y-3">
+                    <p className="text-sm">
+                      {t('A matching course already exists. Use it to avoid creating a duplicate.')}
+                    </p>
+                    {deletedMatches.length > 0 && (
+                      <p>
+                        {t(
+                          'A matching course is in Deleted courses. Restore it on the Courses page before importing its syllabus.',
+                        )}{' '}
+                        <Link href="/courses" className="text-primary underline">
+                          {t('Deleted courses')}
+                        </Link>
+                      </p>
+                    )}
+                    {duplicateCourses.map((match) => (
+                      <div key={match.id}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={match.archived}
+                          onClick={() => {
+                            if (lastPreview.current) showSuggestions(lastPreview.current, match);
+                          }}
+                        >
+                          {t('Use existing course')}: {match.code} ·{' '}
+                          {data.semesters.find((term) => term.id === match.semesterId)?.name}
+                        </Button>
+                        {match.archived && (
+                          <p className="muted mt-1 text-xs">
+                            {t('Unarchive this course first to import into it.')}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </fieldset>
             )}
@@ -800,7 +859,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
               r.assessmentIds.includes(row.existingId || `import:${row.id}`),
             );
             return (
-              <fieldset key={row.id} className="card min-w-0 space-y-4 p-5 sm:p-6" disabled={busy}>
+              <fieldset key={row.id} className="card min-w-0 space-y-4 p-4 sm:p-5" disabled={busy}>
                 <legend className="px-2 text-sm font-semibold">
                   <T text="Assessment" /> {index + 1}
                 </legend>
@@ -968,7 +1027,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                       <T text="View source excerpt" />
                       {row.page ? ` · page ${row.page}` : ''}
                     </summary>
-                    <p className="muted mt-3 whitespace-pre-wrap break-words rounded-lg bg-[var(--muted)] p-3 leading-relaxed">
+                    <p className="muted mt-3 whitespace-pre-wrap break-words rounded-sm bg-[var(--muted)] p-3 leading-relaxed">
                       {row.source}
                     </p>
                   </details>
@@ -1004,7 +1063,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
             <Plus />
             <T text="Add missed assessment" />
           </Button>
-          <div className="card space-y-4 p-5 sm:p-6">
+          <div className="card space-y-4 p-4 sm:p-5">
             <h2 className="section-title">
               3. {mode === 'new' ? t('Create your course') : `Save to ${course?.code}`}
             </h2>

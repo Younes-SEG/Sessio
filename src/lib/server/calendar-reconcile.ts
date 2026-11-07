@@ -8,7 +8,7 @@ const progress = { NOT_STARTED: 0, IN_PROGRESS: 1, SUBMITTED: 2, GRADED: 3 };
 /** Only merge proven source identities; conflicting grades/weights need manual review. */
 export async function reconcileCalendarAssessments(tx: Tx, workspaceId: string) {
   const rows = await tx.assessment.findMany({
-    where: { course: { semester: { workspaceId } } },
+    where: { course: { semester: { workspaceId }, deletedAt: null } },
     include: { calendarImport: { select: { sourceKey: true } } },
   });
   const groups = new Map<string, Assessment[]>();
@@ -75,7 +75,14 @@ export async function reconcileCalendarAssessments(tx: Tx, workspaceId: string) 
 /** Retire only unchanged legacy task mirrors; user edits become independent planning tasks. */
 export async function retireCalendarTasks(tx: Tx, workspaceId: string) {
   const tasks = await tx.task.findMany({
-    where: { workspaceId, calendarManaged: true },
+    where: {
+      workspaceId,
+      calendarManaged: true,
+      AND: [
+        { OR: [{ courseId: null }, { course: { deletedAt: null } }] },
+        { OR: [{ assessmentId: null }, { assessment: { course: { deletedAt: null } } }] },
+      ],
+    },
     include: {
       assessment: { include: { course: { include: { semester: true } } } },
       subtasks: true,
@@ -85,6 +92,7 @@ export async function retireCalendarTasks(tx: Tx, workspaceId: string) {
   let preserved = 0;
   for (const task of tasks) {
     const assessment = task.assessment;
+    if (assessment?.course.deletedAt) continue;
     const expectedStatus =
       assessment &&
       (['SUBMITTED', 'GRADED'].includes(assessment.status)

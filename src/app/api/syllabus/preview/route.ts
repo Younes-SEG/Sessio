@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       throw new ApiError(400, 'Choose a course or a term for your new course.');
     const course = courseId
       ? await db.course.findUnique({
-          where: { id: courseId, semester: { workspaceId } },
+          where: { id: courseId, semester: { workspaceId }, deletedAt: null },
           select: {
             code: true,
             name: true,

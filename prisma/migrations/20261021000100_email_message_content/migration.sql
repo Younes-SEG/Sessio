@@ -1,0 +1,3 @@
+ALTER TABLE "EmailUpdate"
+ADD COLUMN "contentVersion" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "bodyTruncated" BOOLEAN NOT NULL DEFAULT false;

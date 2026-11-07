@@ -1,4 +1,5 @@
 'use client';
+import { AssistantPanel } from './assistant-panel';
 import { OnboardingProvider, useOnboarding } from './onboarding';
 import { T, useT } from '@/components/language-provider';
 import { useState, type ReactNode } from 'react';
@@ -134,7 +135,10 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
               onClick={onNavigate}
               className="nav-link"
             >
-              <span className="course-dot" style={{ background: course.color }} />
+              <span
+                className="course-dot"
+                style={{ background: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))` }}
+              />
               {course.code}
             </Link>
           ))}
@@ -163,15 +167,15 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
           <div className="semester-card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-semibold">{semester.name}</span>
-              <span className="size-1.5 rounded-full bg-[var(--green)]" />
+              <span className="size-1.5 rounded-sm bg-[var(--green)]" />
             </div>
-            <p className="text-[9px] muted mb-3">
+            <p className="text-[10px] muted mb-3">
               <T text="One day at a time. You've got this." />
             </p>
             <div className="progress-track">
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
-            <div className="text-[9px] muted mt-2">
+            <div className="text-[10px] muted mt-2">
               {Math.round(progress)}
               <T text="% through the semester" />
             </div>
@@ -252,6 +256,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="topbar-actions flex shrink-0 items-center gap-2 sm:gap-4">
+            <AssistantPanel />
             <LanguageSwitch />
             <button
               aria-label={t('Search your workspace')}
@@ -276,7 +281,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
             </Button>
             <Link
               href="/settings"
-              className="flex size-8 items-center justify-center rounded-full bg-[var(--accent)] text-primary text-xs font-semibold"
+              className="flex size-8 items-center justify-center rounded-sm bg-[var(--accent)] text-primary text-xs font-semibold"
               aria-label={t('Personal settings')}
             >
               {data.settings.displayName?.[0]?.toUpperCase() || 'Y'}

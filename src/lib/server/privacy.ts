@@ -8,10 +8,11 @@ export async function exportWorkspace() {
   return {
     formatVersion: 1,
     exportedAt: new Date().toISOString(),
-    workspace: await getWorkspace(),
+    workspace: await getWorkspace(true),
     // Explicit projection excludes feed URLs and provider source identifiers.
     calendarConnections: await listSubscriptions(),
     emailUpdates: await exportEmailData(),
+    assistantActions: await db.assistantRequest.findMany({ where: { workspaceId: await requireWorkspaceId() } }),
   };
 }
 
@@ -23,6 +24,7 @@ export async function eraseWorkspace() {
       await tx.calendarSubscription.deleteMany({ where: { workspaceId } });
       await tx.gmailOAuthState.deleteMany({ where: { workspaceId } });
       await tx.gmailConnection.deleteMany({ where: { workspaceId } });
+      await tx.assistantRequest.deleteMany({ where: { workspaceId } });
       await tx.task.deleteMany({ where: { workspaceId } });
       await tx.calendarEvent.deleteMany({ where: { workspaceId } });
       await tx.course.deleteMany({ where: { semester: { workspaceId } } });

@@ -9,13 +9,14 @@ export const DialogTrigger = Primitive.Trigger;
 export const DialogClose = Primitive.Close;
 export function DialogContent({
   className,
+  overlayClassName,
   children,
   ...props
-}: React.ComponentProps<typeof Primitive.Content>) {
+}: React.ComponentProps<typeof Primitive.Content> & { overlayClassName?: string }) {
   const t = useT();
   return (
     <Primitive.Portal>
-      <Primitive.Overlay className="dialog-overlay" />
+      <Primitive.Overlay className={cn('dialog-overlay', overlayClassName)} />
       <Primitive.Content className={cn('dialog-content', className)} {...props}>
         {children}
         <Primitive.Close className="dialog-close" aria-label={t('Close dialog')}>

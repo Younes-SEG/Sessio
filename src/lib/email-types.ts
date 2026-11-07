@@ -10,11 +10,14 @@ export interface EmailReviewAssessment {
   deadlineRevision: string;
 }
 export interface EmailReviewUpdate {
+  sourceEmails?: Array<{ id: string; sender: string; receivedAt: string; gmailUrl: string }>;
   id: string;
   subject: string;
   sender: string;
   receivedAt: string;
   excerpt: string;
+  contentVersion?: number;
+  bodyTruncated?: boolean;
   score: number | null;
   maxScore: number | null;
   suggestedAssessmentId: string | null;
@@ -36,4 +39,14 @@ export interface EmailOverview {
   };
   updates: EmailReviewUpdate[];
   assessments: EmailReviewAssessment[];
+  automaticGrades?: Array<{
+    id: string;
+    assessmentId: string | null;
+    score: number | null;
+    maxScore: number | null;
+    receivedAt: string;
+    subject: string;
+    alreadyRecorded: boolean;
+    gmailUrl: string;
+  }>;
 }

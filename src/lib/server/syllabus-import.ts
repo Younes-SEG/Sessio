@@ -7,6 +7,7 @@ import { matchSyllabusAssessment, genericCategory, assessmentIdentity } from '..
 import { requireWorkspaceId } from './auth';
 import { randomUUID } from 'node:crypto';
 import { gradingRulesSchema, readGradingRules, gradingRuleError } from '../grading-rules';
+import { matchingCourses } from '../course-matching';
 
 const schema = z
   .object({
@@ -50,26 +51,32 @@ export async function importSyllabus(body: unknown) {
   } = schema.parse(body);
   return transaction(async (tx) => {
     let course;
+    let courseCreated = false;
     if (newCourse) {
       const semester = await tx.semester.findUnique({
         where: { id: newCourse.semesterId, workspaceId },
       });
       if (!semester) throw new ApiError(404, 'This term no longer exists.');
+      const terms = await tx.semester.findMany({ where: { workspaceId } });
+      const owned = await tx.course.findMany({ where: { semester: { workspaceId } } });
+      const matches = matchingCourses(owned, terms, newCourse.code, semester.id);
       if (
-        await tx.course.findFirst({
-          where: { semesterId: semester.id, code: { equals: newCourse.code, mode: 'insensitive' } },
-        })
+        matches.length > 1 ||
+        matches.some(
+          (match) => match.semesterId !== semester.id || match.archived || match.deletedAt,
+        )
       )
         throw new ApiError(
           409,
-          'This course code already exists in this term. Choose Existing course to add assessments to it.',
+          'A matching course already exists. Choose the existing course before saving; no new course was created.',
         );
-      if (items.some((item) => item.existingId))
+      if (!matches.length && items.some((item) => item.existingId))
         throw new ApiError(400, 'A new course cannot update assessments from another course.');
-      course = await tx.course.create({ data: courseSchema.parse(newCourse) });
+      course = matches[0] || (await tx.course.create({ data: courseSchema.parse(newCourse) }));
+      courseCreated = !matches.length;
     } else {
       course = await tx.course.findUnique({
-        where: { id: existingCourseId!, semester: { workspaceId } },
+        where: { id: existingCourseId!, semester: { workspaceId }, deletedAt: null },
       });
     }
     if (!course) throw new ApiError(404, 'This course no longer exists.');
@@ -147,12 +154,24 @@ export async function importSyllabus(body: unknown) {
       });
       return { existing, data, id };
     });
-    const rules = gradingRules
-      ? gradingRules.map((r) => ({
+    // A stale "new course" review must not erase rules already saved on its match.
+    const reusedCourse = Boolean(newCourse) && !courseCreated;
+    const previousRules = readGradingRules(course.gradingRules);
+    const reviewedRules =
+      reusedCourse && gradingRules !== undefined
+        ? [
+            ...previousRules.filter(
+              (rule) => !gradingRules.some((incoming) => incoming.id === rule.id),
+            ),
+            ...gradingRules,
+          ]
+        : gradingRules;
+    const rules = reviewedRules
+      ? reviewedRules.map((r) => ({
           ...r,
           assessmentIds: r.assessmentIds.map((id) => idMap.get(id) || id),
         }))
-      : readGradingRules(course.gradingRules);
+      : previousRules;
     const projected = [
       ...current.filter((a) => !usedIds.has(a.id)),
       ...changes.map((c) => ({ ...c.data, id: c.id })),
@@ -172,12 +191,12 @@ export async function importSyllabus(body: unknown) {
       data: {
         syllabusImportedAt: new Date(),
         ...(gradingRules !== undefined ? { gradingRules: rules } : {}),
-        ...(gradingNotes !== undefined ? { gradingNotes } : {}),
+        ...(gradingNotes !== undefined && !reusedCourse ? { gradingNotes } : {}),
       },
     });
     return {
       courseId,
-      courseCreated: Boolean(newCourse),
+      courseCreated,
       created: changes.filter((item) => !item.existing).length,
       updated: usedIds.size,
     };

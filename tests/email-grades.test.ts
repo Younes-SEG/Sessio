@@ -49,12 +49,144 @@ describe('grade notification reader', () => {
     expect(matchEmailAssessment('Grade for Lab 1', courses, assessments)).toBeNull();
   });
   const quizCourses = [{ id: 'gng', code: 'GNG1505', archived: false }];
+  const testCourses = [{ id: 'sta', code: 'STA2791', archived: false }];
+  const courseTests = [1, 2, 10].map((n) => ({
+    id: `test${n}`,
+    courseId: 'sta',
+    name: `Examen Test ${n}`,
+    type: 'MIDTERM' as const,
+  }));
+  it.each(['Test1', 'Test 1', 'Test-1', 'Test #1', 'Test n° 1', 'Test 01', 'Examen Test 1'])(
+    'matches %s to the named test in a digest or standalone notice',
+    (label) => {
+      const digest = `Activity summary for STA2791 B00\nCourse Grades (1)\nUpdated - ${label}\nYour grade: 17 / 25, C+, 17 / 25% of final grade\nGo to Grades>>`;
+      expect(emailScore(digest)).toMatchObject({ score: 17, maxScore: 25 });
+      expect(matchEmailAssessment(digest, testCourses, courseTests)).toBe('test1');
+      expect(
+        matchEmailAssessment(
+          `STA2791 Test 2 due tomorrow\n${label}\nYour grade: 17/25`,
+          testCourses,
+          courseTests,
+        ),
+      ).toBe('test1');
+    },
+  );
+  it('matches explicit test names regardless of the stored assessment category', () => {
+    for (const type of ['MIDTERM', 'QUIZ', 'OTHER'] as const)
+      expect(
+        matchEmailAssessment('STA2791 Test1 score: 17/25', testCourses, [
+          { ...courseTests[0], type },
+        ]),
+      ).toBe('test1');
+    expect(
+      matchEmailAssessment('STA2791 Examen Test 1 score: 17/25', testCourses, [
+        { ...courseTests[0], name: 'Test1' },
+      ]),
+    ).toBe('test1');
+  });
+  it('keeps test numbers, parts, courses and ambiguous results distinct', () => {
+    expect(matchEmailAssessment('STA2791 Test10 score: 17/25', testCourses, courseTests)).toBe(
+      'test10',
+    );
+    for (const label of ['Test3', 'Test1 and Test3', 'Test1 and Quiz2', 'Test1 Part A', 'Test'])
+      expect(
+        matchEmailAssessment(`STA2791 ${label} score: 17/25`, testCourses, courseTests),
+      ).toBeNull();
+    expect(
+      matchEmailAssessment('STA2791 Test1 score: 17/25', testCourses, [
+        ...courseTests,
+        { ...courseTests[0], id: 'duplicate', name: 'Test 1' },
+      ]),
+    ).toBeNull();
+    expect(
+      matchEmailAssessment('STA2791 Test1 score: 17/25', testCourses, [
+        { ...courseTests[0], courseId: 'another-course' },
+        { ...courseTests[0], id: 'quiz1', name: 'Quiz 1', type: 'QUIZ' },
+        { ...courseTests[0], id: 'midterm1', name: 'Midterm 1' },
+      ]),
+    ).toBeNull();
+    expect(
+      matchEmailAssessment('STA2791 Test1 Part A score: 17/25', testCourses, [
+        ...courseTests,
+        { ...courseTests[0], id: 'part-a', name: 'Examen Test 1 Partie A' },
+      ]),
+    ).toBe('part-a');
+  });
   const quizzes = [1, 2, 3, 12].map((n) => ({
     id: `quiz${n}`,
     courseId: 'gng',
     name: `Quiz ${n}`,
     type: 'QUIZ' as const,
   }));
+  const exams = [
+    {
+      id: 'midterm',
+      courseId: 'gng',
+      name: 'Midterm Exam / Examen de mi-session',
+      type: 'MIDTERM' as const,
+    },
+    {
+      id: 'final',
+      courseId: 'gng',
+      name: 'Final Exam / Examen final',
+      type: 'FINAL_EXAM' as const,
+    },
+  ];
+  it.each([
+    'MT-Exam',
+    'MT Exam',
+    'MTExam',
+    'M.T. Exam',
+    'Mid-term examination',
+    'Examen intra',
+    'Intra',
+    'Examen de mi-session',
+  ])('matches the midterm label %s in summaries and standalone notices', (label) => {
+    const digest = `Activity summary for GNG1505 A00\nAssignment (1)\nQuiz 3 due soon\nCourse Grades (1)\nUpdated - ${label}\nYour grade: 16 / 30, D, 13.33 / 25% of final grade\nGo to Grades>>\nContent Updates (2)`;
+    expect(emailScore(digest)).toMatchObject({ score: 16, maxScore: 30 });
+    expect(matchEmailAssessment(digest, quizCourses, [...quizzes, ...exams])).toBe('midterm');
+    expect(
+      matchEmailAssessment(`GNG1505 Quiz 3 due soon\n${label}\nYour grade: 16/30`, quizCourses, [
+        ...quizzes,
+        ...exams,
+      ]),
+    ).toBe('midterm');
+  });
+  it('preserves exam numbers and leaves duplicate or unspecified midterms unassigned', () => {
+    const numberedExams = [1, 2].map((n) => ({
+      id: `midterm${n}`,
+      courseId: 'gng',
+      name: `Midterm Exam ${n}`,
+      type: 'MIDTERM' as const,
+    }));
+    expect(matchEmailAssessment('GNG1505 MT-Exam2 score: 16/30', quizCourses, numberedExams)).toBe(
+      'midterm2',
+    );
+    expect(
+      matchEmailAssessment('GNG1505 MT-Exam score: 16/30', quizCourses, numberedExams),
+    ).toBeNull();
+    expect(matchEmailAssessment('GNG1505 MT-Exam2 score: 16/30', quizCourses, exams)).toBeNull();
+    expect(
+      matchEmailAssessment('GNG1505 MT-Exam score: 16/30', quizCourses, [
+        ...exams,
+        { ...exams[0], id: 'duplicate' },
+      ]),
+    ).toBeNull();
+    expect(
+      matchEmailAssessment(
+        'GNG1505 Course update\nMeeting at 8 MT\nYour grade: 16/30',
+        quizCourses,
+        exams,
+      ),
+    ).toBeNull();
+    expect(
+      matchEmailAssessment(
+        'GNG1505 Quiz 2\nYour grade: 16/30, 13.33/25% of final grade',
+        quizCourses,
+        [...quizzes, ...exams],
+      ),
+    ).toBe('quiz2');
+  });
   it.each(['Quiz-2', 'Quiz–2', 'Quiz_2', 'Quiz2', 'Quiz #2', 'Quiz n° 2', 'Questionnaire 02'])(
     'matches name variation %s in both digests and individual grade notices',
     (label) => {

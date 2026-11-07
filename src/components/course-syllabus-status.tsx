@@ -19,8 +19,8 @@ export function CourseSyllabusStatus({
     <div
       className={
         compact
-          ? 'mt-2 flex items-center gap-1.5 text-xs muted'
-          : 'flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border px-4 py-3 text-sm'
+          ? 'course-card-source flex items-center gap-1.5 text-xs muted'
+          : 'flex flex-wrap items-center gap-x-3 gap-y-2 rounded-sm border border-border px-4 py-3 text-sm'
       }
     >
       <span className={`inline-flex items-center gap-2 ${imported ? 'text-primary' : 'muted'}`}>

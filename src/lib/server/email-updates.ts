@@ -15,14 +15,22 @@ import {
 } from './gmail-client';
 import {
   emailScore,
-  gmailBody,
+  gmailContent,
   matchEmailAssessment,
   effectiveGmailQuery,
   scopedGmailQuery,
   SCHOOL_GMAIL_SCOPE,
   type GmailPart,
 } from '../email-grades';
-import { classifySchoolEmail, emailDeadline, schoolEmailExcerpt } from '../email-classification';
+import { EMAIL_CONTENT_VERSION } from '../email-content';
+import { schoolNotificationGroups } from '../email-duplicates';
+import { applyPendingEmailGrades } from './automatic-email-grades';
+import {
+  currentEmailText,
+  classifySchoolEmail,
+  emailDeadline,
+  schoolEmailExcerpt,
+} from '../email-classification';
 
 export const deadlineRevision = (assessment: { dueDate: Date | null }) =>
   createHash('sha256')
@@ -57,6 +65,8 @@ export async function exportEmailData() {
           sender: true,
           receivedAt: true,
           excerpt: true,
+          contentVersion: true,
+          bodyTruncated: true,
           score: true,
           maxScore: true,
           suggestedAssessmentId: true,
@@ -70,7 +80,7 @@ export async function exportEmailData() {
 export async function emailOverview() {
   const workspaceId = await requireWorkspaceId();
   const courses = await db.course.findMany({
-    where: { semester: { workspaceId }, archived: false },
+    where: { semester: { workspaceId }, archived: false, deletedAt: null },
     select: {
       id: true,
       code: true,
@@ -79,7 +89,7 @@ export async function emailOverview() {
     },
   });
   const assessments = await db.assessment.findMany({
-    where: { course: { semester: { workspaceId }, archived: false } },
+    where: { course: { semester: { workspaceId }, archived: false, deletedAt: null } },
     select: { id: true, courseId: true, name: true, type: true },
   });
   const connection = await db.gmailConnection.findUnique({
@@ -95,7 +105,7 @@ export async function emailOverview() {
       lastError: true,
       pageToken: true,
       messages: {
-        where: { status: { in: ['PENDING', 'READ'] } },
+        where: { status: { in: ['PENDING', 'READ', 'AUTO_APPLIED', 'AUTO_MATCHED'] } },
         orderBy: { receivedAt: 'desc' },
         select: {
           id: true,
@@ -104,6 +114,8 @@ export async function emailOverview() {
           sender: true,
           receivedAt: true,
           excerpt: true,
+          contentVersion: true,
+          bodyTruncated: true,
           score: true,
           maxScore: true,
           suggestedAssessmentId: true,
@@ -116,6 +128,7 @@ export async function emailOverview() {
   // immediately without deleting any saved grade or changing the user's mailbox.
   const updates =
     connection?.messages.flatMap((m) => {
+      if (m.status === 'AUTO_APPLIED' || m.status === 'AUTO_MATCHED') return [];
       const kind = classifySchoolEmail(
         { subject: m.subject, sender: m.sender, text: m.excerpt },
         courses,
@@ -128,7 +141,7 @@ export async function emailOverview() {
           suggestedAssessmentId:
             kind === 'GRADE'
               ? matchEmailAssessment(
-                  `${m.subject}\n${m.excerpt}`,
+                  currentEmailText(`${m.subject}\n${m.excerpt}`),
                   courses,
                   assessments,
                   m.receivedAt,
@@ -156,7 +169,30 @@ export async function emailOverview() {
           moreAvailable: Boolean(connection.pageToken),
         }
       : null,
-    updates,
+    updates: schoolNotificationGroups(updates).map((copies) => ({
+      ...copies[0],
+      read: copies.some((copy) => copy.read),
+      sourceEmails: copies.map((copy) => ({
+        id: copy.id,
+        sender: copy.sender,
+        gmailUrl: copy.gmailUrl,
+        receivedAt: copy.receivedAt,
+      })),
+    })),
+    automaticGrades:
+      connection?.messages
+        .filter((m) => m.status === 'AUTO_APPLIED' || m.status === 'AUTO_MATCHED')
+        .slice(0, 50)
+        .map((m) => ({
+          id: m.id,
+          assessmentId: m.suggestedAssessmentId,
+          score: m.score,
+          maxScore: m.maxScore,
+          receivedAt: m.receivedAt.toISOString(),
+          subject: m.subject,
+          alreadyRecorded: m.status === 'AUTO_MATCHED',
+          gmailUrl: `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(connection!.email)}#all/${encodeURIComponent(m.messageId)}`,
+        })) || [],
   };
 }
 
@@ -195,6 +231,10 @@ export async function syncEmail(automatic = false) {
   });
   if (!claimed.count) return { checked: 0 };
   try {
+    // Retry existing clear matches even if Gmail is temporarily offline.
+    let applied = await transaction((tx) =>
+      applyPendingEmailGrades(tx, workspaceId, connection.id),
+    );
     const tokens = await gmailTokens({
       grant_type: 'refresh_token',
       refresh_token: openGmail(connection.refreshToken, workspaceId),
@@ -245,7 +285,7 @@ export async function syncEmail(automatic = false) {
         }),
       );
     const courses = await db.course.findMany({
-      where: { semester: { workspaceId }, archived: false },
+      where: { semester: { workspaceId }, archived: false, deletedAt: null },
       select: {
         id: true,
         code: true,
@@ -254,7 +294,7 @@ export async function syncEmail(automatic = false) {
       },
     });
     const assessments = await db.assessment.findMany({
-      where: { course: { semester: { workspaceId }, archived: false } },
+      where: { course: { semester: { workspaceId }, archived: false, deletedAt: null } },
       select: { id: true, courseId: true, name: true, type: true },
     });
     const known = await db.emailUpdate.findMany({
@@ -265,16 +305,17 @@ export async function syncEmail(automatic = false) {
       select: { messageId: true },
     });
     const seen = new Set(known.map((m) => m.messageId));
-    // Older imports kept just the score line. Re-read these pending notices once
-    // to recover the title beside the score; newer excerpts start with the subject.
-    const legacy = (
-      await db.emailUpdate.findMany({
-        where: { connectionId: connection.id, status: 'PENDING' },
-        select: { messageId: true, subject: true, excerpt: true },
-      })
-    )
-      .filter((m) => emailScore(m.excerpt) && !m.excerpt.startsWith(`${m.subject}\n`))
-      .slice(0, 20);
+    // Refresh old short excerpts once, including notifications already marked read.
+    const legacy = await db.emailUpdate.findMany({
+      where: {
+        connectionId: connection.id,
+        status: { in: ['PENDING', 'READ'] },
+        contentVersion: { lt: EMAIL_CONTENT_VERSION },
+      },
+      orderBy: { receivedAt: 'desc' },
+      select: { messageId: true },
+      take: 20,
+    });
     const repairIds = new Set(legacy.map((m) => m.messageId));
     const ids = [
       ...(listed.messages || []).filter((m) => !seen.has(m.id)),
@@ -304,7 +345,8 @@ export async function syncEmail(automatic = false) {
             0,
             300,
           );
-          const body = gmailBody(message.payload);
+          const content = gmailContent(message.payload);
+          const body = content.text;
           const excerpt = schoolEmailExcerpt(subject, body);
           const kind = classifySchoolEmail({ subject, sender, text: excerpt }, courses);
           if (kind === 'IGNORE')
@@ -315,14 +357,16 @@ export async function syncEmail(automatic = false) {
               sender: '',
               receivedAt: now,
               excerpt: '',
+              contentVersion: EMAIL_CONTENT_VERSION,
+              bodyTruncated: content.truncated,
               status: 'IGNORED',
               reviewedAt: now,
               score: null,
               maxScore: null,
               suggestedAssessmentId: null,
             };
-          const text = `${subject}\n${body}`;
-          const score = kind === 'GRADE' ? emailScore(excerpt) : null;
+          const text = currentEmailText(`${subject}\n${body}`);
+          const score = kind === 'GRADE' ? emailScore(currentEmailText(excerpt)) : null;
           const receivedAt = new Date(Number(message.internalDate));
           if (!Number.isFinite(receivedAt.getTime()))
             throw new ApiError(502, 'Gmail returned an unreadable response.');
@@ -333,6 +377,8 @@ export async function syncEmail(automatic = false) {
             sender,
             receivedAt,
             excerpt,
+            contentVersion: EMAIL_CONTENT_VERSION,
+            bodyTruncated: content.truncated,
             score: score?.score ?? null,
             maxScore: score?.maxScore ?? null,
             suggestedAssessmentId: matchEmailAssessment(text, courses, assessments, receivedAt),
@@ -341,11 +387,11 @@ export async function syncEmail(automatic = false) {
       );
       updates.push(...batch);
     }
-    await transaction(async (tx) => {
+    applied += await transaction(async (tx) => {
       const current = await tx.gmailConnection.findUnique({
         where: { id: connection.id, workspaceId, syncToken: token },
       });
-      if (!current) return;
+      if (!current) return 0;
       if (updates.length) {
         await tx.emailUpdate.createMany({
           data: updates.filter((m) => !repairIds.has(m.messageId)),
@@ -355,7 +401,7 @@ export async function syncEmail(automatic = false) {
           const { connectionId, messageId, ...data } = update;
           // A review may have been saved while Gmail was responding. Never reopen it.
           await tx.emailUpdate.updateMany({
-            where: { connectionId, messageId, status: 'PENDING' },
+            where: { connectionId, messageId, status: { in: ['PENDING', 'READ'] } },
             data,
           });
         }
@@ -377,8 +423,9 @@ export async function syncEmail(automatic = false) {
           reviewedAt: { lt: new Date(now.getTime() - 90 * 86400000) },
         },
       });
+      return applyPendingEmailGrades(tx, workspaceId, connection.id);
     });
-    return { checked: listed.messages?.length || 0 };
+    return { checked: listed.messages?.length || 0, applied };
   } catch (error) {
     const message =
       error instanceof ApiError ? error.message : 'Unable to read Gmail. Please try again.';
@@ -468,9 +515,9 @@ export async function reviewEmail(input: unknown) {
     if (data.action === 'read') {
       // Reading a notification is independent of approving its proposed change.
       // Idempotent across tabs, and never clears the source or edits an assessment.
-      if (message.status !== 'PENDING') return;
+      if (message.status !== 'PENDING' && message.status !== 'READ') return;
       const courses = await tx.course.findMany({
-        where: { semester: { workspaceId }, archived: false },
+        where: { semester: { workspaceId }, archived: false, deletedAt: null },
         select: { code: true, archived: true },
       });
       const kind = classifySchoolEmail(
@@ -479,8 +526,31 @@ export async function reviewEmail(input: unknown) {
       );
       if (kind !== 'ANNOUNCEMENT' && kind !== 'ASSESSMENT_CHANGE')
         throw new ApiError(400, 'This email does not support that update.');
-      await tx.emailUpdate.update({
-        where: { id: message.id },
+      let ids = [message.id];
+      if (kind === 'ANNOUNCEMENT') {
+        const candidates = await tx.emailUpdate.findMany({
+          where: {
+            connectionId: message.connectionId,
+            connection: { workspaceId },
+            status: { in: ['PENDING', 'READ'] },
+          },
+        });
+        const groups = schoolNotificationGroups(
+          candidates.map((candidate) => ({
+            ...candidate,
+            kind: classifySchoolEmail(
+              { subject: candidate.subject, sender: candidate.sender, text: candidate.excerpt },
+              courses,
+            ),
+          })),
+        );
+        ids =
+          groups
+            .find((group) => group.some((candidate) => candidate.id === message.id))
+            ?.map((candidate) => candidate.id) || ids;
+      }
+      await tx.emailUpdate.updateMany({
+        where: { id: { in: ids }, connection: { workspaceId }, status: 'PENDING' },
         data: { status: 'READ', reviewedAt: new Date() },
       });
       return;
@@ -489,7 +559,7 @@ export async function reviewEmail(input: unknown) {
       throw new ApiError(409, 'This email update was already reviewed.');
     if (data.action !== 'dismiss') {
       const courses = await tx.course.findMany({
-        where: { semester: { workspaceId }, archived: false },
+        where: { semester: { workspaceId }, archived: false, deletedAt: null },
         select: { code: true, archived: true },
       });
       const kind = classifySchoolEmail(
@@ -502,7 +572,10 @@ export async function reviewEmail(input: unknown) {
       )
         throw new ApiError(400, 'This email does not support that update.');
       const assessment = await tx.assessment.findUnique({
-        where: { id: data.assessmentId, course: { semester: { workspaceId }, archived: false } },
+        where: {
+          id: data.assessmentId,
+          course: { semester: { workspaceId }, archived: false, deletedAt: null },
+        },
       });
       if (!assessment) throw new ApiError(404, 'Choose an assessment from your active courses.');
       if (data.action === 'apply-deadline') {
@@ -534,6 +607,7 @@ export async function reviewEmail(input: unknown) {
         reviewedAt: new Date(),
         excerpt: '',
         ...(data.action !== 'dismiss' ? { suggestedAssessmentId: data.assessmentId } : {}),
+        ...(data.action === 'apply' ? { score: data.score, maxScore: data.maxScore } : {}),
       },
     });
   });
@@ -542,7 +616,7 @@ export async function reviewEmail(input: unknown) {
 export async function emailAssessmentRevisions() {
   const workspaceId = await requireWorkspaceId();
   const rows = await db.assessment.findMany({
-    where: { course: { semester: { workspaceId }, archived: false } },
+    where: { course: { semester: { workspaceId }, archived: false, deletedAt: null } },
     select: {
       id: true,
       name: true,

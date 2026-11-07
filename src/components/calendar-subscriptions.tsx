@@ -127,8 +127,8 @@ export function CalendarSubscriptions() {
 
   return (
     <section className="card overflow-hidden" id="calendar-connections">
-      <div className="flex items-center gap-3 border-b border-[var(--border)] p-5 sm:px-7">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-[var(--muted)] text-[var(--primary)]">
+      <div className="flex items-center gap-3 border-b border-[var(--border)] p-4 sm:px-5">
+        <div className="flex size-9 items-center justify-center rounded-sm bg-[var(--muted)] text-[var(--primary)]">
           <Link2 size={18} />
         </div>
         <div>
@@ -140,7 +140,7 @@ export function CalendarSubscriptions() {
           </p>
         </div>
       </div>
-      <div className="space-y-5 p-5 sm:px-7">
+      <div className="space-y-5 p-4 sm:px-5">
         <form onSubmit={onConnect} className="space-y-4">
           <fieldset disabled={!!busy} className="min-w-0 space-y-4">
             <div className="space-y-2">
@@ -207,7 +207,7 @@ export function CalendarSubscriptions() {
                 <T text="Calendar changes save here separately from your preferences." />
               </p>
             </div>
-            <details className="rounded-xl border border-[var(--border)] p-3">
+            <details className="rounded-sm border border-[var(--border)] p-3">
               <summary className="cursor-pointer text-sm">
                 <T text="Import dates:" /> {options.fromDate} <T text="to" /> {options.throughDate}
               </summary>
@@ -250,7 +250,7 @@ export function CalendarSubscriptions() {
           </fieldset>
         </form>
         {preview && (
-          <div className="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-4">
+          <div className="space-y-4 rounded-sm border border-[var(--border)] bg-[var(--muted)]/40 p-4">
             <div>
               <h3 className="font-medium break-words">{preview.name}</h3>
               <p className="muted mt-1 text-sm">
