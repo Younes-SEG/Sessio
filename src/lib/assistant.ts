@@ -59,7 +59,16 @@ export type AssistantReply = {
   items?: { title: string; detail: string; href?: string }[];
   // Conversation and read-query context go back to the model, never full agenda/grade results.
   context?: string;
+  actionsExpired?: boolean;
 };
+export type ChatEntry = {
+  key: string;
+  role: 'user' | 'assistant';
+  text: string;
+  reply?: AssistantReply;
+  createdAt?: string;
+};
+export type SavedChat = { id: string; title: string; updatedAt: string; entries: ChatEntry[] };
 export type ChatMessage = { role: 'user' | 'model'; text: string };
 export const say = (language: string, en: string, fr: string) => (language === 'fr' ? fr : en);
 

@@ -8,16 +8,30 @@ datasource db {
 }
 
 // Short-lived action receipts make chat retries and Undo safe across server restarts.
-// Conversation messages are not stored here.
+// Action receipts are separate from persistent conversations and can contain academic data.
 model AssistantRequest {
   id String
   workspaceId String
+  conversationId String?
   status String @default("PROCESSING")
   plan Json?
   result Json?
   createdAt DateTime @default(now())
   @@id([workspaceId, id])
   @@index([workspaceId, createdAt])
+  @@index([workspaceId, conversationId])
+}
+
+model AssistantConversation {
+  id String
+  workspaceId String
+  title String
+  entries Json @default("[]")
+  context Json @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@id([workspaceId, id])
+  @@index([workspaceId, updatedAt])
 }
 
 model GmailConnection {

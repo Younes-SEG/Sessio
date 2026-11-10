@@ -86,6 +86,78 @@
   gap: 8px;
   margin-top: 14px;
 }
+.assistant-history-control {
+  min-height: 28px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.assistant-panel .assistant-heading {
+  max-height: 50%;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.assistant-chat-title {
+  margin: 10px 0 0;
+  color: #bdc9e2;
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.assistant-history {
+  max-height: min(180px, 25dvh);
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #515b79;
+  border-radius: 8px;
+  padding: 4px;
+  font-size: 12px;
+}
+.assistant-history-row {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.assistant-history-row > button {
+  min-height: 40px;
+  padding: 8px;
+  border-radius: 4px;
+}
+.assistant-history-row > button:first-child {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.assistant-history-row > button:last-child {
+  color: #ffb1b6;
+  flex: 0 0 36px;
+}
+.assistant-history-row small {
+  display: block;
+  color: #b5bfd5;
+  margin-top: 2px;
+}
+.assistant-history-row button:hover,
+.assistant-history-row button[aria-current] {
+  background: #343c55;
+}
+.assistant-delete-confirm {
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 10px;
+  border: 1px solid #b27880;
+  border-radius: 6px;
+  background: #342532;
+}
+.assistant-delete-confirm button {
+  min-height: 36px;
+  margin: 8px 12px 0 0;
+  text-decoration: underline;
+}
+.assistant-delete-confirm button:first-of-type {
+  color: #ffb1b6;
+}
 .assistant-result-card {
   display: flex;
   align-items: flex-start;

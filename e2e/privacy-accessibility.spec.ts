@@ -69,7 +69,9 @@ test('workspace is local, policy responses contain no workspace, and erase requi
   expect(exported.headers()['content-disposition']).toContain('attachment');
   expect(exported.headers()['cache-control']).toContain('no-store');
   const copy = await exported.json();
-  expect(copy.workspace.courses).toEqual(workspace.courses);
+  expect(
+    copy.workspace.courses.filter((course: { deletedAt: string | null }) => !course.deletedAt),
+  ).toEqual(workspace.courses);
   for (const connection of copy.calendarConnections) expect(connection).not.toHaveProperty('url');
   const invalidErase = await request.post('/api/privacy/erase', { data: { confirmation: 'no' } });
   expect(invalidErase.status()).toBe(400);

@@ -15,7 +15,10 @@ import {
   type AssistantIntent,
   type AssistantReply,
   type AssistantWorkspace,
+  type ChatMessage,
+  type ChatEntry,
 } from '@/lib/assistant';
+import { recordAssistantReply } from './assistant-history';
 import { requireWorkspaceId } from './auth';
 import { db } from './db';
 import { transaction } from './mutations';
@@ -432,6 +435,7 @@ const requestSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('message'),
     id: z.string().uuid(),
+    conversationId: z.string().uuid().optional(),
     language: z.enum(['en', 'fr']),
     timeZone: z
       .string()
@@ -485,6 +489,7 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
           where: receiptKey(workspaceId, row.id),
           data: { status: 'CANCELLED', result: json(reply) },
         });
+        await recordAssistantReply(tx, workspaceId, row.conversationId, reply);
         return reply;
       }
       if (input.action === 'confirm' && row.status === 'READY') {
@@ -498,6 +503,7 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
           where: receiptKey(workspaceId, row.id),
           data: { status: 'APPLIED', plan: json(plan), result: json(reply) },
         });
+        await recordAssistantReply(tx, workspaceId, row.conversationId, reply);
         return reply;
       }
       if (input.action !== 'undo' || row.status !== 'APPLIED') throw changed();
@@ -528,29 +534,109 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
         where: receiptKey(workspaceId, row.id),
         data: { status: 'UNDONE', result: json(reply) },
       });
+      await recordAssistantReply(tx, workspaceId, row.conversationId, reply);
       return reply;
     });
   if (input.messages.at(-1)?.role !== 'user') throw new ApiError(400, 'Send a message to Command.');
+  let modelMessages = input.messages;
   const previous = await transaction(async (tx) => {
+    const chat = input.conversationId
+      ? await tx.assistantConversation.findUnique({
+          where: receiptKey(workspaceId, input.conversationId),
+        })
+      : null;
+    if (input.conversationId && !chat)
+      throw new ApiError(404, 'This chat no longer exists. Start a new chat.');
     const row = await tx.assistantRequest.findUnique({ where: receiptKey(workspaceId, input.id) });
     if (row) {
+      if (row.status === 'DELETED' || row.conversationId !== (input.conversationId || null))
+        throw new ApiError(409, 'This request is no longer available in this chat.');
       if (row.result) return row.result as AssistantReply;
-      throw new ApiError(409, 'This request is still being processed. Wait a moment and retry.');
+      if (row.status !== 'FAILED')
+        throw new ApiError(409, 'This request is still being processed. Wait a moment and retry.');
+      if (Date.now() - +row.createdAt < 60_000)
+        throw new ApiError(429, 'Wait a minute before retrying this failed chat request.');
     }
     const count = await tx.assistantRequest.count({
       where: { workspaceId, createdAt: { gte: new Date(Date.now() - 60_000) } },
     });
     if (count >= 12)
       throw new ApiError(429, 'Too many chat requests. Wait a minute before trying again.');
+    if (chat) {
+      // A crashed server must not leave a conversation locked forever. The model request times out after 30 seconds.
+      await tx.assistantRequest.updateMany({
+        where: {
+          workspaceId,
+          conversationId: chat.id,
+          status: 'PROCESSING',
+          createdAt: { lt: new Date(Date.now() - 120_000) },
+        },
+        data: { status: 'FAILED' },
+      });
+      if ((chat.entries as ChatEntry[]).length >= 400)
+        throw new ApiError(
+          400,
+          'This conversation is full. Start a new chat; this one stays in Recent chats.',
+        );
+      const pending = await tx.assistantRequest.count({
+        where: {
+          workspaceId,
+          conversationId: chat.id,
+          id: { not: input.id },
+          OR: [
+            { status: 'PROCESSING' },
+            { status: 'READY', createdAt: { gte: new Date(Date.now() - 86400_000) } },
+          ],
+        },
+      });
+      if (pending)
+        throw new ApiError(
+          409,
+          'This chat has a pending request. Reopen it to review the result before continuing.',
+        );
+      // Only the latest user message comes from the browser. Prior context belongs to this chat.
+      modelMessages = [...(chat.context as ChatMessage[]), input.messages.at(-1)!].slice(-11);
+    }
     await tx.assistantRequest.deleteMany({
-      where: { workspaceId, createdAt: { lt: new Date(Date.now() - 30 * 86_400_000) } },
+      where: {
+        workspaceId,
+        id: { not: input.id },
+        createdAt: { lt: new Date(Date.now() - 30 * 86_400_000) },
+      },
     });
-    await tx.assistantRequest.create({ data: { id: input.id, workspaceId } });
+    if (row)
+      await tx.assistantRequest.update({
+        where: receiptKey(workspaceId, input.id),
+        data: { status: 'PROCESSING', createdAt: new Date() },
+      });
+    else
+      await tx.assistantRequest.create({
+        data: { id: input.id, workspaceId, conversationId: input.conversationId || null },
+      });
+    if (chat) {
+      const entries = chat.entries as ChatEntry[];
+      const text = input.messages.at(-1)!.text;
+      if (!entries.some((entry) => entry.key === `user:${input.id}`)) {
+        entries.push({
+          key: `user:${input.id}`,
+          role: 'user',
+          text,
+          createdAt: new Date().toISOString(),
+        });
+        await tx.assistantConversation.update({
+          where: receiptKey(workspaceId, chat.id),
+          data: {
+            entries: json(entries),
+            ...(!chat.title ? { title: text.replace(/\s+/g, ' ').slice(0, 80) } : {}),
+          },
+        });
+      }
+    }
     return null;
   });
   if (previous) return previous;
   try {
-    const intent = await interpretAssistant(input.messages, input.timeZone, input.language);
+    const intent = await interpretAssistant(modelMessages, input.timeZone, input.language);
     return await transaction(async (tx) => {
       // A workspace erase during the AI request removes this receipt, cancelling the action.
       const row = await tx.assistantRequest.findUnique({
@@ -578,12 +664,21 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
           result: json(reply),
         },
       });
+      await recordAssistantReply(
+        tx,
+        workspaceId,
+        row.conversationId,
+        reply,
+        input.messages.at(-1)!.text,
+        modelMessages,
+      );
       return reply;
     });
   } catch (error) {
-    // Only failed, unapplied requests can be retried. No full chat messages persist.
-    await db.assistantRequest.deleteMany({
+    // Keep a content-free failure receipt so provider failures cannot bypass the rate limit.
+    await db.assistantRequest.updateMany({
       where: { workspaceId, id: input.id, status: 'PROCESSING' },
+      data: { status: 'FAILED' },
     });
     throw error;
   }

@@ -1265,10 +1265,7 @@ kbd {
   *:before,
   *:after {
     animation: none !important;
-    transition:
-      color 100ms ease-out,
-      background-color 100ms ease-out,
-      border-color 100ms ease-out;
+    transition: none !important;
     scroll-behavior: auto !important;
   }
 }

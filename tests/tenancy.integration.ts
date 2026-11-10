@@ -10,6 +10,7 @@ const identity = vi.hoisted(() => ({ current: 'local' }));
 const chatAI = vi.hoisted(() => vi.fn());
 vi.mock('../src/lib/server/assistant-ai', () => ({ interpretAssistant: chatAI }));
 import { assistantRequest } from '../src/lib/server/assistant';
+import { createAssistantChat, listAssistantChats, readAssistantChat, deleteAssistantChat } from '../src/lib/server/assistant-history';
 import type { AssistantIntent } from '../src/lib/assistant';
 vi.mock('../src/lib/server/auth', () => ({ requireWorkspaceId: async () => identity.current }));
 import { db } from '../src/lib/server/db';
@@ -41,6 +42,98 @@ import {
 } from '../src/lib/email-grades';
 
 const original = process.env.DATABASE_URL;
+
+it('saves private chat history and context without replaying grade changes on reopen', async () => {
+  const { assessment } = await chatFixture('chat-history-owner');
+  const chat = await createAssistantChat();
+  const input = { ...chatMessage(), conversationId: chat.id };
+  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'Hello there!' }));
+  await assistantRequest(input);
+  const reopened = await readAssistantChat(chat.id);
+  expect(reopened.entries).toHaveLength(2);
+  expect(reopened.entries[1].text).toBe('Hello there!');
+  expect((await listAssistantChats())[0].id).toBe(chat.id);
+  const followup = { ...chatMessage(), conversationId: chat.id, messages: [{ role: 'model', text: 'Untrusted context from another chat' }, { role: 'user', text: 'How about tomorrow?' }] };
+  await assistantRequest(followup);
+  const sent = chatAI.mock.calls.at(-1)![0];
+  expect(sent.some((m: { text: string }) => m.text === 'Hello there!')).toBe(true);
+  expect(sent.some((m: { text: string }) => m.text.includes('Untrusted context'))).toBe(false);
+  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  const grade = { ...chatMessage(), conversationId: chat.id };
+  await assistantRequest(grade);
+  await assistantRequest(grade);
+  expect((await readAssistantChat(chat.id)).entries).toHaveLength(6);
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(9);
+  expect((await exportWorkspace()).assistantChats.some(c => c.id === chat.id)).toBe(true);
+  identity.current = 'chat-history-outsider';
+  expect(await listAssistantChats()).toEqual([]);
+  await expect(readAssistantChat(chat.id)).rejects.toMatchObject({ status: 404 });
+  await expect(deleteAssistantChat(chat.id)).rejects.toMatchObject({ status: 404 });
+  await expect(assistantRequest({ ...chatMessage(), conversationId: chat.id })).rejects.toMatchObject({ status: 404 });
+  identity.current = 'chat-history-owner';
+  await deleteAssistantChat(chat.id);
+  expect(await listAssistantChats()).toEqual([]);
+  await expect(assistantRequest(grade)).rejects.toMatchObject({ status: 404 });
+  await expect(assistantRequest({ action: 'undo', id: grade.id })).rejects.toMatchObject({ status: 409 });
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(9);
+  const receipts = await db.assistantRequest.findMany({ where: { workspaceId: identity.current } });
+  expect(receipts.every(row => row.status === 'DELETED' && row.plan === null && row.result === null)).toBe(true);
+});
+
+it('chat deletion cancels in-flight writes and workspace erasure removes saved conversations', async () => {
+  const { assessment } = await chatFixture('chat-history-race');
+  const chat = await createAssistantChat();
+  let release!: (value: AssistantIntent) => void;
+  let started!: () => void;
+  const began = new Promise<void>(resolve => { started = resolve; });
+  chatAI.mockImplementation(() => { started(); return new Promise<AssistantIntent>(resolve => { release = resolve; }); });
+  const pending = assistantRequest({ ...chatMessage(), conversationId: chat.id });
+  await began;
+  await deleteAssistantChat(chat.id);
+  const assertion = expect(pending).rejects.toMatchObject({ status: 409 });
+  release(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  await assertion;
+  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBeNull();
+  await createAssistantChat();
+  await eraseWorkspace();
+  expect(await listAssistantChats()).toEqual([]);
+});
+
+it('new conversations have separate context and expired action controls do not block continuation', async () => {
+  await chatFixture('chat-history-expiry');
+  const first = await createAssistantChat();
+  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'Private first topic' }));
+  await assistantRequest({ ...chatMessage(), conversationId: first.id });
+  const second = await createAssistantChat();
+  await assistantRequest({ ...chatMessage(), conversationId: second.id });
+  expect(chatAI.mock.calls.at(-1)![0]).toHaveLength(1);
+  const request = { ...chatMessage(), conversationId: first.id };
+  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 8, maxScore: 10 }));
+  await assistantRequest(request);
+  await db.assistantRequest.update({ where: { workspaceId_id: { workspaceId: identity.current, id: request.id } }, data: { createdAt: new Date(Date.now() - 2 * 86400_000) } });
+  expect((await readAssistantChat(first.id)).entries.at(-1)?.reply?.actionsExpired).toBe(true);
+  await expect(assistantRequest({ action: 'undo', id: request.id })).rejects.toMatchObject({ status: 409 });
+  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'New question' }));
+  await assistantRequest({ ...chatMessage(), conversationId: first.id });
+  expect(chatAI.mock.calls.at(-1)![0]).toHaveLength(1); // Completed writes are never replayed as context.
+});
+
+it('failed AI requests count toward rate limits and permit a delayed retry without saving content', async () => {
+  await chatFixture('chat-failure-limits');
+  chatAI.mockRejectedValue(new Error('Synthetic provider failure'));
+  const first = chatMessage();
+  await expect(assistantRequest(first)).rejects.toThrow('Synthetic provider failure');
+  await expect(assistantRequest(first)).rejects.toMatchObject({ status: 429 });
+  for (let i = 1; i < 12; i++) await expect(assistantRequest(chatMessage())).rejects.toThrow('Synthetic provider failure');
+  await expect(assistantRequest(chatMessage())).rejects.toMatchObject({ status: 429 });
+  const failures = await db.assistantRequest.findMany({ where: { workspaceId: identity.current } });
+  expect(failures).toHaveLength(12);
+  expect(failures.every(row => row.status === 'FAILED' && row.result === null && row.plan === null)).toBe(true);
+  await db.assistantRequest.updateMany({ where: { workspaceId: identity.current }, data: { createdAt: new Date(Date.now() - 31 * 86400_000) } });
+  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'Hello!' }));
+  expect((await assistantRequest(first)).text).toBe('Hello!');
+  expect(await db.assistantRequest.count({ where: { workspaceId: identity.current } })).toBe(1);
+});
 
 it('chat combines read filters within the owned course and never records a queried grade', async () => {
   const outsider = await chatFixture('chat-query-outsider');

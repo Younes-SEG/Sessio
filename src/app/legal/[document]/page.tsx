@@ -44,6 +44,16 @@ export default async function LegalPage({ params }: { params: Promise<{ document
         {document === 'credits' && (
           <div className="mt-6 space-y-3">
             <p>
+              <a className="underline" href="/fonts/Lora-OFL.txt" download>
+                Lora font licence
+              </a>
+            </p>
+            <p>
+              <a className="underline" href="/fonts/Plus-Jakarta-Sans-OFL.txt" download>
+                Plus Jakarta Sans font licence
+              </a>
+            </p>
+            <p>
               <a className="underline" href="/third-party-notices.txt" download>
                 Download third-party licence notices
               </a>
@@ -58,7 +68,7 @@ export default async function LegalPage({ params }: { params: Promise<{ document
         {['privacy', 'about'].includes(document) && (
           <p className="mt-6">
             <Link href="/settings#your-data" className="underline">
-              Manage your local data
+              Manage your workspace data
             </Link>
           </p>
         )}

@@ -8,9 +8,35 @@ export async function mutationBody(request: Request): Promise<Record<string, unk
   assertSameOrigin(request);
   if (!request.headers.get('content-type')?.includes('application/json'))
     throw new ApiError(415, 'Send application/json.');
-  const body = await request.text();
-  if (body.length > 100_000)
-    throw new ApiError(413, 'This entry is too large. Keep it under 100 KB.');
+  const limit = 100_000;
+  const tooLarge = () => new ApiError(413, 'This entry is too large. Keep it under 100 KB.');
+  if (Number(request.headers.get('content-length')) > limit) throw tooLarge();
+  const reader = request.body?.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  if (reader) {
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > limit) {
+          await reader.cancel().catch(() => {});
+          throw tooLarge();
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const body = new TextDecoder().decode(bytes);
   let data: unknown;
   try {
     data = JSON.parse(body);

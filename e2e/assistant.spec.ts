@@ -6,6 +6,25 @@ test('chat keeps recent social and query context without sending returned calend
 }) => {
   const calls: { messages: { role: string; text: string }[] }[] = [];
   await page.route('**/api/**', async (route) => {
+    if (new URL(route.request().url()).pathname === '/api/assistant/chats') {
+      return route.fulfill({
+        json:
+          route.request().method() === 'GET'
+            ? new URL(route.request().url()).searchParams.has('id')
+              ? {
+                  id: '11111111-1111-4111-8111-111111111111',
+                  title: '',
+                  updatedAt: new Date().toISOString(),
+                  entries: [],
+                }
+              : { chats: [] }
+            : {
+                id: '11111111-1111-4111-8111-111111111111',
+                title: '',
+                updatedAt: new Date().toISOString(),
+              },
+      });
+    }
     const req = route.request();
     if (new URL(req.url()).pathname === '/api/assistant') {
       if (req.method() === 'GET') return route.fulfill({ json: { configured: true } });
@@ -68,6 +87,25 @@ test('chat clarifies, saves, confirms and undoes without replaying earlier actio
   const calls: Record<string, unknown>[] = [];
   let refreshed = 0;
   await page.route('**/api/**', async (route) => {
+    if (new URL(route.request().url()).pathname === '/api/assistant/chats') {
+      return route.fulfill({
+        json:
+          route.request().method() === 'GET'
+            ? new URL(route.request().url()).searchParams.has('id')
+              ? {
+                  id: '11111111-1111-4111-8111-111111111111',
+                  title: '',
+                  updatedAt: new Date().toISOString(),
+                  entries: [],
+                }
+              : { chats: [] }
+            : {
+                id: '11111111-1111-4111-8111-111111111111',
+                title: '',
+                updatedAt: new Date().toISOString(),
+              },
+      });
+    }
     const url = new URL(route.request().url());
     if (url.pathname === '/api/workspace') {
       refreshed++;
@@ -131,8 +169,13 @@ test('chat clarifies, saves, confirms and undoes without replaying earlier actio
   const panel = page.getByRole('dialog', { name: 'Ask Command' });
   await expect(panel).toBeVisible();
   await expect(
-    panel.getByText('Messages and recent conversation context', { exact: false }),
+    panel.getByText('Chats are saved privately in your workspace', { exact: false }),
   ).toBeVisible();
+  await expect(panel.getByText('until you delete them', { exact: false })).toBeVisible();
+  await expect(panel.getByRole('link', { name: 'Privacy details' })).toHaveAttribute(
+    'href',
+    '/legal/privacy',
+  );
   await panel
     .getByRole('button', { name: 'I got 9/10 on Assignment 1 in SEG3102.', exact: true })
     .click();
