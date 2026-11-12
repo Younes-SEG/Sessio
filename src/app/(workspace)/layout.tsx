@@ -1,6 +1,7 @@
 import { getWorkspace } from '@/lib/server/workspace';
 import { WorkspaceProvider } from '@/components/workspace-provider';
 import { AppShell } from '@/components/app-shell';
+import { LocalTimeContent } from '@/components/local-time-content';
 import { redirect } from 'next/navigation';
 import { ApiError } from '@/lib/server/errors';
 import { isHosted } from '@/lib/server/hosting';
@@ -23,7 +24,9 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
     <>
       {data ? (
         <WorkspaceProvider initialData={data} initialNow={initialNow}>
-          <AppShell>{children}</AppShell>
+          <AppShell>
+            <LocalTimeContent>{children}</LocalTimeContent>
+          </AppShell>
         </WorkspaceProvider>
       ) : (
         <main className="min-h-screen grid place-items-center p-4">
