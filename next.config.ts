@@ -1,5 +1,6 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
+  distDir: process.env.COMMAND_CI_BUILD === 'true' ? '.next-ci' : '.next',
   logging: { incomingRequests: { ignore: [/\/api\/email\/callback/] } },
   poweredByHeader: false,
   async headers() {
