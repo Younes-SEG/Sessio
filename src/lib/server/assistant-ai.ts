@@ -1,3 +1,5 @@
+import { reserveAi, finishAi, assertAiRunning } from './ai-usage';
+import { providerMeter } from './provider-meter';
 import { readFileSync } from 'node:fs';
 import { parse } from 'dotenv';
 import { z } from 'zod';
@@ -7,7 +9,7 @@ import { isHosted } from './hosting';
 
 function config() {
   let local: Record<string, string> = {};
-  if (!isHosted()) {
+  if (!isHosted() && process.env.CI !== 'true') {
     try {
       local = parse(readFileSync('.env.syllabus.local'));
     } catch {
@@ -35,6 +37,7 @@ export async function interpretAssistant(
   zone: string,
   language: string,
   now = new Date(),
+  workspaceId = 'local',
 ) {
   const { key, model, fallback } = config();
   if (!key)
@@ -46,7 +49,8 @@ export async function interpretAssistant(
   delete schema.$schema;
   const localNow = localStamp(now, zone);
   const localDay = new Date(`${localNow.slice(0, 10)}T12:00:00Z`);
-  const dayAt = (offset: number) => new Date(+localDay + offset * 86_400_000).toISOString().slice(0, 10);
+  const dayAt = (offset: number) =>
+    new Date(+localDay + offset * 86_400_000).toISOString().slice(0, 10);
   const mondayOffset = -((localDay.getUTCDay() + 6) % 7);
   const instructions = `You interpret requests for Command, a student planner. Return only the specified JSON; never claim anything was saved or read.
 Current local time: ${localNow}. Time zone: ${zone}. Language for questions: ${language === 'fr' ? 'French' : 'English'}.
@@ -63,9 +67,12 @@ query.completion: open for unfinished tasks/assessments or upcoming plans, compl
 fromDate/toDate are inclusive LOCAL YYYY-MM-DD, independent of timestamps. This week is Monday-Sunday, next week next Monday-Sunday. For a next-item question with no explicit date restriction, leave both dates null so the next quiz/class/session can be weeks away. For overdue, completed work, task lists or recorded grades with no dates, leave dates null. For other upcoming/general agenda questions without dates, use today through next 29 days (and state the actual range via the server). Honor explicit ranges up to one year; clarify longer ranges rather than silently shortening them. Recorded grades have assessment due dates, not grade-release dates: if asked which grades arrived in a period, clarify that limitation. Overall weighted course grades/targets are not part of this query tool: explain and point to the Grades page rather than inventing an aggregate. Set agendaScope, assessmentType, score, maxScore, startLocal, endLocal, question, message to null for query. For other kinds set query null.
 Use previous conversation to understand social replies and read-only follow-ups: 'what about next week?' preserves the prior categories, course, completion and exclusions, changing only dates/timing; 'and my classes?' changes categories to classes and drops assessment-only filters; 'include labs too' removes the lab exclusion and includes LAB if an assessmentTypes whitelist was used. An unrelated request resets old filters; never blindly carry them. Completed read-query context describes only the question, not facts about the workspace. Never replay completed actions or reinterpret a thank-you/social reply as permission to write. A pending action clarification may continue only when the latest reply supplies the requested missing details; 'hey', 'thanks', 'how are you?' or 'never mind' never authorize it. If action details are missing, return clarify with one friendly, specific question. Set unused fields to null. No tool calls, URLs, SQL, or code.`;
   const signal = AbortSignal.timeout(30_000);
+  const reservation = await reserveAi(workspaceId, 'chat', [...new Set([model, fallback])], 2);
+  const meter = reservation ? providerMeter(reservation.models, 2) : null;
   try {
-    const send = (selectedModel: string) =>
-      fetch(
+    const send = async (selectedModel: string) => {
+      await assertAiRunning('chat');
+      return (meter?.fetch || fetch)(
         `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(selectedModel)}:generateContent`,
         {
           method: 'POST',
@@ -82,6 +89,7 @@ Use previous conversation to understand social replies and read-only follow-ups:
           }),
         },
       );
+    };
     let response = await send(model);
     if ([500, 502, 503, 504].includes(response.status)) {
       await response.body?.cancel();
@@ -122,8 +130,11 @@ Use previous conversation to understand social replies and read-only follow-ups:
         .filter((p) => !p.thought)
         .map((p) => p.text || '')
         .join('') || '';
-    return assistantIntentSchema.parse(JSON.parse(text));
+    const result = assistantIntentSchema.parse(JSON.parse(text));
+    await finishAi(reservation?.id, meter?.usage, true);
+    return result;
   } catch (error) {
+    await finishAi(reservation?.id, meter?.usage, false);
     if (error instanceof ApiError) throw error;
     throw new ApiError(
       503,

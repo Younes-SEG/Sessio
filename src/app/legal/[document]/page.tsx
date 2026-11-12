@@ -1,3 +1,4 @@
+import { publicOperator } from '@/lib/server/operator';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalDocuments, policyUpdated, type LegalDocument } from '@/lib/legal';
@@ -16,6 +17,7 @@ export default async function LegalPage({ params }: { params: Promise<{ document
   const { document } = await params;
   if (!Object.hasOwn(legalDocuments, document)) notFound();
   const content = legalDocuments[document as LegalDocument];
+  const operator = publicOperator();
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 sm:py-16">
       <a href="#policy-content" className="skip-link">
@@ -72,6 +74,31 @@ export default async function LegalPage({ params }: { params: Promise<{ document
             </Link>
           </p>
         )}
+        <section id="account-deletion" className="my-8 border-t pt-5 text-sm">
+          <h2>Account deletion and support / Suppression du compte et assistance</h2>
+          {operator.name && <p>{operator.name}</p>}
+          {operator.email ? (
+            <p>
+              <a className="underline" href={`mailto:${operator.email}`}>
+                {operator.email}
+              </a>
+            </p>
+          ) : (
+            <p>
+              A public support contact has not been designated yet. / Le contact public n&apos;est
+              pas encore défini.
+            </p>
+          )}
+          <p>
+            Workspace erasure does not delete your login account. Account deletion requires
+            verification and provider cleanup. Never send your password.
+          </p>
+          <p lang="fr">
+            Effacer l&apos;espace de travail ne supprime pas le compte de connexion. La suppression
+            du compte demande une vérification et un traitement chez les fournisseurs.
+            N&apos;envoyez jamais votre mot de passe.
+          </p>
+        </section>
       </main>
       <LegalFooter />
     </div>

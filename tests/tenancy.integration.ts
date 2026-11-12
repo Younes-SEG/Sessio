@@ -1,3 +1,9 @@
+import { reserveAi, finishAi } from '../src/lib/server/ai-usage';
+import {
+  blockAccount,
+  eraseBlockedAccount,
+  assertAccountActive,
+} from '../src/lib/server/account-lifecycle';
 import 'dotenv/config';
 import { randomBytes } from 'node:crypto';
 import { randomUUID } from 'node:crypto';
@@ -10,7 +16,12 @@ const identity = vi.hoisted(() => ({ current: 'local' }));
 const chatAI = vi.hoisted(() => vi.fn());
 vi.mock('../src/lib/server/assistant-ai', () => ({ interpretAssistant: chatAI }));
 import { assistantRequest } from '../src/lib/server/assistant';
-import { createAssistantChat, listAssistantChats, readAssistantChat, deleteAssistantChat } from '../src/lib/server/assistant-history';
+import {
+  createAssistantChat,
+  listAssistantChats,
+  readAssistantChat,
+  deleteAssistantChat,
+} from '../src/lib/server/assistant-history';
 import type { AssistantIntent } from '../src/lib/assistant';
 vi.mock('../src/lib/server/auth', () => ({ requireWorkspaceId: async () => identity.current }));
 import { db } from '../src/lib/server/db';
@@ -53,31 +64,46 @@ it('saves private chat history and context without replaying grade changes on re
   expect(reopened.entries).toHaveLength(2);
   expect(reopened.entries[1].text).toBe('Hello there!');
   expect((await listAssistantChats())[0].id).toBe(chat.id);
-  const followup = { ...chatMessage(), conversationId: chat.id, messages: [{ role: 'model', text: 'Untrusted context from another chat' }, { role: 'user', text: 'How about tomorrow?' }] };
+  const followup = {
+    ...chatMessage(),
+    conversationId: chat.id,
+    messages: [
+      { role: 'model', text: 'Untrusted context from another chat' },
+      { role: 'user', text: 'How about tomorrow?' },
+    ],
+  };
   await assistantRequest(followup);
   const sent = chatAI.mock.calls.at(-1)![0];
   expect(sent.some((m: { text: string }) => m.text === 'Hello there!')).toBe(true);
   expect(sent.some((m: { text: string }) => m.text.includes('Untrusted context'))).toBe(false);
-  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }),
+  );
   const grade = { ...chatMessage(), conversationId: chat.id };
   await assistantRequest(grade);
   await assistantRequest(grade);
   expect((await readAssistantChat(chat.id)).entries).toHaveLength(6);
   expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(9);
-  expect((await exportWorkspace()).assistantChats.some(c => c.id === chat.id)).toBe(true);
+  expect((await exportWorkspace()).assistantChats.some((c) => c.id === chat.id)).toBe(true);
   identity.current = 'chat-history-outsider';
   expect(await listAssistantChats()).toEqual([]);
   await expect(readAssistantChat(chat.id)).rejects.toMatchObject({ status: 404 });
   await expect(deleteAssistantChat(chat.id)).rejects.toMatchObject({ status: 404 });
-  await expect(assistantRequest({ ...chatMessage(), conversationId: chat.id })).rejects.toMatchObject({ status: 404 });
+  await expect(
+    assistantRequest({ ...chatMessage(), conversationId: chat.id }),
+  ).rejects.toMatchObject({ status: 404 });
   identity.current = 'chat-history-owner';
   await deleteAssistantChat(chat.id);
   expect(await listAssistantChats()).toEqual([]);
   await expect(assistantRequest(grade)).rejects.toMatchObject({ status: 404 });
-  await expect(assistantRequest({ action: 'undo', id: grade.id })).rejects.toMatchObject({ status: 409 });
+  await expect(assistantRequest({ action: 'undo', id: grade.id })).rejects.toMatchObject({
+    status: 409,
+  });
   expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(9);
   const receipts = await db.assistantRequest.findMany({ where: { workspaceId: identity.current } });
-  expect(receipts.every(row => row.status === 'DELETED' && row.plan === null && row.result === null)).toBe(true);
+  expect(
+    receipts.every((row) => row.status === 'DELETED' && row.plan === null && row.result === null),
+  ).toBe(true);
 });
 
 it('chat deletion cancels in-flight writes and workspace erasure removes saved conversations', async () => {
@@ -85,15 +111,26 @@ it('chat deletion cancels in-flight writes and workspace erasure removes saved c
   const chat = await createAssistantChat();
   let release!: (value: AssistantIntent) => void;
   let started!: () => void;
-  const began = new Promise<void>(resolve => { started = resolve; });
-  chatAI.mockImplementation(() => { started(); return new Promise<AssistantIntent>(resolve => { release = resolve; }); });
+  const began = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  chatAI.mockImplementation(() => {
+    started();
+    return new Promise<AssistantIntent>((resolve) => {
+      release = resolve;
+    });
+  });
   const pending = assistantRequest({ ...chatMessage(), conversationId: chat.id });
   await began;
   await deleteAssistantChat(chat.id);
   const assertion = expect(pending).rejects.toMatchObject({ status: 409 });
-  release(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  release(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }),
+  );
   await assertion;
-  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBeNull();
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score,
+  ).toBeNull();
   await createAssistantChat();
   await eraseWorkspace();
   expect(await listAssistantChats()).toEqual([]);
@@ -108,11 +145,18 @@ it('new conversations have separate context and expired action controls do not b
   await assistantRequest({ ...chatMessage(), conversationId: second.id });
   expect(chatAI.mock.calls.at(-1)![0]).toHaveLength(1);
   const request = { ...chatMessage(), conversationId: first.id };
-  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 8, maxScore: 10 }));
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 8, maxScore: 10 }),
+  );
   await assistantRequest(request);
-  await db.assistantRequest.update({ where: { workspaceId_id: { workspaceId: identity.current, id: request.id } }, data: { createdAt: new Date(Date.now() - 2 * 86400_000) } });
+  await db.assistantRequest.update({
+    where: { workspaceId_id: { workspaceId: identity.current, id: request.id } },
+    data: { createdAt: new Date(Date.now() - 2 * 86400_000) },
+  });
   expect((await readAssistantChat(first.id)).entries.at(-1)?.reply?.actionsExpired).toBe(true);
-  await expect(assistantRequest({ action: 'undo', id: request.id })).rejects.toMatchObject({ status: 409 });
+  await expect(assistantRequest({ action: 'undo', id: request.id })).rejects.toMatchObject({
+    status: 409,
+  });
   chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'New question' }));
   await assistantRequest({ ...chatMessage(), conversationId: first.id });
   expect(chatAI.mock.calls.at(-1)![0]).toHaveLength(1); // Completed writes are never replayed as context.
@@ -124,12 +168,18 @@ it('failed AI requests count toward rate limits and permit a delayed retry witho
   const first = chatMessage();
   await expect(assistantRequest(first)).rejects.toThrow('Synthetic provider failure');
   await expect(assistantRequest(first)).rejects.toMatchObject({ status: 429 });
-  for (let i = 1; i < 12; i++) await expect(assistantRequest(chatMessage())).rejects.toThrow('Synthetic provider failure');
+  for (let i = 1; i < 12; i++)
+    await expect(assistantRequest(chatMessage())).rejects.toThrow('Synthetic provider failure');
   await expect(assistantRequest(chatMessage())).rejects.toMatchObject({ status: 429 });
   const failures = await db.assistantRequest.findMany({ where: { workspaceId: identity.current } });
   expect(failures).toHaveLength(12);
-  expect(failures.every(row => row.status === 'FAILED' && row.result === null && row.plan === null)).toBe(true);
-  await db.assistantRequest.updateMany({ where: { workspaceId: identity.current }, data: { createdAt: new Date(Date.now() - 31 * 86400_000) } });
+  expect(
+    failures.every((row) => row.status === 'FAILED' && row.result === null && row.plan === null),
+  ).toBe(true);
+  await db.assistantRequest.updateMany({
+    where: { workspaceId: identity.current },
+    data: { createdAt: new Date(Date.now() - 31 * 86400_000) },
+  });
   chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'Hello!' }));
   expect((await assistantRequest(first)).text).toBe('Hello!');
   expect(await db.assistantRequest.count({ where: { workspaceId: identity.current } })).toBe(1);
@@ -137,52 +187,131 @@ it('failed AI requests count toward rate limits and permit a delayed retry witho
 
 it('chat combines read filters within the owned course and never records a queried grade', async () => {
   const outsider = await chatFixture('chat-query-outsider');
-  await db.assessment.update({ where: { id: outsider.assessment.id }, data: { score: 99, maxScore: 100, status: 'GRADED' } });
+  await db.assessment.update({
+    where: { id: outsider.assessment.id },
+    data: { score: 99, maxScore: 100, status: 'GRADED' },
+  });
   const { course, assessment } = await chatFixture('chat-query-owner');
-  await db.assessment.update({ where: { id: assessment.id }, data: { score: 0, maxScore: 10, status: 'GRADED' } });
-  await db.assessment.create({ data: { courseId: course.id, name: 'Midterm', type: 'MIDTERM', dueDate: new Date('2090-11-05T23:00:00Z') } });
-  await db.calendarEvent.create({ data: { workspaceId: identity.current, title: 'Study session', startAt: new Date('2090-11-05T23:00:00Z'), endAt: new Date('2090-11-06T00:00:00Z'), courseId: course.id } });
-  const query = { include: ['assessments', 'study_sessions'], exclude: [], assessmentTypes: ['MIDTERM'], excludeAssessmentTypes: [], completion: 'open', timing: 'any', selection: 'all', text: null } as NonNullable<AssistantIntent['query']>;
+  await db.assessment.update({
+    where: { id: assessment.id },
+    data: { score: 0, maxScore: 10, status: 'GRADED' },
+  });
+  await db.assessment.create({
+    data: {
+      courseId: course.id,
+      name: 'Midterm',
+      type: 'MIDTERM',
+      dueDate: new Date('2090-11-05T23:00:00Z'),
+    },
+  });
+  await db.calendarEvent.create({
+    data: {
+      workspaceId: identity.current,
+      title: 'Study session',
+      startAt: new Date('2090-11-05T23:00:00Z'),
+      endAt: new Date('2090-11-06T00:00:00Z'),
+      courseId: course.id,
+    },
+  });
+  const query = {
+    include: ['assessments', 'study_sessions'],
+    exclude: [],
+    assessmentTypes: ['MIDTERM'],
+    excludeAssessmentTypes: [],
+    completion: 'open',
+    timing: 'any',
+    selection: 'all',
+    text: null,
+  } as NonNullable<AssistantIntent['query']>;
   chatAI.mockResolvedValue(chatIntent({ kind: 'query', course: '3102', query }));
   const mixed = await assistantRequest(chatMessage());
   expect(mixed.status).toBe('answer');
   expect(mixed.items).toHaveLength(2);
-  expect(mixed.items?.every(item => item.title.includes('Midterm') || item.title.includes('Study session'))).toBe(true);
-  chatAI.mockResolvedValue(chatIntent({ kind: 'query', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10, query: { ...query, include: ['grades'], assessmentTypes: [], completion: 'all' } }));
+  expect(
+    mixed.items?.every(
+      (item) => item.title.includes('Midterm') || item.title.includes('Study session'),
+    ),
+  ).toBe(true);
+  chatAI.mockResolvedValue(
+    chatIntent({
+      kind: 'query',
+      course: 'SEG3102',
+      assessment: 'A1',
+      score: 9,
+      maxScore: 10,
+      query: { ...query, include: ['grades'], assessmentTypes: [], completion: 'all' },
+    }),
+  );
   const grade = await assistantRequest(chatMessage());
   expect(grade.status).toBe('answer');
   expect(grade.items).toHaveLength(1);
   expect(grade.items?.[0].detail).toContain('0/10');
   expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(0);
-  expect((await db.assessment.findUniqueOrThrow({ where: { id: outsider.assessment.id } })).score).toBe(99);
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: outsider.assessment.id } })).score,
+  ).toBe(99);
 });
 
 it('chat filters study sessions and treats casual conversation as read-only even if other fields are present', async () => {
   const { course, assessment } = await chatFixture('chat-social');
-  const event = { workspaceId: identity.current, title: 'Study session', startAt: new Date('2090-11-05T23:00:00Z'), endAt: new Date('2090-11-06T00:00:00Z'), courseId: course.id };
+  const event = {
+    workspaceId: identity.current,
+    title: 'Study session',
+    startAt: new Date('2090-11-05T23:00:00Z'),
+    endAt: new Date('2090-11-06T00:00:00Z'),
+    courseId: course.id,
+  };
   await db.calendarEvent.create({ data: event });
   await db.calendarEvent.create({ data: { ...event, title: 'Career fair' } });
-  await db.assessment.update({ where: { id: assessment.id }, data: { dueDate: new Date('2090-11-06T04:59:00Z') } });
-  chatAI.mockResolvedValue(chatIntent({ kind: 'agenda', agendaScope: 'study_sessions', fromDate: '2090-11-01', toDate: '2090-11-30' }));
+  await db.assessment.update({
+    where: { id: assessment.id },
+    data: { dueDate: new Date('2090-11-06T04:59:00Z') },
+  });
+  chatAI.mockResolvedValue(
+    chatIntent({
+      kind: 'agenda',
+      agendaScope: 'study_sessions',
+      fromDate: '2090-11-01',
+      toDate: '2090-11-30',
+    }),
+  );
   const result = await assistantRequest(chatMessage());
   expect(result.items).toHaveLength(1);
   expect(result.items?.[0].title).toContain('Study session');
   expect(result.text).toContain('1 study session');
   expect(result.context).toContain('study_sessions');
   expect(result.context).not.toContain('Career fair');
-  chatAI.mockResolvedValue(chatIntent({ kind: 'chat', message: 'I’m good, thanks for asking! How about you?', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  chatAI.mockResolvedValue(
+    chatIntent({
+      kind: 'chat',
+      message: 'I’m good, thanks for asking! How about you?',
+      course: 'SEG3102',
+      assessment: 'A1',
+      score: 9,
+      maxScore: 10,
+    }),
+  );
   const greeting = await assistantRequest(chatMessage());
   expect(greeting.status).toBe('answer');
   expect(greeting.text).toContain('How about you?');
   expect(greeting.context).toBe(greeting.text);
   expect(greeting.items).toBeUndefined();
-  expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBeNull();
+  expect(
+    (await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score,
+  ).toBeNull();
   expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(2);
 });
 
 it('chat answers next-assessment questions without saving or returning unrelated agenda entries', async () => {
   const { course } = await chatFixture('chat-next-quiz');
-  await db.assessment.create({ data: { courseId: course.id, name: 'Quiz 4', type: 'QUIZ', dueDate: new Date('2090-11-20T22:30:00Z') } });
+  await db.assessment.create({
+    data: {
+      courseId: course.id,
+      name: 'Quiz 4',
+      type: 'QUIZ',
+      dueDate: new Date('2090-11-20T22:30:00Z'),
+    },
+  });
   chatAI.mockResolvedValue(chatIntent({ kind: 'next_assessment', assessmentType: 'QUIZ' }));
   const reply = await assistantRequest(chatMessage());
   expect(reply.status).toBe('answer');
@@ -192,59 +321,128 @@ it('chat answers next-assessment questions without saving or returning unrelated
   expect(reply.text).toContain('next quiz');
   expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(0);
   expect(await db.assessment.count({ where: { courseId: course.id, status: 'GRADED' } })).toBe(0);
-  chatAI.mockResolvedValue(chatIntent({ kind: 'agenda', assessmentType: 'LAB', fromDate: '2090-11-01', toDate: '2090-11-30' }));
+  chatAI.mockResolvedValue(
+    chatIntent({
+      kind: 'agenda',
+      assessmentType: 'LAB',
+      fromDate: '2090-11-01',
+      toDate: '2090-11-30',
+    }),
+  );
   expect((await assistantRequest(chatMessage())).items).toEqual([]);
 });
 
-const chatIntent = (values: Partial<AssistantIntent>): AssistantIntent => ({ kind: 'clarify', course: null, assessment: null, score: null, maxScore: null, startLocal: null, endLocal: null, fromDate: null, toDate: null, question: null, ...values });
-const chatMessage = () => ({ action: 'message', id: randomUUID(), language: 'en', timeZone: 'America/Toronto', messages: [{ role: 'user', text: 'Synthetic test request' }] });
+const chatIntent = (values: Partial<AssistantIntent>): AssistantIntent => ({
+  kind: 'clarify',
+  course: null,
+  assessment: null,
+  score: null,
+  maxScore: null,
+  startLocal: null,
+  endLocal: null,
+  fromDate: null,
+  toDate: null,
+  question: null,
+  ...values,
+});
+const chatMessage = () => ({
+  action: 'message',
+  id: randomUUID(),
+  language: 'en',
+  timeZone: 'America/Toronto',
+  messages: [{ role: 'user', text: 'Synthetic test request' }],
+});
 async function chatFixture(owner: string) {
   identity.current = owner;
-  const term = await db.semester.create({ data: { workspaceId: owner, name: 'Test term', startDate: new Date('2090-01-01'), endDate: new Date('2090-12-31'), isActive: true } });
-  const course = await db.course.create({ data: { semesterId: term.id, code: 'SEG3102', name: 'Design' } });
-  const assessment = await db.assessment.create({ data: { courseId: course.id, name: 'Assignment 1', type: 'ASSIGNMENT', weight: 10 } });
+  const term = await db.semester.create({
+    data: {
+      workspaceId: owner,
+      name: 'Test term',
+      startDate: new Date('2090-01-01'),
+      endDate: new Date('2090-12-31'),
+      isActive: true,
+    },
+  });
+  const course = await db.course.create({
+    data: { semesterId: term.id, code: 'SEG3102', name: 'Design' },
+  });
+  const assessment = await db.assessment.create({
+    data: { courseId: course.id, name: 'Assignment 1', type: 'ASSIGNMENT', weight: 10 },
+  });
   return { course, assessment };
 }
 it('chat saves an exact grade once, isolates ownership, and supports conditional Undo', async () => {
   const { assessment } = await chatFixture('chat-grade');
-  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }),
+  );
   const input = chatMessage();
   expect((await assistantRequest(input)).status).toBe('saved');
   expect((await assistantRequest(input)).status).toBe('saved');
-  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({ score: 9, maxScore: 10, weight: 10, status: 'GRADED' });
+  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({
+    score: 9,
+    maxScore: 10,
+    weight: 10,
+    status: 'GRADED',
+  });
   identity.current = 'chat-outsider';
-  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({ status: 404 });
+  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({
+    status: 404,
+  });
   identity.current = 'chat-grade';
   expect((await assistantRequest({ action: 'undo', id: input.id })).status).toBe('undone');
   expect((await assistantRequest({ action: 'undo', id: input.id })).status).toBe('undone');
-  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({ score: null, maxScore: 100, weight: 10, status: 'NOT_STARTED' });
+  expect(await db.assessment.findUnique({ where: { id: assessment.id } })).toMatchObject({
+    score: null,
+    maxScore: 100,
+    weight: 10,
+    status: 'NOT_STARTED',
+  });
   const second = chatMessage();
   await assistantRequest(second);
   await db.assessment.update({ where: { id: assessment.id }, data: { score: 8 } });
-  await expect(assistantRequest({ action: 'undo', id: second.id })).rejects.toMatchObject({ status: 409 });
+  await expect(assistantRequest({ action: 'undo', id: second.id })).rejects.toMatchObject({
+    status: 409,
+  });
   expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(8);
 });
 it('chat confirms overwrites, rejects stale confirmations, and never invents an assessment', async () => {
   const { assessment } = await chatFixture('chat-confirm');
-  await db.assessment.update({ where: { id: assessment.id }, data: { score: 7, maxScore: 10, status: 'GRADED' } });
-  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }));
+  await db.assessment.update({
+    where: { id: assessment.id },
+    data: { score: 7, maxScore: 10, status: 'GRADED' },
+  });
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A1', score: 9, maxScore: 10 }),
+  );
   const pending = chatMessage();
   expect((await assistantRequest(pending)).status).toBe('confirm');
   expect((await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).score).toBe(7);
   await db.assessment.update({ where: { id: assessment.id }, data: { score: 6 } });
-  await expect(assistantRequest({ action: 'confirm', id: pending.id })).rejects.toMatchObject({ status: 409 });
+  await expect(assistantRequest({ action: 'confirm', id: pending.id })).rejects.toMatchObject({
+    status: 409,
+  });
   await assistantRequest({ action: 'cancel', id: pending.id });
   const fresh = chatMessage();
   await assistantRequest(fresh);
   expect((await assistantRequest({ action: 'confirm', id: fresh.id })).status).toBe('saved');
   expect((await assistantRequest({ action: 'confirm', id: fresh.id })).status).toBe('saved');
-  chatAI.mockResolvedValue(chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A99', score: 1, maxScore: 10 }));
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'grade', course: 'SEG3102', assessment: 'A99', score: 1, maxScore: 10 }),
+  );
   expect((await assistantRequest(chatMessage())).status).toBe('clarify');
   expect(await db.assessment.count({ where: { courseId: assessment.courseId } })).toBe(1);
 });
 it('chat schedules in the device zone, asks about conflicts, and cannot Undo a subsequently edited event', async () => {
   const { course } = await chatFixture('chat-calendar');
-  chatAI.mockResolvedValue(chatIntent({ kind: 'schedule', course: 'SEG3102', startLocal: '2090-11-05T18:00', endLocal: '2090-11-05T19:00' }));
+  chatAI.mockResolvedValue(
+    chatIntent({
+      kind: 'schedule',
+      course: 'SEG3102',
+      startLocal: '2090-11-05T18:00',
+      endLocal: '2090-11-05T19:00',
+    }),
+  );
   const input = chatMessage();
   expect((await assistantRequest(input)).status).toBe('saved');
   await assistantRequest(input);
@@ -253,7 +451,9 @@ it('chat schedules in the device zone, asks about conflicts, and cannot Undo a s
   expect(events[0].startAt.toISOString()).toBe('2090-11-05T23:00:00.000Z');
   expect(events[0].courseId).toBe(course.id);
   expect((await assistantRequest(chatMessage())).status).toBe('answer');
-  chatAI.mockResolvedValue(chatIntent({ kind: 'schedule', startLocal: '2090-11-05T18:30', endLocal: '2090-11-05T19:30' }));
+  chatAI.mockResolvedValue(
+    chatIntent({ kind: 'schedule', startLocal: '2090-11-05T18:30', endLocal: '2090-11-05T19:30' }),
+  );
   const overlapping = chatMessage();
   expect((await assistantRequest(overlapping)).status).toBe('confirm');
   expect(await db.calendarEvent.count({ where: { workspaceId: identity.current } })).toBe(1);
@@ -262,7 +462,9 @@ it('chat schedules in the device zone, asks about conflicts, and cannot Undo a s
   events = await db.calendarEvent.findMany({ where: { workspaceId: identity.current } });
   expect(events).toHaveLength(1);
   await db.calendarEvent.update({ where: { id: events[0].id }, data: { title: 'Edited by user' } });
-  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({ status: 409 });
+  await expect(assistantRequest({ action: 'undo', id: input.id })).rejects.toMatchObject({
+    status: 409,
+  });
   await eraseWorkspace();
   expect(await db.assistantRequest.count({ where: { workspaceId: identity.current } })).toBe(0);
 });
@@ -1123,7 +1325,9 @@ beforeAll(async () => {
     throw new Error('Run tenancy checks against local PostgreSQL');
   admin = new Client({ connectionString: original });
   await admin.connect();
-  await admin.query(`CREATE DATABASE "${name}" TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`);
+  await admin.query(
+    `CREATE DATABASE "${name}" TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE 'C' LC_CTYPE 'C'`,
+  );
   created = true;
   url.pathname = `/${name}`;
   process.env.DATABASE_URL = url.toString();
@@ -2240,4 +2444,180 @@ it('remembers onboarding completion only for the signed-in workspace', async () 
   identity.current = 'onboarding-other';
   expect((await getWorkspace()).settings.onboardingCompleted).toBe(false);
   identity.current = 'local';
+});
+
+it('atomically bounds AI reservations and keeps them across workspace erasure', async () => {
+  identity.current = 'user:quota-owner';
+  vi.stubEnv('COMMAND_AI_ENFORCE_LOCAL', 'true');
+  vi.stubEnv('COMMAND_AI_USAGE_SECRET', 'test-usage-secret-more-than-32-characters');
+  vi.stubEnv(
+    'COMMAND_AI_MODELS_JSON',
+    JSON.stringify({
+      synthetic: {
+        provider: 'gemini',
+        inputCeilingTokens: 1000,
+        outputCeilingTokens: 1000,
+        inputMicrosPerMillion: 1000000,
+        outputMicrosPerMillion: 1000000,
+        pricingVersion: 'synthetic-test',
+      },
+    }),
+  );
+  vi.stubEnv('COMMAND_AI_DAILY_MICROS', '4000');
+  vi.stubEnv('COMMAND_AI_MONTHLY_MICROS', '4000');
+  vi.stubEnv('COMMAND_AI_CHAT_DAILY', '10');
+  vi.stubEnv('COMMAND_AI_CHAT_MONTHLY', '10');
+  vi.stubEnv('COMMAND_AI_CONCURRENCY', '10');
+  try {
+    await db.aiControl.createMany({
+      data: [
+        { id: 'all', enabled: true },
+        { id: 'chat', enabled: true },
+      ],
+    });
+    const results = await Promise.allSettled(
+      Array.from({ length: 4 }, () => reserveAi(identity.current, 'chat', ['synthetic'])),
+    );
+    const successes = results.flatMap((r) =>
+      r.status === 'fulfilled' && r.value ? [r.value] : [],
+    );
+    expect(successes).toHaveLength(2);
+    expect(await db.aiAttempt.count()).toBe(2);
+    await finishAi(successes[0].id, [{ private: 'not allowed' }], false);
+    expect(
+      JSON.stringify(
+        (await db.aiAttempt.findUniqueOrThrow({ where: { id: successes[0].id } })).usage,
+      ),
+    ).not.toContain('not allowed');
+    await eraseWorkspace();
+    await expect(reserveAi(identity.current, 'chat', ['synthetic'])).rejects.toMatchObject({
+      status: 429,
+    });
+    await expect(reserveAi('user:different-account', 'chat', ['synthetic'])).rejects.toMatchObject({
+      status: 429,
+    });
+    await db.aiControl.update({ where: { id: 'all' }, data: { enabled: false } });
+    await expect(reserveAi(identity.current, 'chat', ['synthetic'])).rejects.toMatchObject({
+      status: 503,
+    });
+  } finally {
+    vi.unstubAllEnvs();
+  }
+});
+
+it('blocks stale writes at the database and erases only the selected account', async () => {
+  const other = await chatFixture('user:deletion-other');
+  const owner = await chatFixture('user:deletion-owner');
+  await blockAccount('user:deletion-owner');
+  await expect(assertAccountActive('user:deletion-owner')).rejects.toMatchObject({ status: 403 });
+  await expect(
+    db.assessment.update({ where: { id: owner.assessment.id }, data: { score: 3 } }),
+  ).rejects.toThrow();
+  await expect(
+    db.settings.create({ data: { id: 'stale-preference', workspaceId: 'user:deletion-owner' } }),
+  ).rejects.toThrow();
+  await eraseBlockedAccount('user:deletion-owner');
+  expect(await db.settings.count({ where: { workspaceId: 'user:deletion-owner' } })).toBe(0);
+  expect(await db.course.findUnique({ where: { id: owner.course.id } })).toBeNull();
+  expect(await db.course.findUnique({ where: { id: other.course.id } })).not.toBeNull();
+  await expect(
+    db.task.create({ data: { workspaceId: 'user:deletion-owner', title: 'stale recreation' } }),
+  ).rejects.toThrow();
+  await eraseBlockedAccount('user:deletion-owner'); // Retry is safe.
+});
+
+it('keeps account AI allowances separate, exportable and persistent after erasure', async () => {
+  vi.stubEnv('COMMAND_AI_ENFORCE_LOCAL', 'true');
+  vi.stubEnv('COMMAND_AI_USAGE_SECRET', 'test-usage-secret-more-than-32-characters');
+  vi.stubEnv(
+    'COMMAND_AI_MODELS_JSON',
+    JSON.stringify({
+      synthetic: {
+        provider: 'gemini',
+        inputCeilingTokens: 1000,
+        outputCeilingTokens: 1000,
+        inputMicrosPerMillion: 1000000,
+        outputMicrosPerMillion: 1000000,
+        pricingVersion: 'synthetic-test',
+      },
+    }),
+  );
+  vi.stubEnv('COMMAND_AI_DAILY_MICROS', '1000000');
+  vi.stubEnv('COMMAND_AI_MONTHLY_MICROS', '1000000');
+  vi.stubEnv('COMMAND_AI_CHAT_DAILY', '1');
+  vi.stubEnv('COMMAND_AI_CHAT_MONTHLY', '2');
+  vi.stubEnv('COMMAND_AI_CONCURRENCY', '10');
+  try {
+    await db.aiControl.upsert({
+      where: { id: 'all' },
+      create: { id: 'all', enabled: true },
+      update: { enabled: true },
+    });
+    await db.aiControl.upsert({
+      where: { id: 'chat' },
+      create: { id: 'chat', enabled: true },
+      update: { enabled: true },
+    });
+    const a = await reserveAi('user:allowance-a', 'chat', ['synthetic']);
+    const b = await reserveAi('user:allowance-b', 'chat', ['synthetic']);
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+    await finishAi(a!.id, [], true);
+    identity.current = 'user:allowance-a';
+    const exported = await exportWorkspace();
+    expect(exported.aiUsage.map((row) => row.id)).toEqual([a!.id]);
+    expect(JSON.stringify(exported.aiUsage)).not.toContain(a!.subject);
+    await eraseWorkspace();
+    await expect(reserveAi(identity.current, 'chat', ['synthetic'])).rejects.toMatchObject({
+      status: 429,
+    });
+    await expect(reserveAi('user:allowance-b', 'chat', ['unapproved'])).rejects.toMatchObject({
+      status: 503,
+    });
+    await blockAccount('user:allowance-blocked');
+    await expect(reserveAi('user:allowance-blocked', 'chat', ['synthetic'])).rejects.toMatchObject({
+      status: 403,
+    });
+  } finally {
+    identity.current = 'local';
+    vi.unstubAllEnvs();
+  }
+});
+
+it('keeps account records and revocation material when Google revocation fails', async () => {
+  const owner = await chatFixture('user:revocation-failure');
+  vi.stubEnv('GOOGLE_GMAIL_CLIENT_ID', 'synthetic-client');
+  vi.stubEnv('GOOGLE_GMAIL_CLIENT_SECRET', 'synthetic-secret');
+  vi.stubEnv('GOOGLE_GMAIL_REDIRECT_URI', 'http://127.0.0.1:3000/api/email/callback');
+  vi.stubEnv('GMAIL_TOKEN_ENCRYPTION_KEY', Buffer.alloc(32, 7).toString('base64'));
+  const provider = vi.fn().mockRejectedValue(new Error('Synthetic network failure'));
+  vi.stubGlobal('fetch', provider);
+  try {
+    const connection = await db.gmailConnection.create({
+      data: {
+        workspaceId: 'user:revocation-failure',
+        email: 'synthetic@example.test',
+        query: DEFAULT_GMAIL_QUERY,
+        refreshToken: sealGmail('synthetic-refresh-token', 'user:revocation-failure'),
+      },
+    });
+    await blockAccount('user:revocation-failure');
+    await expect(eraseBlockedAccount('user:revocation-failure')).rejects.toThrow(
+      'revocation could not be confirmed',
+    );
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(await db.gmailConnection.findUnique({ where: { id: connection.id } })).not.toBeNull();
+    expect(await db.course.findUnique({ where: { id: owner.course.id } })).not.toBeNull();
+    expect(
+      (
+        await db.accountLifecycle.findUniqueOrThrow({
+          where: { workspaceId: 'user:revocation-failure' },
+        })
+      ).erasedAt,
+    ).toBeNull();
+  } finally {
+    identity.current = 'local';
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  }
 });

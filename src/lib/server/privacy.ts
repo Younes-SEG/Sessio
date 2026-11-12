@@ -1,3 +1,5 @@
+import { usageSubject } from './ai-usage';
+import { eraseWorkspaceRecords } from './privacy-records';
 import { db } from './db';
 import { getWorkspace } from './workspace';
 import { listSubscriptions } from './calendar-subscriptions';
@@ -5,7 +7,26 @@ import { requireWorkspaceId } from './auth';
 import { exportEmailData } from './email-updates';
 
 export async function exportWorkspace() {
+  const workspaceId = await requireWorkspaceId();
+  const usage = process.env.COMMAND_AI_USAGE_SECRET
+    ? await db.aiAttempt.findMany({
+        where: { subject: usageSubject(workspaceId) },
+        select: {
+          id: true,
+          feature: true,
+          model: true,
+          reservedMicros: true,
+          usage: true,
+          status: true,
+          createdAt: true,
+        },
+      })
+    : [];
   return {
+    aiUsage: usage.map(({ reservedMicros, ...entry }) => ({
+      ...entry,
+      reservedMicros: reservedMicros.toString(),
+    })),
     formatVersion: 1,
     exportedAt: new Date().toISOString(),
     workspace: await getWorkspace(true),
@@ -23,26 +44,8 @@ export async function exportWorkspace() {
 
 export async function eraseWorkspace() {
   const workspaceId = await requireWorkspaceId();
-  await db.$transaction(
-    async (tx) => {
-      // Removing subscriptions first prevents in-flight syncs from applying new entries.
-      await tx.calendarSubscription.deleteMany({ where: { workspaceId } });
-      await tx.gmailOAuthState.deleteMany({ where: { workspaceId } });
-      await tx.gmailConnection.deleteMany({ where: { workspaceId } });
-      await tx.assistantRequest.deleteMany({ where: { workspaceId } });
-      await tx.assistantConversation.deleteMany({ where: { workspaceId } });
-      await tx.task.deleteMany({ where: { workspaceId } });
-      await tx.calendarEvent.deleteMany({ where: { workspaceId } });
-      await tx.course.deleteMany({ where: { semester: { workspaceId } } });
-      await tx.semester.deleteMany({ where: { workspaceId } });
-      await tx.settings.deleteMany({ where: { workspaceId } });
-      await tx.settings.create({
-        data: {
-          id: workspaceId === 'local' ? 'preferences' : `preferences:${workspaceId}`,
-          workspaceId,
-        },
-      });
-    },
-    { isolationLevel: 'Serializable', timeout: 30000 },
-  );
+  await db.$transaction((tx) => eraseWorkspaceRecords(tx, workspaceId, true), {
+    isolationLevel: 'Serializable',
+    timeout: 30000,
+  });
 }

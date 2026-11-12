@@ -22,8 +22,10 @@ services:
         value: gpt-4.1-mini
       - key: SYLLABUS_LIMIT_SALT
         generateValue: true
+      - key: COMMAND_READER_SIGNING_SECRET
+        sync: false
       - key: SYLLABUS_ENABLED
-        value: 'true'
+        value: 'false'
       - key: SYLLABUS_NETWORK_DAILY
         value: '20'
       - key: SYLLABUS_GLOBAL_DAILY

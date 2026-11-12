@@ -1,3 +1,4 @@
+import { signupAllowed } from '@/lib/server/release-policy';
 import { getAuth } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
 import { assertSameOrigin } from '@/lib/server/origin';
@@ -25,6 +26,8 @@ async function handle(request: Request, context: Context) {
         { status: 404 },
       );
     const { path } = await context.params;
+    if (path.join('/') === 'sign-up/email' && !signupAllowed())
+      throw new ApiError(403, 'New accounts are currently available by invitation only.');
     if (!publicEndpoints.has(path.join('/')))
       return Response.json({ error: 'Not found.' }, { status: 404 });
     if (request.method === 'POST') {

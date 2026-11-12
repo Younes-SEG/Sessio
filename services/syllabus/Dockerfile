@@ -13,7 +13,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY package.json ./
 COPY services/syllabus/*.ts ./services/syllabus/
 COPY src/lib/syllabus-files.ts src/lib/syllabus.ts src/lib/syllabus-result.ts src/lib/syllabus-schedule.ts src/lib/types.ts ./src/lib/
-COPY src/lib/server/syllabus-documents.ts src/lib/server/errors.ts src/lib/server/syllabus-ai.ts src/lib/server/syllabus-text.ts src/lib/server/syllabus-retry.ts ./src/lib/server/
+COPY src/lib/server/syllabus-documents.ts src/lib/server/errors.ts src/lib/server/syllabus-ai.ts src/lib/server/syllabus-text.ts src/lib/server/syllabus-retry.ts src/lib/server/reader-auth.ts src/lib/server/ai-policy.ts src/lib/server/provider-meter.ts ./src/lib/server/
 RUN mkdir -p /var/lib/command-syllabus && chown node:node /var/lib/command-syllabus
 USER node
 EXPOSE 8080

@@ -1,9 +1,10 @@
+vi.mock('../src/lib/server/account-lifecycle', () => ({ assertAccountActive: vi.fn() }));
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 const { session, createAuth } = vi.hoisted(() => {
   const session = vi.fn();
   return { session, createAuth: vi.fn(() => ({ getSession: session })) };
 });
-vi.mock('@neondatabase/auth/next/server', () => ({
+vi.mock('@neon/auth/next/server', () => ({
   createNeonAuth: createAuth,
 }));
 import { isAuthConfigured, requireWorkspaceId } from '../src/lib/server/auth';
@@ -11,6 +12,7 @@ import { isAuthConfigured, requireWorkspaceId } from '../src/lib/server/auth';
 beforeEach(() => {
   vi.stubEnv('VERCEL', '');
   vi.stubEnv('COMMAND_HOSTED', 'true');
+  vi.stubEnv('COMMAND_HOSTED_ACCESS', 'public');
   vi.stubEnv('NEON_AUTH_BASE_URL', 'https://auth.example.test');
   vi.stubEnv('COMMAND_AUTH_BASE_URL', '');
   vi.stubEnv('NEON_AUTH_COOKIE_SECRET', 'test-only-secret-with-at-least-32-characters');

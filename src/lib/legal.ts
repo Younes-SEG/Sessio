@@ -1,4 +1,4 @@
-export const policyUpdated = 'November 9, 2026';
+export const policyUpdated = 'November 10, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
 export const legalDocuments = {
@@ -7,6 +7,13 @@ export const legalDocuments = {
     introduction:
       'Command has a local edition and a hosted edition with private accounts. This policy describes where each edition processes your information, including optional syllabus reading.',
     sections: [
+      {
+        title: 'AI allowances and account deletion records',
+        paragraphs: [
+          'Hosted AI uses content-free usage records: a pseudonymous account reference, feature and model, timestamps, provider token counts when available, pricing configuration and conservative spending reservations. These records do not contain chat text, grades, uploaded documents or emails. They survive chat deletion and workspace erasure so those actions cannot reset spending limits. Current and previous calendar-month usage is eligible for retention; older records are removed by the operator cleanup command. Cleanup scheduling and backup expiry must be verified before public release. Your own usage records are included in workspace exports when accounting is configured.',
+          'A blocked or deleted hosted account retains a minimal account identifier and deletion state to stop existing requests and restored copies from recreating its data. Those markers contain no academic records. Their final retention period depends on the verified provider and backup recovery window; it has not yet been finalized for public release. Workspace erasure remains separate from complete login-account deletion. The operator must verify account ownership, provider deletion and grant revocation before confirming completion.',
+        ],
+      },
       {
         title: 'Ask Command',
         paragraphs: [

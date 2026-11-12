@@ -276,6 +276,42 @@ model ScheduleEntry {
   @@index([courseId, dayOfWeek])
 }
 
+// Operator controls and content-free AI accounting survive workspace erasure.
+model AiControl {
+  id String @id
+  enabled Boolean @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+model AiBucket {
+  id String @id
+  value BigInt @default(0)
+  expiresAt DateTime
+}
+
+model AiAttempt {
+  id String @id
+  subject String
+  feature String
+  model String
+  reservedMicros BigInt
+  usage Json?
+  status String @default("RESERVED")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  @@index([subject, createdAt])
+  @@index([status, expiresAt])
+}
+
+// Content-free deletion barrier. Never used as a substitute for provider session verification.
+model AccountLifecycle {
+  workspaceId String @id
+  status String @default("ACTIVE")
+  blockedAt DateTime?
+  erasedAt DateTime?
+  authDeletedAt DateTime?
+}
+
 model Settings {
   id            String  @id @default("preferences")
   workspaceId   String  @unique @default("local")

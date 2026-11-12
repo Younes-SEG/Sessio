@@ -21,7 +21,18 @@ export class UsageLimits {
       throw new Error('Invalid service limits configuration.');
     this.db = new DatabaseSync(path);
     this.db.exec(`PRAGMA journal_mode = WAL;
+      CREATE TABLE IF NOT EXISTS permits (id TEXT PRIMARY KEY, expires INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS usage (bucket TEXT PRIMARY KEY, count INTEGER NOT NULL, expires TEXT NOT NULL);`);
+  }
+  acceptPermit(id: string, expires: number) {
+    const now = Math.floor(Date.now() / 1000);
+    if (expires <= now) throw new ApiError(401, 'This syllabus request has expired.');
+    this.db.prepare('DELETE FROM permits WHERE expires <= ?').run(now);
+    const result = this.db
+      .prepare('INSERT OR IGNORE INTO permits(id, expires) VALUES (?, ?)')
+      .run(id, expires);
+    if (Number(result.changes) !== 1)
+      throw new ApiError(409, 'This syllabus request has already been used.');
   }
   reserve(network: string, now = new Date()) {
     const day = now.toISOString().slice(0, 10);
@@ -64,6 +75,7 @@ export class UsageLimits {
   }
   prune(now = new Date()) {
     this.db.prepare('DELETE FROM usage WHERE expires <= ?').run(now.toISOString().slice(0, 10));
+    this.db.prepare('DELETE FROM permits WHERE expires <= ?').run(Math.floor(now.getTime() / 1000));
   }
   close() {
     this.db.close();

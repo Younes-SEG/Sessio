@@ -27,6 +27,7 @@ export interface EmailReviewUpdate {
   proposedDeadline: { date: string; time: string | null } | null;
 }
 export interface EmailOverview {
+  releaseAvailable?: boolean;
   configured: boolean;
   connection: null | {
     email: string;
