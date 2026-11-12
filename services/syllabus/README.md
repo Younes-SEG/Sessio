@@ -38,7 +38,10 @@ Usage storage contains aggregate counters and an HMAC of the network prefix salt
 
 Node 24 is required for built-in SQLite. Copy `env.example` to the ignored repository-root `.env.syllabus.local`; fill owner secrets locally, not in chat. Run `npm run syllabus:service`. It binds to `127.0.0.1` by default. Use `COMMAND_SYLLABUS_SERVICE_URL=http://127.0.0.1:8080` only with `next dev`; production requires HTTPS. Do not disable TLS checks. Tests inject a fake reader and never incur provider charges.
 
-
 ### Gemini availability
 
 `GEMINI_SYLLABUS_FALLBACK_MODEL` optionally selects a second Gemini model for the third and final attempt, after two transient server errors. No cross-provider fallback is performed. Without this setting, all attempts use the primary model. The backup must accept PDFs, the JSON response schema and MEDIUM thinking level; validate it with a sample before enabling it. Successful responses and completed extraction are never retried. No provider errors, API keys or document content are logged. See [Google's retry guidance](https://ai.google.dev/gemini-api/docs/troubleshooting#retry-strategy).
+
+## Signed hosted requests
+
+Remotely bound readers now require signed, expiring, budget-bearing planner requests with durable replay protection. Configure the same private `COMMAND_READER_SIGNING_SECRET` on planner and reader and approve provider models/usage ceilings on the planner. The Blueprint starts disabled. See [P0 operations](../../docs/p0-operations.md#reader-deployment). Do not deploy a shared signing secret in browser code or downloaded installations. Loopback-only personal readers retain their local workflow.
