@@ -1,4 +1,22 @@
 export const french: Record<string, string> = {
+  'Account deletion and support': 'Suppression du compte et assistance',
+  'Gmail connections are not available for this account yet.':
+    'La connexion Gmail n’est pas encore disponible pour ce compte.',
+  'AI is paused. Your planner is still available.':
+    'L’IA est en pause. Ton agenda reste disponible.',
+  'AI is busy. Please try again shortly.': 'L’IA est occupée. Réessaie dans un instant.',
+  'AI allowances are not configured.':
+    'Les limites d’utilisation de l’IA ne sont pas encore configurées.',
+  'This AI model is not enabled.': 'Ce modèle d’IA n’est pas activé.',
+  'AI allowance reached. Daily allowances reset at 00:00 UTC; monthly allowances reset on the first.':
+    'Limite d’IA atteinte. La limite quotidienne est renouvelée à 00 h UTC, et la limite mensuelle le premier du mois.',
+  'Command is currently available to invited accounts only.':
+    'Command est actuellement réservé aux comptes invités.',
+  'New accounts are currently available by invitation only.':
+    'Les nouveaux comptes sont accessibles sur invitation uniquement.',
+  'The syllabus reader connection is not configured.':
+    'La connexion au lecteur de plans de cours n’est pas configurée.',
+
   'Unfinished tasks and assessments': 'Tâches et évaluations restant à terminer',
   'Matching emails grouped': 'Courriels identiques regroupés',
   'Same announcement, delivered more than once. The original emails stay in Gmail.':
@@ -1083,6 +1101,13 @@ export const french: Record<string, string> = {
     'Réunissez vos cours, notes et projets dans votre espace privé.',
   'Manage access to your private workspace.': 'Gérez l’accès à votre espace privé.',
   'New password': 'Nouveau mot de passe',
+  'Show password': 'Afficher le mot de passe',
+  'Hide password': 'Masquer le mot de passe',
+  Hide: 'Masquer',
+  'Sign out of Command?': 'Se déconnecter de Command ?',
+  'Stay signed in': 'Rester connecté',
+  'Your saved work will stay here. You’ll need to sign in again to open your workspace.':
+    'Votre travail enregistré sera conservé. Vous devrez vous reconnecter pour ouvrir votre espace.',
   'Creating an account uses Neon Auth to handle your email and password. Read our':
     'La création du compte utilise Neon Auth pour gérer votre courriel et votre mot de passe. Consultez nos',
   'Create account': 'Créer un compte',

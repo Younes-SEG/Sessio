@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Terminal } from 'lucide-react';
 import { AuthPanel } from '@/components/auth-panel';
+import { T } from '@/components/language-provider';
 import { isAuthConfigured } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
 
@@ -53,15 +54,15 @@ export default async function AuthPage({
         <p className="muted mt-6 text-center text-xs">
           Your courses. Your plans. A little more clarity.
         </p>
-        <nav aria-label="Policies" className="muted mt-4 flex justify-center gap-5 text-xs">
-          <Link href="/legal/privacy" className="underline">
-            Privacy
+        <nav aria-label="Policies" className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
+          <Link href="/legal/privacy" className="policy-link">
+            <T text="Privacy" />
           </Link>
-          <Link href="/legal/terms" className="underline">
-            Terms
+          <Link href="/legal/terms" className="policy-link">
+            <T text="Terms" />
           </Link>
-          <Link href="/legal/accessibility" className="underline">
-            Accessibility
+          <Link href="/legal/accessibility" className="policy-link">
+            <T text="Accessibility" />
           </Link>
         </nav>
       </div>

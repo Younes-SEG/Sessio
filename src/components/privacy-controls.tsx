@@ -72,6 +72,11 @@ export function PrivacyControls() {
           <T text="Downloads a readable JSON copy of your academic records and preferences, excluding private calendar links. Keep it private. This is not an automatic restore backup." />
         </p>
       </div>
+      <p className="text-sm">
+        <Link className="underline" href="/legal/about#account-deletion">
+          <T text="Account deletion and support" />
+        </Link>
+      </p>
       <Dialog
         onOpenChange={() => {
           setConfirmation('');

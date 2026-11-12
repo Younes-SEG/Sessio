@@ -302,7 +302,13 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
                 className="flex items-start gap-3 rounded-sm border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
               >
                 <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
-                <span>{t('Gmail connection setup is not complete.')}</span>
+                <span>
+                  {t(
+                    data.releaseAvailable === false
+                      ? 'Gmail connections are not available for this account yet.'
+                      : 'Gmail connection setup is not complete.',
+                  )}
+                </span>
               </p>
               {!workspace.hosted && (
                 <Button
