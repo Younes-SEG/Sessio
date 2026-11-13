@@ -1,5 +1,7 @@
+import { assertAccountActive } from './account-lifecycle';
+import { assertHostedAccess } from './release-policy';
 import { cache } from 'react';
-import type { createNeonAuth } from '@neondatabase/auth/next/server';
+import type { createNeonAuth } from '@neon/auth/next/server';
 import { ApiError } from './errors';
 import { isHosted, LOCAL_WORKSPACE_ID } from './hosting';
 
@@ -31,7 +33,7 @@ export async function getAuth() {
   if (!isAuthConfigured())
     throw new ApiError(503, 'Sign-in is not available yet. Please try again later.');
   // Load Next's request APIs only in hosted mode, so local maintenance scripts work in Node.
-  const { createNeonAuth } = await import('@neondatabase/auth/next/server');
+  const { createNeonAuth } = await import('@neon/auth/next/server');
   return (auth ??= createNeonAuth({
     baseUrl: authBaseUrl(),
     cookies: { secret: process.env.NEON_AUTH_COOKIE_SECRET!, sessionDataTtl: 60, sameSite: 'lax' },
@@ -43,8 +45,8 @@ export async function getAuth() {
 // the provider on every request; middleware cookie checks are only an optimization.
 const verifiedAccount = cache(async () => {
   try {
-    // Neon Auth 0.5 compares this option to the string "true" before contacting
-    // the provider. A boolean bypasses only the upstream cache, not the SDK cache.
+    // Explicitly bypass the SDK and provider session caches so revoked sessions
+    // cannot authorize workspace requests. Covered against the installed SDK.
     const { data, error } = await (
       await getAuth()
     ).getSession({ query: { disableCookieCache: 'true', disableRefresh: true } });
@@ -75,5 +77,8 @@ export async function requireWorkspaceId(): Promise<string> {
   if (!isHosted()) return LOCAL_WORKSPACE_ID;
   const user = await verifiedAccount();
   // Derived solely from the validated identity, never a client-supplied workspace ID.
-  return `user:${user.id}`;
+  const workspaceId = `user:${user.id}`;
+  assertHostedAccess(workspaceId);
+  await assertAccountActive(workspaceId);
+  return workspaceId;
 }

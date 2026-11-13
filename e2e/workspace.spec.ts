@@ -138,7 +138,10 @@ test('course, grades, task, calendar and persistence work together', async ({ pa
     expect(completed.completedAt).not.toBeNull();
     expect(completed.subtasks[0].title).toBe('Read the rubric');
     await page.goto('/tasks');
-    await page.getByRole('button', { name: /^Completed/ }).click();
+    await page
+      .getByLabel('Task views', { exact: true })
+      .getByRole('button', { name: /^Completed/ })
+      .click();
     await page.getByRole('textbox', { name: 'Search tasks' }).fill(taskTitle);
     await page.getByRole('checkbox', { name: `Reopen ${taskTitle}` }).click();
     await expect(page.getByRole('checkbox', { name: `Reopen ${taskTitle}` })).toBeHidden();

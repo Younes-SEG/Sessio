@@ -636,7 +636,13 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
   });
   if (previous) return previous;
   try {
-    const intent = await interpretAssistant(modelMessages, input.timeZone, input.language);
+    const intent = await interpretAssistant(
+      modelMessages,
+      input.timeZone,
+      input.language,
+      new Date(),
+      workspaceId,
+    );
     return await transaction(async (tx) => {
       // A workspace erase during the AI request removes this receipt, cancelling the action.
       const row = await tx.assistantRequest.findUnique({

@@ -11,3 +11,8 @@ playwright-report/
 artifacts/
 .syllabus-service/
 .env.syllabus.local
+
+.next-ci/
+.env.*
+!.env.example
+backups/

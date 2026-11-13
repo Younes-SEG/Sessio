@@ -6,6 +6,7 @@ export default defineConfig([
   ...nextTs,
   globalIgnores([
     '.next/**',
+    '.next-ci/**',
     'src/generated/**',
     'public/licenses/**',
     '.postgres/**',

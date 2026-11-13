@@ -1,3 +1,4 @@
+import { assertGmailAllowed } from './release-policy';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { db } from './db';
@@ -16,6 +17,7 @@ import {
 
 export async function beginGmail(body: unknown, origin: string | null) {
   const workspaceId = await requireWorkspaceId();
+  assertGmailAllowed(workspaceId);
   z.object({ consent: z.literal(GMAIL_NOTICE) }).parse(body);
   const config = requireGmailConfig();
   if (origin !== config.origin)
@@ -58,6 +60,7 @@ export async function finishGmail(
   cookie: string | undefined,
 ) {
   const workspaceId = await requireWorkspaceId();
+  assertGmailAllowed(workspaceId);
   const config = requireGmailConfig();
   if (!code || code.length > 5000 || !state || state.length > 200 || state !== cookie)
     throw new ApiError(400, 'Gmail connection expired. Please connect again.');

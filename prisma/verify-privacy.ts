@@ -7,6 +7,15 @@ import { Client } from 'pg';
 // Never test erasure against the active workspace. Provision an isolated database.
 const original = process.env.DATABASE_URL;
 assert(original, 'DATABASE_URL is required');
+const source = new URL(original);
+assert(
+  ['127.0.0.1', 'localhost'].includes(source.hostname) &&
+    ['postgres:', 'postgresql:'].includes(source.protocol) &&
+    !process.env.DATABASE_URL_UNPOOLED &&
+    process.env.COMMAND_HOSTED !== 'true' &&
+    process.env.VERCEL !== '1',
+  'Privacy verification requires local PostgreSQL with no hosted or alternate migration configuration',
+);
 const name = `command_privacy_test_${randomBytes(8).toString('hex')}`;
 assert(/^command_privacy_test_[a-f0-9]{16}$/.test(name));
 const admin = new Client({ connectionString: original });

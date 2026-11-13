@@ -68,3 +68,7 @@ Google's testing status generally expires refresh tokens after seven days for th
 For Vercel, set all four variables server-side and use the production HTTPS callback URL registered with Google. Each signed-in workspace connects its own Gmail account. Do not add `NEXT_PUBLIC_` to any secret. Production sharing of an app using Gmail's restricted read-only scope requires Google's verification process; server storage/transmission can require a security assessment. Complete those requirements and publish accurate operator/privacy details before public distribution.
 
 Official references: [Google web-server OAuth](https://developers.google.com/identity/protocols/oauth2/web-server), [Gmail scopes](https://developers.google.com/workspace/gmail/api/auth/scopes), [OAuth token expiration](https://developers.google.com/identity/protocols/oauth2#expiration).
+
+## Hosted public release gate
+
+Credentials alone no longer enable hosted Gmail. Configure approved testers or public availability only after the applicable Google verification/security review. See [P0 operations](docs/p0-operations.md#gmail-availability). Existing loopback local setup is unchanged.

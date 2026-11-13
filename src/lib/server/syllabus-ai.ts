@@ -72,6 +72,7 @@ export async function readSyllabusWithAi(
   input: SyllabusAiInput,
   signal?: AbortSignal,
   beforeRetry?: () => void,
+  providerFetch: (url: string, init: RequestInit) => Promise<Response> = fetch,
 ) {
   const config = providerConfig();
   if (!config)
@@ -105,7 +106,7 @@ export async function readSyllabusWithAi(
       provider === 'gemini'
         ? await fetchSyllabusWithRetry(
             (useBackup) =>
-              fetch(
+              providerFetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent((useBackup ? process.env.GEMINI_SYLLABUS_FALLBACK_MODEL?.trim() : '') || process.env.GEMINI_SYLLABUS_MODEL?.trim() || DEFAULT_GEMINI_SYLLABUS_MODEL)}:generateContent`,
                 {
                   method: 'POST',
@@ -149,7 +150,7 @@ export async function readSyllabusWithAi(
             requestSignal,
             beforeRetry,
           )
-        : await fetch('https://api.openai.com/v1/responses', {
+        : await providerFetch('https://api.openai.com/v1/responses', {
             method: 'POST',
             redirect: 'error',
             headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },

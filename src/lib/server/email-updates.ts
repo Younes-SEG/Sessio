@@ -1,3 +1,4 @@
+import { assertGmailAllowed, gmailAllowed } from './release-policy';
 import { randomUUID, createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { Prisma } from '@/generated/prisma/client';
@@ -156,7 +157,8 @@ export async function emailOverview() {
       ];
     }) || [];
   return {
-    configured: Boolean(gmailConfig()),
+    configured: Boolean(gmailConfig()) && gmailAllowed(workspaceId),
+    releaseAvailable: gmailAllowed(workspaceId),
     connection: connection
       ? {
           email: connection.email,
@@ -198,6 +200,7 @@ export async function emailOverview() {
 
 export async function syncEmail(automatic = false) {
   const workspaceId = await requireWorkspaceId();
+  assertGmailAllowed(workspaceId);
   const connection = await db.gmailConnection.findUnique({ where: { workspaceId } });
   if (!connection || (automatic && !connection.autoSync)) return { checked: 0 };
   if (!gmailConfig()) throw new ApiError(503, 'Gmail connection setup is not complete.');

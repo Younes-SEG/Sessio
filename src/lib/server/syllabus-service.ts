@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { reserveAi, finishAi, assertAiRunning } from './ai-usage';
+import { signReader, readerDigest } from './reader-auth';
 import { SYLLABUS_SERVICE_URL } from '../syllabus-service-config';
 import { syllabusPreviewSchema } from '../syllabus-result';
 import type { SyllabusAiInput } from './syllabus-ai';
@@ -47,25 +50,62 @@ export async function isSyllabusServiceAvailable() {
 }
 
 let reading = false;
-export async function readSyllabusThroughService(input: SyllabusAiInput, signal?: AbortSignal) {
+export async function readSyllabusThroughService(
+  input: SyllabusAiInput,
+  signal?: AbortSignal,
+  workspaceId = 'local',
+) {
   const url = serviceUrl('/v1/syllabus');
   if (reading) throw new ApiError(429, 'A syllabus is already being read. Wait for it to finish.');
   reading = true;
+  let reservation: Awaited<ReturnType<typeof reserveAi>> = null;
   const timeout = AbortSignal.timeout(140_000);
   try {
+    const body = JSON.stringify({
+      kind: input.kind,
+      document: Buffer.from(input.bytes).toString('base64'),
+      course: input.course,
+    });
+    const models = (process.env.COMMAND_SYLLABUS_MODELS || '')
+      .split(',')
+      .map((m) => m.trim())
+      .filter(Boolean);
+    reservation = await reserveAi(workspaceId, 'syllabus', models, 3);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (process.env.COMMAND_READER_SIGNING_SECRET) {
+      const issued = Math.floor(Date.now() / 1000);
+      headers['X-Command-Authorization'] = signReader({
+        audience: 'command-syllabus-v1',
+        id: reservation?.id || randomUUID(),
+        subject: reservation?.subject || 'local-owner',
+        issued,
+        expires: issued + 180,
+        digest: readerDigest(body),
+        maximumAttempts: 3,
+        models: reservation?.models || {},
+      });
+    } else if (isHosted() || url.protocol === 'https:') {
+      await finishAi(reservation?.id, null, false);
+      throw new ApiError(503, 'The syllabus reader connection is not configured.');
+    }
+    await assertAiRunning('syllabus');
     const response = await fetch(url, {
       method: 'POST',
       redirect: 'error',
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-      // No workspace IDs, grades, feed URLs, local credentials or file names leave the app.
-      body: JSON.stringify({
-        kind: input.kind,
-        document: Buffer.from(input.bytes).toString('base64'),
-        course: input.course,
-      }),
+      body,
     });
+    let usage: unknown = null;
+    try {
+      const encoded = response.headers.get('X-Command-Usage');
+      if (encoded && encoded.length < 6000)
+        usage = JSON.parse(Buffer.from(encoded, 'base64url').toString());
+    } catch {
+      /* Uncertain usage keeps the reservation. */
+    }
+    await finishAi(reservation?.id, usage, response.ok);
     if (!response.ok) {
       await response.body?.cancel();
       // Never echo upstream HTML, credentials, document content or arbitrary error strings.
@@ -121,6 +161,7 @@ export async function readSyllabusThroughService(input: SyllabusAiInput, signal?
     }
     return syllabusPreviewSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
   } catch (error) {
+    await finishAi(reservation?.id, null, false);
     if (error instanceof ApiError) throw error;
     if (signal?.aborted) throw new ApiError(499, 'Syllabus reading was cancelled.');
     if (timeout.aborted)

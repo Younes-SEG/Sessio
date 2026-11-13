@@ -97,6 +97,7 @@ export async function POST(request: Request) {
         },
       },
       request.signal,
+      workspaceId,
     );
     return NextResponse.json(preview, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {

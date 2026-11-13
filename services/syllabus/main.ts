@@ -22,10 +22,18 @@ if (!Number.isInteger(hops) || hops < 0 || hops > 5)
 usage.prune();
 const pruning = setInterval(() => usage.prune(), 60 * 60 * 1000);
 pruning.unref();
+const localReader = ['127.0.0.1', 'localhost', '::1'].includes(
+  process.env.SYLLABUS_BIND || '127.0.0.1',
+);
 const server = createSyllabusServer({
   usage,
+  allowLocalUnsigned: localReader,
+  requireBudget: !localReader,
   trustedProxyHops: hops,
-  ready: () => process.env.SYLLABUS_ENABLED === 'true' && isSyllabusAiConfigured(),
+  ready: () =>
+    process.env.SYLLABUS_ENABLED === 'true' &&
+    isSyllabusAiConfigured() &&
+    (localReader || (process.env.COMMAND_READER_SIGNING_SECRET?.length || 0) >= 32),
 });
 server.listen(number('PORT', 8080, 65535), process.env.SYLLABUS_BIND || '127.0.0.1', () => {
   console.log('Command syllabus service started. Request content logging is disabled.');

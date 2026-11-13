@@ -1,3 +1,5 @@
+import { verifyReader, readerDigest, type ReaderClaims } from '../../src/lib/server/reader-auth';
+import { providerMeter } from '../../src/lib/server/provider-meter';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { isIP, Socket } from 'node:net';
 import { z } from 'zod';
@@ -69,13 +71,16 @@ export function networkAddress(req: IncomingMessage, trustedProxyHops: number) {
 }
 
 export function createSyllabusServer(options: {
-  usage: Pick<UsageLimits, 'reserve'>;
+  usage: Pick<UsageLimits, 'reserve'> & Partial<Pick<UsageLimits, 'acceptPermit'>>;
+  allowLocalUnsigned?: boolean;
+  requireBudget?: boolean;
   ready: () => boolean;
   trustedProxyHops?: number;
   read?: (
     input: SyllabusAiInput,
     signal?: AbortSignal,
     beforeRetry?: () => void,
+    providerFetch?: (url: string, init: RequestInit) => Promise<Response>,
   ) => Promise<SyllabusPreview>;
 }) {
   let active = false;
@@ -98,6 +103,36 @@ export function createSyllabusServer(options: {
         reply(res, 429, { error: 'The reader is busy. Please try again later.' });
         return;
       }
+      let claims: ReaderClaims | null = null;
+      const token = req.headers['x-command-authorization'];
+      const local =
+        ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress || '') &&
+        ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.localAddress || '');
+      try {
+        if (token || !options.allowLocalUnsigned || !local) {
+          claims = verifyReader(typeof token === 'string' ? token : undefined);
+          if (options.requireBudget && !Object.keys(claims.models).length)
+            throw new ApiError(401, 'A usage allowance is required.');
+          if (!options.usage.acceptPermit)
+            throw new ApiError(503, 'Reader authorization storage is unavailable.');
+        }
+      } catch (error) {
+        reply(res, error instanceof ApiError ? error.status : 401, {
+          error: 'Reader authorization is required.',
+        });
+        return;
+      }
+      const meter =
+        claims && Object.keys(claims.models).length
+          ? providerMeter(claims.models, claims.maximumAttempts)
+          : null;
+      const writeUsage = () => {
+        if (meter)
+          res.setHeader(
+            'X-Command-Usage',
+            Buffer.from(JSON.stringify(meter.usage)).toString('base64url'),
+          );
+      };
       active = true;
       const controller = new AbortController();
       const onClose = () => {
@@ -121,6 +156,11 @@ export function createSyllabusServer(options: {
           chunks.push(chunk);
         }
         clearTimeout(uploadTimer);
+        if (claims) {
+          if (readerDigest(Buffer.concat(chunks)) !== claims.digest)
+            throw new ApiError(401, 'The signed upload does not match.');
+          options.usage.acceptPermit!(claims.id, claims.expires);
+        }
         let raw: unknown;
         try {
           raw = JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -135,14 +175,20 @@ export function createSyllabusServer(options: {
           throw new ApiError(400, 'Invalid document encoding.');
         const inspected = await inspectSyllabusUpload(bytes, kind);
         controller.signal.throwIfAborted();
-        options.usage.reserve(network);
+        options.usage.reserve(claims?.subject || network);
         const result = await (options.read ?? readSyllabusWithAi)(
           { bytes, kind, course, ...inspected },
           controller.signal,
-          () => options.usage.reserve(network),
+          () => {
+            if (!options.ready()) throw new ApiError(503, 'Syllabus reading is paused.');
+            options.usage.reserve(claims?.subject || network);
+          },
+          meter ? (url, init) => meter.fetch(url, init) : undefined,
         );
+        writeUsage();
         reply(res, 200, result);
       } catch (error) {
+        writeUsage();
         // Do not log body, course, filename, provider response, IP address or credentials.
         if (error instanceof ApiError && error.code === 'provider_unavailable')
           res.setHeader('X-Command-Reader-Error', error.code);

@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+import { signReader, readerDigest } from '../src/lib/server/reader-auth';
 import { syllabusDocx } from './fixtures/syllabus-docx';
 import sharp from 'sharp';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -31,7 +33,7 @@ afterEach(async () => {
   );
 });
 async function host(options: Parameters<typeof createSyllabusServer>[0]) {
-  const server = createSyllabusServer(options);
+  const server = createSyllabusServer({ allowLocalUnsigned: true, ...options });
   servers.push(server);
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -60,9 +62,16 @@ describe('durable service quotas', () => {
     let usage = new UsageLimits(path, salt, limits);
     try {
       usage.reserve('203.0.113.5', today);
+      const permit = randomUUID();
+      const expires = Math.floor(Date.now() / 1000) + 180;
+      usage.acceptPermit(permit, expires);
       expect(() => usage.reserve('203.0.113.5', today)).toThrow(ApiError);
       usage.close();
       usage = new UsageLimits(path, salt, limits);
+      expect(() => usage.acceptPermit(permit, expires)).toThrow('already been used');
+      expect(() => usage.acceptPermit(randomUUID(), Math.floor(Date.now() / 1000))).toThrow(
+        'expired',
+      );
       expect(() => usage.reserve('203.0.113.5', today)).toThrow(ApiError);
       usage.reserve('203.0.113.6', today);
       expect(() => usage.reserve('203.0.113.7', today)).toThrow(ApiError);
@@ -302,3 +311,56 @@ it.each(['docx', 'png', 'jpeg'] as const)(
     else expect(read.mock.calls[0][0].images).toHaveLength(1);
   },
 );
+
+it('requires signed bounded permits on the remote reader and persists replay protection', async () => {
+  vi.stubEnv('COMMAND_READER_SIGNING_SECRET', 'test-reader-secret-at-least-32-characters');
+  const usage = new UsageLimits(':memory:', salt, {
+    networkDaily: 10,
+    globalDaily: 10,
+    globalMonthly: 10,
+  });
+  const read = vi.fn().mockResolvedValue({ items: [], warnings: [] });
+  try {
+    const url = await host({
+      usage,
+      ready: () => true,
+      read,
+      allowLocalUnsigned: false,
+      requireBudget: true,
+    });
+    expect((await post(url)).status).toBe(401);
+    const body = JSON.stringify(payload());
+    const issued = Math.floor(Date.now() / 1000);
+    const token = signReader({
+      audience: 'command-syllabus-v1',
+      id: randomUUID(),
+      subject: 'opaque-user',
+      issued,
+      expires: issued + 180,
+      digest: readerDigest(body),
+      maximumAttempts: 3,
+      models: {
+        test: {
+          provider: 'gemini',
+          inputCeilingTokens: 100,
+          outputCeilingTokens: 100,
+          inputMicrosPerMillion: 1,
+          outputMicrosPerMillion: 1,
+          pricingVersion: 'synthetic',
+        },
+      },
+    });
+    const send = (value: string) =>
+      fetch(url + '/v1/syllabus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Command-Authorization': token },
+        body: value,
+      });
+    expect((await send(body + ' ')).status).toBe(401);
+    expect((await send(body)).status).toBe(200);
+    expect((await send(body)).status).toBe(409);
+    expect(read).toHaveBeenCalledTimes(1);
+  } finally {
+    usage.close();
+  }
+});

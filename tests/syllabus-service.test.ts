@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import {
   readSyllabusThroughService,
   isSyllabusServiceAvailable,
@@ -19,6 +19,9 @@ const input = () => ({
   pages: 1,
   bytes: new Uint8Array(syllabusPdf([])),
 });
+beforeEach(() =>
+  vi.stubEnv('COMMAND_READER_SIGNING_SECRET', 'test-signing-secret-at-least-32-characters'),
+);
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
@@ -54,7 +57,8 @@ describe('shared reader client', () => {
     const [url, options] = fetcher.mock.calls[0];
     expect(String(url)).toBe('https://reader.example/v1/syllabus');
     expect(options.redirect).toBe('error');
-    expect(options.headers).toEqual({ 'Content-Type': 'application/json' });
+    expect(options.headers['Content-Type']).toBe('application/json');
+    expect(options.headers['X-Command-Authorization']).toBeTruthy();
     expect(JSON.parse(options.body)).toEqual({
       kind: 'pdf',
       document: Buffer.from(source.bytes).toString('base64'),

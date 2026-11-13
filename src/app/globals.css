@@ -233,12 +233,54 @@ input[type='checkbox'] {
   font-size: 12px;
   line-height: 1.7;
 }
-.legal-footer a {
+.legal-footer a,
+.policy-link {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 36px;
+  padding: 6px 10px;
+  margin-block: 3px;
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: background-color 100ms ease-out;
+}
+.legal-footer a:hover,
+.policy-link:hover {
+  background: var(--accent);
+  border-color: var(--foreground);
+}
+.legal-footer a:focus-visible,
+.policy-link:focus-visible,
+.password-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: var(--foreground);
+  font-size: 12px;
+}
+.password-toggle:hover {
+  background: var(--muted);
+}
+.password-toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 label:has(input[type='checkbox']) {
   min-height: 24px;

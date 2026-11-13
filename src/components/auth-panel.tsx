@@ -2,7 +2,8 @@
 import { LanguageSwitch, T, useT } from '@/components/language-provider';
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, KeyRound, UserPlus } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, LogOut, UserPlus } from 'lucide-react';
+import { AlertDialog } from 'radix-ui';
 import { authClient } from '@/lib/auth-client';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -21,33 +22,112 @@ export function SignOutButton({ className }: { className?: string }) {
   const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  async function signOut() {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error();
+      // Full navigation discards all in-memory workspace data and router caches.
+      window.location.replace('/auth/sign-in');
+    } catch {
+      setError('Could not sign out. Please try again.');
+      setBusy(false);
+    }
+  }
+
   return (
-    <div>
-      <button
-        type="button"
-        className={className || 'button button-outline'}
-        disabled={busy}
-        onClick={async () => {
-          setBusy(true);
+    <AlertDialog.Root
+      open={confirmOpen}
+      onOpenChange={(open) => {
+        if (!busy) {
+          setConfirmOpen(open);
           setError('');
-          try {
-            const result = await authClient.signOut();
-            if (result.error) throw new Error();
-            // Full navigation discards all in-memory workspace data and router caches.
-            window.location.replace('/auth/sign-in');
-          } catch {
-            setError('Could not sign out. Please try again.');
-            setBusy(false);
-          }
-        }}
-      >
-        {busy ? t('Signing out…') : t('Sign out')}
-      </button>
-      {error && (
-        <p role="alert" className="text-xs text-destructive">
-          {t(error)}
-        </p>
-      )}
+        }
+      }}
+    >
+      <AlertDialog.Trigger asChild>
+        <button type="button" className={className || 'button button-outline'} disabled={busy}>
+          {busy ? t('Signing out…') : t('Sign out')}
+        </button>
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className="dialog-overlay" />
+        <AlertDialog.Content
+          className="dialog-content"
+          onEscapeKeyDown={(event) => {
+            if (busy) event.preventDefault();
+          }}
+        >
+          <LogOut className="mb-3 text-muted-foreground" size={24} aria-hidden="true" />
+          <AlertDialog.Title className="text-xl font-semibold">
+            {t('Sign out of Command?')}
+          </AlertDialog.Title>
+          <AlertDialog.Description className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {t(
+              'Your saved work will stay here. You’ll need to sign in again to open your workspace.',
+            )}
+          </AlertDialog.Description>
+          {error && (
+            <p role="alert" className="mt-3 text-sm text-destructive">
+              {t(error)}
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2 pt-5">
+            <AlertDialog.Cancel asChild>
+              <Button type="button" variant="outline" disabled={busy}>
+                {t('Stay signed in')}
+              </Button>
+            </AlertDialog.Cancel>
+            <Button type="button" variant="destructive" disabled={busy} onClick={signOut}>
+              {busy ? t('Signing out…') : t('Sign out')}
+            </Button>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  );
+}
+
+function PasswordField({
+  signIn,
+  reset,
+  busy,
+}: {
+  signIn: boolean;
+  reset: boolean;
+  busy: boolean;
+}) {
+  const t = useT();
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="space-y-2 text-sm font-medium">
+      <label htmlFor="auth-password">{reset ? t('New password') : t('Password')}</label>
+      <div className="relative">
+        <Input
+          id="auth-password"
+          name="password"
+          type={visible ? 'text' : 'password'}
+          autoComplete={signIn ? 'current-password' : 'new-password'}
+          required
+          disabled={busy}
+          className="pr-28"
+        />
+        <button
+          type="button"
+          className="password-toggle"
+          disabled={busy}
+          aria-label={visible ? t('Hide password') : t('Show password')}
+          aria-controls="auth-password"
+          onClick={() => setVisible((value) => !value)}
+        >
+          {visible ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+          {visible ? t('Hide') : t('Show')}
+        </button>
+      </div>
     </div>
   );
 }
@@ -196,27 +276,15 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
               />
             </label>
           )}
-          {passwordNeeded && (
-            <label className="block space-y-2 text-sm font-medium">
-              <span id="auth-password-label">{reset ? t('New password') : t('Password')}</span>
-              <Input
-                name="password"
-                type="password"
-                autoComplete={signIn ? 'current-password' : 'new-password'}
-                required
-                disabled={busy}
-                aria-labelledby="auth-password-label"
-              />
-            </label>
-          )}
+          {passwordNeeded && <PasswordField key={mode} signIn={signIn} reset={reset} busy={busy} />}
           {signUp && (
             <p className="muted text-xs leading-relaxed">
               <T text="Creating an account uses Neon Auth to handle your email and password. Read our" />{' '}
-              <Link href="/legal/terms" className="underline">
+              <Link href="/legal/terms" className="policy-link">
                 <T text="Terms" />
               </Link>{' '}
               <T text="and" />{' '}
-              <Link href="/legal/privacy" className="underline">
+              <Link href="/legal/privacy" className="policy-link">
                 <T text="Privacy policy" />
               </Link>
               .
