@@ -61,3 +61,23 @@ jobs:
           npm run test:e2e:smoke
       - if: matrix.check == 'security'
         run: npm audit --omit=dev --audit-level=high
+
+  auth-ui:
+    name: auth-ui
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config=playwright.auth.config.ts

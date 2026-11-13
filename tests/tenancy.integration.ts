@@ -2526,6 +2526,40 @@ it('blocks stale writes at the database and erases only the selected account', a
   await eraseBlockedAccount('user:deletion-owner'); // Retry is safe.
 });
 
+it('erases linked course tasks and calendar events without touching another account', async () => {
+  const ownerId = 'user:linked-deletion-owner';
+  const otherId = 'user:linked-deletion-other';
+  const owner = await chatFixture(ownerId);
+  const other = await chatFixture(otherId);
+  const ownerTask = await db.task.create({
+    data: { workspaceId: ownerId, courseId: owner.course.id, title: 'Owner course task' },
+  });
+  const otherTask = await db.task.create({
+    data: { workspaceId: otherId, courseId: other.course.id, title: 'Other course task' },
+  });
+  const event = {
+    title: 'Course review',
+    startAt: new Date('2090-11-05T23:00:00Z'),
+    endAt: new Date('2090-11-06T00:00:00Z'),
+  };
+  const ownerEvent = await db.calendarEvent.create({
+    data: { ...event, workspaceId: ownerId, courseId: owner.course.id },
+  });
+  const otherEvent = await db.calendarEvent.create({
+    data: { ...event, workspaceId: otherId, courseId: other.course.id },
+  });
+
+  await blockAccount(ownerId);
+  await eraseBlockedAccount(ownerId);
+
+  expect(await db.course.findUnique({ where: { id: owner.course.id } })).toBeNull();
+  expect(await db.task.findUnique({ where: { id: ownerTask.id } })).toBeNull();
+  expect(await db.calendarEvent.findUnique({ where: { id: ownerEvent.id } })).toBeNull();
+  expect(await db.course.findUnique({ where: { id: other.course.id } })).toEqual(other.course);
+  expect(await db.task.findUnique({ where: { id: otherTask.id } })).toEqual(otherTask);
+  expect(await db.calendarEvent.findUnique({ where: { id: otherEvent.id } })).toEqual(otherEvent);
+});
+
 it('keeps account AI allowances separate, exportable and persistent after erasure', async () => {
   vi.stubEnv('COMMAND_AI_ENFORCE_LOCAL', 'true');
   vi.stubEnv('COMMAND_AI_USAGE_SECRET', 'test-usage-secret-more-than-32-characters');
