@@ -9,13 +9,13 @@ export function AssistantGuide({ french = false }: { french?: boolean }) {
       </p>
       <p>
         {french
-          ? 'Ouvre Demander à Command en haut de chaque page. Cette première version consulte ton planning, crée des séances d’étude dans le calendrier et enregistre les notes des évaluations existantes.'
-          : 'Open Ask Command at the top of any page. This first version reads your schedule, creates study sessions in Calendar, and records grades for existing assessments.'}
+          ? 'Ouvre Demander à Command en haut de chaque page. Il consulte ton planning, répond aux questions sur tes notes et objectifs, crée des séances d’étude dans le calendrier et enregistre les notes des évaluations existantes.'
+          : 'Open Ask Command at the top of any page. It reads your schedule, answers grade and target questions, creates study sessions in Calendar, and records grades for existing assessments.'}
       </p>
       <p>
         {french
-          ? 'Pr?cise le cours, la p?riode, le type de travail et ce que tu veux exclure. Par exemple : ? Mes examens et s?ances d??tude la semaine prochaine ?, ? Mes devoirs en retard, sans les labos ? ou ? Quelle note ai-je re?ue au devoir 1 de SEG3102 ? ?. Command distingue une question sur une note d?une demande pour l?enregistrer. Tu peux continuer avec ? Et la semaine prochaine ? ? sans r?p?ter les autres crit?res.'
-          : 'Specify the course, dates, kind of work and anything to leave out. Try ?My exams and study sessions next week?, ?Overdue assignments, excluding labs? or ?What did I get on A1 in SEG3102?? Command distinguishes looking up a grade from recording one. Follow up with ?What about next week?? to keep your other filters.'}
+          ? 'Précise le cours, la période, le type de travail et ce que tu veux exclure. Par exemple : « Mes examens et séances d’étude la semaine prochaine », « Mes devoirs en retard, sans les labos » ou « Quelle note ai-je reçue au devoir 1 de SEG3102 ? ». Command distingue une question sur une note d’une demande pour l’enregistrer. Tu peux continuer avec « Et la semaine prochaine ? » sans répéter les autres critères.'
+          : 'Specify the course, dates, kind of work and anything to leave out. Try “My exams and study sessions next week”, “Overdue assignments, excluding labs” or “What did I get on A1 in SEG3102?” Command distinguishes looking up a grade from recording one. Follow up with “What about next week?” to keep your other filters.'}
       </p>
       <ul className="list-disc space-y-2 pl-5">
         <li>
@@ -32,6 +32,11 @@ export function AssistantGuide({ french = false }: { french?: boolean }) {
           {french
             ? '« J’ai eu 9/10 au devoir 1 de SEG3102. » — associe le cours et l’évaluation. Indique toujours la note et le maximum.'
             : '“I got 9/10 on A1 of SEG3102.” — matches the course and assessment. Include both the score and maximum.'}
+        </li>
+        <li>
+          {french
+            ? '« Quelle est ma moyenne ce trimestre ? », « Où en suis-je en SEG3102 ? », « Que me faut-il à l’examen final pour avoir un B en SEG3102 ? » — Command calcule les notes avec la même méthode que la page Notes ; l’IA ne fait aucun calcul. Les lettres suivent le barème de premier cycle de l’Université d’Ottawa.'
+            : '“What’s my average this semester?”, “How am I doing in SEG3102?”, “What do I need on the final to get a B in SEG3102?” — Command calculates grades the same way as the Grades page; the AI never does the math. Letters use the uOttawa undergraduate scale.'}
         </li>
       </ul>
       <p>

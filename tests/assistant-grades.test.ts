@@ -1,0 +1,272 @@
+import { describe, expect, it } from 'vitest';
+import { gradeStatusAnswer } from '../src/lib/assistant-grades';
+import {
+  assistantIntentSchema,
+  type AssistantIntent,
+  type AssistantWorkspace,
+} from '../src/lib/assistant';
+import { letterFor, minimumFor } from '../src/lib/grade-scale';
+
+type Assessment = AssistantWorkspace['assessments'][number];
+const assessment = (values: Partial<Assessment> & Pick<Assessment, 'id' | 'name' | 'weight'>) =>
+  ({
+    courseId: 'seg',
+    type: 'ASSIGNMENT',
+    score: null,
+    maxScore: 100,
+    dueDate: null,
+    status: 'NOT_STARTED',
+    notes: '',
+    ...values,
+  }) as Assessment;
+const course = (id: string, code: string, semesterId = 'term') =>
+  ({
+    id,
+    code,
+    name: `${code} course`,
+    semesterId,
+    archived: false,
+    notes: '',
+    color: '#777777',
+    instructor: null,
+  }) as AssistantWorkspace['courses'][number];
+
+// SEG3102: A1 20% at 80%, Midterm 30% at 60% -> 34 of 50 graded points (68%); Final 50% left.
+const base: AssistantWorkspace = {
+  semesters: [
+    {
+      id: 'term',
+      name: 'Fall 2026',
+      startDate: '2026-09-01',
+      endDate: '2026-12-31',
+      isActive: true,
+    },
+    {
+      id: 'old',
+      name: 'Winter 2026',
+      startDate: '2026-01-01',
+      endDate: '2026-04-30',
+      isActive: false,
+    },
+  ] as AssistantWorkspace['semesters'],
+  courses: [
+    course('seg', 'SEG3102'),
+    course('csi', 'CSI2110'),
+    course('mat', 'MAT1341'),
+    course('his', 'HIS1101', 'old'),
+  ],
+  assessments: [
+    assessment({ id: 'a1', name: 'Assignment 1', weight: 20, score: 80, status: 'GRADED' }),
+    assessment({
+      id: 'mid',
+      name: 'Midterm',
+      type: 'MIDTERM',
+      weight: 30,
+      score: 60,
+      status: 'GRADED',
+    }),
+    assessment({ id: 'final', name: 'Final Exam', type: 'FINAL_EXAM', weight: 50 }),
+    assessment({
+      id: 'c1',
+      courseId: 'csi',
+      name: 'Quiz 1',
+      weight: 100,
+      score: 90,
+      status: 'GRADED',
+    }),
+    assessment({ id: 'm1', courseId: 'mat', name: 'Quiz 1', weight: 10 }),
+    assessment({
+      id: 'h1',
+      courseId: 'his',
+      name: 'Essay',
+      weight: 100,
+      score: 10,
+      status: 'GRADED',
+    }),
+  ],
+  tasks: [],
+  events: [],
+  schedules: [],
+};
+const seg = base.courses[0];
+const intent = (values: Partial<AssistantIntent>): AssistantIntent => ({
+  kind: 'grade_status',
+  course: null,
+  assessment: null,
+  score: null,
+  maxScore: null,
+  startLocal: null,
+  endLocal: null,
+  fromDate: null,
+  toDate: null,
+  question: null,
+  ...values,
+});
+
+describe('uOttawa letter scale', () => {
+  it('uses the official undergraduate cut-offs without rounding up', () => {
+    expect(minimumFor('B')).toBe(70);
+    expect(minimumFor('A+')).toBe(90);
+    expect(letterFor(69.9)).toBe('C+');
+    expect(letterFor(70)).toBe('B');
+    expect(letterFor(84.99)).toBe('A-');
+    expect(letterFor(39)).toBe('F');
+  });
+  it('accepts only real letters in model output', () => {
+    expect(assistantIntentSchema.parse(intent({ targetLetter: 'B+' })).targetLetter).toBe('B+');
+    expect(() => assistantIntentSchema.parse(intent({ targetLetter: 'Z' as never }))).toThrow();
+    expect(() => assistantIntentSchema.parse(intent({ targetPercent: 120 }))).toThrow();
+  });
+});
+
+describe('grade answers are calculated by the app, never the model', () => {
+  it('averages current-semester courses equally and skips courses without grades', () => {
+    const answer = gradeStatusAnswer(base, intent({}), 'en');
+    // (68 + 90) / 2 = 79 -> B+; the inactive Winter course (10%) is excluded.
+    expect(answer.text).toContain('79%');
+    expect(answer.text).toContain('(B+)');
+    expect(answer.text).toContain('2 courses');
+    expect(answer.items?.map((i) => i.title.split(' ·')[0])).toEqual([
+      'SEG3102',
+      'CSI2110',
+      'MAT1341',
+    ]);
+    expect(answer.items?.[2].detail).toBe('No grades yet');
+  });
+
+  it('reports one course’s current standing', () => {
+    const answer = gradeStatusAnswer(base, intent({ course: 'SEG3102' }), 'en', seg);
+    expect(answer.text).toContain('68% (C+)');
+    expect(answer.text).toContain('50% of the course graded');
+    expect(answer.text).toContain('34 of 100 course points');
+  });
+
+  it('works out the average needed on remaining work for a letter', () => {
+    // (70 - 34) / 50 = 72%
+    const answer = gradeStatusAnswer(base, intent({ targetLetter: 'B' }), 'en', seg);
+    expect(answer.text).toContain('B (70%)');
+    expect(answer.text).toContain('average of 72%');
+  });
+
+  it('works out the score needed on the final when it is the only work left', () => {
+    const answer = gradeStatusAnswer(
+      base,
+      intent({ targetLetter: 'B', assessment: 'Final Exam' }),
+      'en',
+      seg,
+    );
+    expect(answer.text).toContain('at least 72% on Final Exam');
+    expect(answer.text).not.toContain('assumes');
+  });
+
+  it('shows the raw score when the final is not out of 100', () => {
+    const data = {
+      ...base,
+      assessments: base.assessments.map((a) => (a.id === 'final' ? { ...a, maxScore: 60 } : a)),
+    };
+    const answer = gradeStatusAnswer(
+      data,
+      intent({ targetLetter: 'B', assessment: 'final exam' }),
+      'en',
+      seg,
+    );
+    expect(answer.text).toContain('72% (43.2/60)');
+  });
+
+  it('assumes the current grade on other remaining work and says so', () => {
+    // A2 10% left besides a 40% final: A2 at 68% -> 6.8 points; (70 - 34 - 6.8) / 40 = 73%.
+    const data = {
+      ...base,
+      assessments: [
+        ...base.assessments.map((a) => (a.id === 'final' ? { ...a, weight: 40 } : a)),
+        assessment({ id: 'a2', name: 'Assignment 2', weight: 10 }),
+      ],
+    };
+    const answer = gradeStatusAnswer(
+      data,
+      intent({ targetLetter: 'B', assessment: 'Final Exam' }),
+      'en',
+      seg,
+    );
+    expect(answer.text).toContain('at least 73% on Final Exam');
+    expect(answer.text).toContain('keep your current 68%');
+  });
+
+  it('says when a target is impossible or already secured', () => {
+    expect(gradeStatusAnswer(base, intent({ targetLetter: 'A+' }), 'en', seg).text).toContain(
+      'out of reach',
+    );
+    expect(gradeStatusAnswer(base, intent({ targetPercent: 30 }), 'en', seg).text).toContain(
+      'already secured',
+    );
+    expect(
+      gradeStatusAnswer(base, intent({ targetLetter: 'A+', assessment: 'Final Exam' }), 'en', seg)
+        .text,
+    ).toContain('Even 100% on Final Exam');
+  });
+
+  it('respects best-of grading rules from the Grades page calculator', () => {
+    // Best 1 of 2 quizzes worth 20%: the 50% quiz is dropped, so 20 points earned at 100%.
+    const data: AssistantWorkspace = {
+      ...base,
+      courses: [
+        {
+          ...seg,
+          gradingRules: [
+            {
+              id: 'r',
+              name: 'Quizzes',
+              keep: 1,
+              weight: 20,
+              assessmentIds: ['q1', 'q2'],
+              source: '',
+            },
+          ],
+        } as never,
+      ],
+      assessments: [
+        assessment({
+          id: 'q1',
+          name: 'Quiz 1',
+          type: 'QUIZ',
+          weight: 10,
+          score: 100,
+          status: 'GRADED',
+        }),
+        assessment({
+          id: 'q2',
+          name: 'Quiz 2',
+          type: 'QUIZ',
+          weight: 10,
+          score: 50,
+          status: 'GRADED',
+        }),
+        assessment({ id: 'final', name: 'Final Exam', type: 'FINAL_EXAM', weight: 80 }),
+      ],
+    };
+    const course = data.courses[0];
+    expect(gradeStatusAnswer(data, intent({}), 'en', course).text).toContain('100% (A+)');
+    // (70 - 20) / 80 = 62.5%
+    expect(
+      gradeStatusAnswer(data, intent({ targetLetter: 'B', assessment: 'Final Exam' }), 'en', course)
+        .text,
+    ).toContain('at least 62.5% on Final Exam');
+  });
+
+  it('answers in French with French number formatting', () => {
+    const answer = gradeStatusAnswer(
+      base,
+      intent({ targetLetter: 'B', assessment: 'Final Exam' }),
+      'fr',
+      seg,
+    );
+    expect(answer.text).toContain('72 %');
+    expect(answer.text).toContain('Pour terminer SEG3102');
+  });
+
+  it('asks which assessment when the name does not match', () => {
+    expect(
+      gradeStatusAnswer(base, intent({ targetLetter: 'B', assessment: 'Lab 9' }), 'en', seg).text,
+    ).toContain('couldn’t find “Lab 9”');
+  });
+});
