@@ -28,6 +28,7 @@
     "test:tenancy": "vitest run --config vitest.tenancy.config.ts",
     "test:e2e:smoke": "playwright test --config=playwright.ci.config.ts",
     "release:migrate": "node scripts/migrate-release.mjs --apply",
+    "usage": "node --import tsx scripts/usage-dashboard.ts",
     "test:smoke:isolated": "node scripts/ci-smoke.mjs"
   },
   "dependencies": {
