@@ -7,6 +7,13 @@ import { validateSyllabusResult } from '../src/lib/syllabus-result';
 import { syllabusModelResult } from './fixtures/syllabus-result';
 import { syllabusPdf } from './fixtures/syllabus-pdf';
 
+const aiUsage = vi.hoisted(() => ({
+  reserveAi: vi.fn(),
+  finishAi: vi.fn(),
+  assertAiRunning: vi.fn(),
+}));
+vi.mock('../src/lib/server/ai-usage', () => aiUsage);
+
 const course = {
   code: 'TEST101',
   name: 'Test course',
@@ -19,10 +26,12 @@ const input = () => ({
   pages: 1,
   bytes: new Uint8Array(syllabusPdf([])),
 });
-beforeEach(() =>
-  vi.stubEnv('COMMAND_READER_SIGNING_SECRET', 'test-signing-secret-at-least-32-characters'),
-);
+beforeEach(() => {
+  aiUsage.reserveAi.mockResolvedValue(null);
+  vi.stubEnv('COMMAND_READER_SIGNING_SECRET', 'test-signing-secret-at-least-32-characters');
+});
 afterEach(() => {
+  vi.clearAllMocks();
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -111,6 +120,47 @@ describe('shared reader client', () => {
     );
     await expect(readSyllabusThroughService(input())).rejects.toMatchObject({ status: 502 });
     await expect(readSyllabusThroughService(input())).rejects.toMatchObject({ status: 502 });
+  });
+  it('records a successful HTTP response with an invalid body as uncertain', async () => {
+    vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'https://reader.example');
+    const reservation = {
+      id: '00000000-0000-4000-8000-000000000001',
+      models: {
+        synthetic: {
+          provider: 'gemini' as const,
+          inputCeilingTokens: 1000,
+          outputCeilingTokens: 100,
+          inputMicrosPerMillion: 1_000_000,
+          outputMicrosPerMillion: 2_000_000,
+          pricingVersion: 'test',
+        },
+      },
+      maximumAttempts: 3,
+      subject: 'test-subject',
+    };
+    const usage = [
+      {
+        model: 'synthetic',
+        provider: 'gemini',
+        pricingVersion: 'test',
+        tokens: { input: 10, output: 2, reasoning: null, cached: null },
+        status: 200,
+      },
+    ];
+    aiUsage.reserveAi.mockResolvedValue(reservation);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('{"items":[{"name":"bad"}]}', {
+          status: 200,
+          headers: { 'X-Command-Usage': Buffer.from(JSON.stringify(usage)).toString('base64url') },
+        }),
+      ),
+    );
+
+    await expect(readSyllabusThroughService(input())).rejects.toMatchObject({ status: 502 });
+    expect(aiUsage.finishAi).toHaveBeenCalledOnce();
+    expect(aiUsage.finishAi).toHaveBeenCalledWith(reservation.id, usage, false);
   });
   it('checks health without sending documents and never retries a paid read', async () => {
     vi.stubEnv('COMMAND_SYLLABUS_SERVICE_URL', 'https://reader.example');

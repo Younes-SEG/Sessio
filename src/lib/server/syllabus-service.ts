@@ -59,6 +59,7 @@ export async function readSyllabusThroughService(
   if (reading) throw new ApiError(429, 'A syllabus is already being read. Wait for it to finish.');
   reading = true;
   let reservation: Awaited<ReturnType<typeof reserveAi>> = null;
+  let usage: unknown = null;
   const timeout = AbortSignal.timeout(140_000);
   try {
     const body = JSON.stringify({
@@ -97,7 +98,6 @@ export async function readSyllabusThroughService(
       signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
       body,
     });
-    let usage: unknown = null;
     try {
       const encoded = response.headers.get('X-Command-Usage');
       if (encoded && encoded.length < 6000)
@@ -105,7 +105,6 @@ export async function readSyllabusThroughService(
     } catch {
       /* Uncertain usage keeps the reservation. */
     }
-    await finishAi(reservation?.id, usage, response.ok);
     if (!response.ok) {
       await response.body?.cancel();
       // Never echo upstream HTML, credentials, document content or arbitrary error strings.
@@ -159,9 +158,11 @@ export async function readSyllabusThroughService(
     } finally {
       reader.releaseLock();
     }
-    return syllabusPreviewSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+    const preview = syllabusPreviewSchema.parse(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+    await finishAi(reservation?.id, usage, true);
+    return preview;
   } catch (error) {
-    await finishAi(reservation?.id, null, false);
+    await finishAi(reservation?.id, usage, false);
     if (error instanceof ApiError) throw error;
     if (signal?.aborted) throw new ApiError(499, 'Syllabus reading was cancelled.');
     if (timeout.aborted)
