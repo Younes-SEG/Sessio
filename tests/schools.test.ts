@@ -119,8 +119,10 @@ describe('school catalogue integrity', () => {
     expect(byId('lakehead-university')?.repeatPolicy).toBe('latest');
     expect(byId('university-of-windsor')?.repeatPolicy).toBe('highest');
     expect(byId('cambrian-college')?.repeatPolicy).toBe('highest');
-    // Boréal sources conflict on repeated courses, so it stays unset.
-    expect(byId('college-boreal')?.repeatPolicy).toBeUndefined();
+    expect(byId('college-boreal')?.repeatPolicy).toBe('latest');
+    expect(byId('college-boreal')?.passPercent).toBe(50);
+    expect(byId('st-clair-college')?.repeatPolicy).toBe('latest');
+    expect(byId('mohawk-college')?.passRules).toHaveLength(4);
   });
 
   it('keeps the newly verified scales exact', () => {

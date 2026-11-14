@@ -666,13 +666,33 @@ export const ontarioSchools = [
     name: 'Mohawk College',
     roundPercentBeforeLetter: false,
     passPercent: 50,
+    passRules: [
+      { label: 'Apprenticeship programs', labelFr: 'Programmes d’apprentissage', passPercent: 60 },
+      {
+        label:
+          'Practical Nursing, Pharmacy Technician, and medical imaging and sonography programs (program courses)',
+        labelFr:
+          'Soins infirmiers auxiliaires, technique pharmaceutique et programmes d’imagerie médicale et d’échographie (cours du programme)',
+        passPercent: 60,
+      },
+      {
+        label: 'English for Academic Purposes (program courses)',
+        labelFr: 'Anglais à des fins scolaires (cours du programme)',
+        passPercent: 70,
+      },
+      {
+        label: 'Selected continuing-education nursing courses',
+        labelFr: 'Certains cours de soins infirmiers en formation continue',
+        passPercent: 65,
+      },
+    ],
     credits: null,
     sources: source(
       'https://www.mohawkcollege.ca/registration-and-records/grading-evaluation/grading-system',
       'The Grading System',
     ),
     notes:
-      'Percentage grades only. Promotion and graduation need a 60% weighted average; some nursing courses need 65-70%.',
+      'Percentage grades only. Promotion and graduation need a 60% weighted average; some programs need a 70% GPA to graduate. Coronary Care 1 and 2 need 70%.',
   },
   {
     ...college,
@@ -726,12 +746,14 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4, label: 'GPA' },
     passPercent: 50,
+    repeatPolicy: 'latest',
     credits: null,
     sources: source(
       'https://www.stclaircollege.ca/sites/default/files/policies/scc-policy-1-4-4.pdf',
-      'Policy 1.4.4 Grade Point System',
+      'Policy 1.4.4 Grade Point System (effective 2026-01-29)',
     ),
-    notes: 'Some programs set a 60% (C) pass mark; health sciences use a separate variant.',
+    notes:
+      'Some courses set C (60%) as the minimum, stated in the course outline. Collaborative Nursing and degree programs follow separate requirements.',
   },
   {
     ...college,
@@ -806,14 +828,25 @@ export const ontarioSchools = [
     roundPercentBeforeLetter: false,
     failLabel: 'EC',
     gpa: { max: 4, label: 'MPC' },
-    passPercent: 60,
+    // Guide Boréal 2023-24 s.6.21: a course pass mark is usually 50% (D); the 60% (C-) figure in
+    // the guide is the minimum for transfer credit, not for passing a course.
+    passPercent: 50,
+    // Guide Boréal 2024-25 s.4: the most recent grade counts in the program MPC, even if lower.
+    // ("Each attempt counts" applies only to the distinction average.)
+    repeatPolicy: 'latest',
     credits: null,
-    sources: source(
-      'https://collegeboreal.ca/wp-content/uploads/2023/03/bar-018a-bareme-de-notation-fra-et-angpour-diplome.pdf',
-      'Barème de notation / Grading System',
-    ),
+    sources: [
+      ...source(
+        'https://collegeboreal.ca/wp-content/uploads/2023/03/bar-018a-bareme-de-notation-fra-et-angpour-diplome.pdf',
+        'Barème de notation / Grading System',
+      ),
+      ...source(
+        'https://collegeboreal.ca/wp-content/uploads/2024/08/guide-boreal-2024-2025_septembre-2024.pdf',
+        'Guide Boréal 2024-2025 (mis à jour le 30 août 2024)',
+      ),
+    ],
     notes:
-      'Default pass mark is 60% (C-) unless the program requires more. MPC is weighted by course hours; EC counts as 0.',
+      'Pass mark is usually 50% and varies by course or program; check the course plan. MPC is weighted by course hours; EC counts as 0.',
   },
   {
     ...college,
