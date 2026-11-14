@@ -8,6 +8,31 @@ export const gradeAssistantFrench = {
 };
 
 export const french: Record<string, string> = {
+  Account: 'Compte',
+  'Signed in as': 'Connecté en tant que',
+  'Local workspace': 'Espace de travail local',
+  'Stored on this computer; no account needed.':
+    'Enregistré sur cet ordinateur ; aucun compte requis.',
+  'Settings sections': 'Sections des paramètres',
+  'Who is signed in.': 'Le compte connecté.',
+  'Profile & school': 'Profil et établissement',
+  'Your name and the school that sets your grade scale.':
+    'Votre nom et l’établissement qui fixe votre barème de notes.',
+  'Theme, language and your study buddy.': 'Thème, langue et compagnon d’étude.',
+  'Calendar & time': 'Calendrier et heure',
+  'Time format, week start and calendar connections.':
+    'Format de l’heure, début de semaine et calendriers connectés.',
+  'Dates and your active term.': 'Les dates et votre session active.',
+  'Grade notifications from your school.': 'Les avis de notes de votre établissement.',
+  'Privacy & data': 'Confidentialité et données',
+  'Export or erase your workspace.': 'Exporter ou effacer votre espace de travail.',
+  'No school chosen': 'Aucun établissement choisi',
+  '24-hour': '24 heures',
+  '12-hour': '12 heures',
+  'This copy of Command runs on your computer and keeps your data in its local database. There is no account to sign in to.':
+    'Cette copie de Command fonctionne sur votre ordinateur et garde vos données dans sa base de données locale. Il n’y a aucun compte auquel se connecter.',
+  'Signing out ends this session on this device.':
+    'La déconnexion met fin à cette session sur cet appareil.',
   'This term': 'Cette session',
   average: 'de moyenne',
   '{count} course with grades': '{count} cours not\u00e9',

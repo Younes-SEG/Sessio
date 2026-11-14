@@ -11,7 +11,7 @@ test('calendar saves directly beside its link without saving preferences', async
     return route.fulfill({ json: [] });
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/settings');
+  await page.goto('/settings/calendar');
   await page.getByLabel('Calendar subscription link').fill('https://calendar.example/test');
   const save = page.getByRole('button', { name: 'Save calendar', exact: true });
   await expect(save).toBeInViewport();
@@ -46,7 +46,7 @@ test('calendar connection preview, import feedback and disconnect work on a narr
           items: [
             {
               key: 'lab',
-              title: 'Lab 1 – À échéance',
+              title: 'Lab 1 â€“ Ã€ Ã©chÃ©ance',
               description: '',
               location: 'SEG3102',
               startAt: '2026-10-08T03:59:00Z',
@@ -65,13 +65,13 @@ test('calendar connection preview, import feedback and disconnect work on a narr
     return route.fulfill({ json: connected ? [connection] : [] });
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/settings');
+  await page.goto('/settings/calendar');
   await page
     .getByLabel('Calendar subscription link')
     .fill('https://calendar.example/private-token');
   await page.getByRole('button', { name: 'Preview calendar' }).click();
   await expect(page.getByLabel('Calendar import preview')).toContainText('Lab 1');
-  await expect(page.getByText('1 courses · 1 deadlines · 0 other events')).toBeVisible();
+  await expect(page.getByText('1 courses Â· 1 deadlines Â· 0 other events')).toBeVisible();
   await page.getByRole('button', { name: 'Connect and import' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Calendar connected' })).toBeVisible();
   await expect(page.getByLabel('Calendar subscription link')).toHaveValue('');

@@ -34,6 +34,8 @@ import { useCardEntrance } from './use-card-entrance';
 import { StudyBuddy } from './study-buddy';
 import { LegalFooter } from './legal-footer';
 import { SignOutButton } from './auth-panel';
+import { AccountMenu } from './account-menu';
+import { useAccount } from './account-provider';
 import { SchoolUpdatesBadge } from './email-updates';
 import { SchoolPrompt } from './school-prompt';
 import { addDays, isOverdue, toDate } from '@/lib/dates';
@@ -49,6 +51,7 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
   const t = useT();
   const { navigationTarget } = useOnboarding();
   const { data: workspace, now } = useWorkspace();
+  const account = useAccount();
   const data = scopeWorkspace(workspace);
   const path = usePathname();
   const semester = data.semesters.find((s) => s.isActive);
@@ -138,7 +141,9 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
             >
               <span
                 className="course-dot"
-                style={{ background: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))` }}
+                style={{
+                  background: `color-mix(in srgb, ${course.color} 70%, var(--muted-foreground))`,
+                }}
               />
               {course.code}
             </Link>
@@ -158,11 +163,16 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
         <Link
           href="/settings"
           onClick={onNavigate}
-          className={`nav-link ${path === '/settings' ? 'active' : ''}`}
+          className={`nav-link ${path.startsWith('/settings') ? 'active' : ''}`}
         >
           <Settings2 />
           <T text="Settings" />
         </Link>
+        {account && (
+          <p className="muted truncate px-3 pt-1 text-[11px]" title={account.email}>
+            {t('Signed in as')} {account.email}
+          </p>
+        )}
         {data.hosted && <SignOutButton className="nav-link w-full" />}
         {semester && (
           <div className="semester-card">
@@ -205,7 +215,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
   const name =
     path === '/guide'
       ? 'User guide'
-      : path === '/settings'
+      : path.startsWith('/settings')
         ? 'Settings'
         : navigation.find((n) => (n.href === '/' ? path === '/' : path.startsWith(n.href)))
             ?.label || 'Workspace';
@@ -280,13 +290,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
               <Sun className="hidden dark:block" />
               <Moon className="dark:hidden" />
             </Button>
-            <Link
-              href="/settings"
-              className="flex size-8 items-center justify-center rounded-sm bg-[var(--accent)] text-primary text-xs font-semibold"
-              aria-label={t('Personal settings')}
-            >
-              {data.settings.displayName?.[0]?.toUpperCase() || 'Y'}
-            </Link>
+            <AccountMenu />
           </div>
         </header>
         {error && (

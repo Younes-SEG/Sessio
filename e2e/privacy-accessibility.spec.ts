@@ -131,6 +131,10 @@ for (const theme of ['light', 'dark']) {
       '/tasks',
       '/calendar',
       '/settings',
+      '/settings/profile',
+      '/settings/appearance',
+      '/settings/calendar',
+      '/settings/privacy',
       '/legal/privacy',
       '/legal/terms',
       '/legal/cookies',
@@ -160,7 +164,7 @@ for (const theme of ['light', 'dark']) {
 }
 
 test('keyboard skip link, erase cancellation and dialog focus work', async ({ page }) => {
-  await page.goto('/settings');
+  await page.goto('/settings/privacy');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to content' })).toBeFocused();
   await page.keyboard.press('Enter');

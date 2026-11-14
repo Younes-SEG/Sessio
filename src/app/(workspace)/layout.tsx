@@ -6,14 +6,19 @@ import { redirect } from 'next/navigation';
 import { ApiError } from '@/lib/server/errors';
 import { isHosted } from '@/lib/server/hosting';
 import { accessDeniedDestination } from '@/lib/access-denial';
+import { currentAccount } from '@/lib/server/auth';
+import { AccountProvider, type Account } from '@/components/account-provider';
 export const dynamic = 'force-dynamic';
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   // A per-request server timestamp keeps the first client render identical to its HTML.
   // eslint-disable-next-line react-hooks/purity
   const initialNow = Date.now();
   let data;
+  let account: Account = null;
   try {
     data = await getWorkspace();
+    // Same request-scoped verified session that authorized the workspace above.
+    account = await currentAccount();
   } catch (error) {
     if (isHosted() && error instanceof ApiError) {
       const destination = accessDeniedDestination(error.status, error.reason);
@@ -25,11 +30,13 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   return (
     <>
       {data ? (
-        <WorkspaceProvider initialData={data} initialNow={initialNow}>
-          <AppShell>
-            <LocalTimeContent>{children}</LocalTimeContent>
-          </AppShell>
-        </WorkspaceProvider>
+        <AccountProvider account={account}>
+          <WorkspaceProvider initialData={data} initialNow={initialNow}>
+            <AppShell>
+              <LocalTimeContent>{children}</LocalTimeContent>
+            </AppShell>
+          </WorkspaceProvider>
+        </AccountProvider>
       ) : (
         <main className="min-h-screen grid place-items-center p-4">
           <div className="card p-9 max-w-lg">
