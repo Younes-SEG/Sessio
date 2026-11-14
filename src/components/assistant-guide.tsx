@@ -35,8 +35,8 @@ export function AssistantGuide({ french = false }: { french?: boolean }) {
         </li>
         <li>
           {french
-            ? '« Quelle est ma moyenne ce trimestre ? », « Où en suis-je en SEG3102 ? », « Que me faut-il à l’examen final pour avoir un B en SEG3102 ? » — Command calcule les notes avec la même méthode que la page Notes ; l’IA ne fait aucun calcul. Les lettres suivent le barème de premier cycle de l’Université d’Ottawa.'
-            : '“What’s my average this semester?”, “How am I doing in SEG3102?”, “What do I need on the final to get a B in SEG3102?” — Command calculates grades the same way as the Grades page; the AI never does the math. Letters use the uOttawa undergraduate scale.'}
+            ? '« Quelle est ma moyenne ce trimestre ? », « Où en suis-je en SEG3102 ? », « Que me faut-il à l’examen final pour avoir un B en SEG3102 ? » — Command calcule les notes avec la même méthode que la page Notes ; l’IA ne fait aucun calcul. Les lettres, la note de passage et la MPC suivent l’établissement choisi dans Paramètres.'
+            : '“What’s my average this semester?”, “How am I doing in SEG3102?”, “What do I need on the final to get a B in SEG3102?” — Command calculates grades the same way as the Grades page; the AI never does the math. Letters, pass marks and GPA follow the school chosen in Settings.'}
         </li>
       </ul>
       <p>

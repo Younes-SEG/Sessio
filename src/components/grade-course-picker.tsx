@@ -6,6 +6,7 @@ import { useWorkspace } from './workspace-provider';
 import { useT } from './language-provider';
 import { calculateGrades } from '@/lib/grades';
 import type { Course } from '@/lib/types';
+import { GradeLetter } from './school-grade';
 
 export function GradeCoursePicker({
   selectedId,
@@ -63,6 +64,7 @@ export function GradeCoursePicker({
                   {grade.currentGrade === null
                     ? '—'
                     : `${grade.currentGrade.toLocaleString(t.locale, { maximumFractionDigits: 1 })}%`}
+                  <GradeLetter percent={grade.currentGrade} />
                 </span>
               </span>
             </button>

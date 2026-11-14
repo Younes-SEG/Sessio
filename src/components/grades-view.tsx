@@ -14,6 +14,7 @@ import { resolveGradingRules } from '@/lib/grading-rules';
 import { EmailUpdatesLink } from './email-updates';
 import { GradeGroups } from './grade-groups';
 import { GradeList } from './grade-list';
+import { GradeLetter, SemesterStandingCard } from './school-grade';
 
 export function GradesView() {
   const t = useT();
@@ -75,6 +76,7 @@ export function GradesView() {
           </Button>
         </div>
       </header>
+      <SemesterStandingCard />
       <GradeCoursePicker
         selectedId={selectedCourseId}
         onSelect={(id) => {
@@ -157,6 +159,7 @@ export function GradesView() {
                       {summary.currentGrade === null
                         ? t('Not available yet')
                         : `${summary.currentGrade.toFixed(1)}%`}
+                      <GradeLetter percent={summary.currentGrade} />
                     </p>
                   </div>
                   <GraduationCap aria-hidden className="text-primary" size={20} />

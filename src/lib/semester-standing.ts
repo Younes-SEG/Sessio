@@ -9,12 +9,7 @@ type Course = Workspace['courses'][number];
 
 /** Why the overview is (or isn't) credit-weighted with a GPA; drives the explanation shown. */
 export type StandingBasis =
-  | 'weighted'
-  | 'no-profile'
-  | 'no-gpa'
-  | 'no-credit-unit'
-  | 'missing-credits'
-  | 'missing-points';
+  'weighted' | 'no-profile' | 'no-gpa' | 'no-credit-unit' | 'missing-credits' | 'missing-points';
 
 export type SemesterStanding = {
   rows: { course: Course; summary: GradeSummary }[];

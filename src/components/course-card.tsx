@@ -8,6 +8,7 @@ import type { Course } from '@/lib/types';
 import { calculateGrades } from '@/lib/grades';
 import { dueLabel } from '@/lib/dates';
 import { CourseSyllabusStatus } from './course-syllabus-status';
+import { GradeLetter } from './school-grade';
 export function CourseCard({ course }: { course: Course }) {
   const t = useT();
   const { data, now } = useWorkspace();
@@ -50,6 +51,7 @@ export function CourseCard({ course }: { course: Course }) {
           </div>
           <span className="course-grade">
             {grade.currentGrade === null ? '—' : `${grade.currentGrade.toFixed(1)}%`}
+            <GradeLetter percent={grade.currentGrade} className="text-sm" />
           </span>
         </div>
         <span className="text-[10px] muted mb-1">
