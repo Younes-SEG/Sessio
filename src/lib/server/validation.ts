@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { gradingRulesSchema } from '../grading-rules';
+import { isSchoolId } from '../schools';
 
 const text = (maximum = 200) => z.string().trim().min(1, 'This field is required.').max(maximum);
 const notes = z.string().max(20_000).default('');
@@ -48,6 +49,7 @@ export const courseSchema = z.object({
   name: text(),
   semesterId: link,
   instructor: z.string().trim().max(200).nullable().default(null),
+  credits: z.number().finite().positive().max(1000).nullable().default(null),
   color,
   notes,
   archived: z.boolean().default(false),
@@ -135,6 +137,12 @@ export const scheduleSchema = z
 
 export const settingsSchema = z.object({
   displayName: z.string().trim().max(80).default(''),
+  schoolId: z
+    .string()
+    .trim()
+    .nullable()
+    .default(null)
+    .refine((value) => value === null || isSchoolId(value), 'Choose a supported school.'),
   theme: z.enum(['LIGHT', 'DARK', 'SYSTEM']).default('SYSTEM'),
   timeFormat: z.enum(['12', '24']).default('12'),
   weekStartsOn: z.union([z.literal(0), z.literal(1)]).default(1),

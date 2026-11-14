@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   assessmentSchema,
+  courseSchema,
   eventSchema,
   scheduleSchema,
   semesterSchema,
+  settingsSchema,
   taskSchema,
 } from './validation';
 
@@ -21,6 +23,24 @@ describe('assessment input integrity', () => {
     );
     expect(assessmentSchema.safeParse({ ...assessment, weight: 101 }).success).toBe(false);
     expect(assessmentSchema.safeParse({ ...assessment, weight: NaN }).success).toBe(false);
+  });
+});
+
+describe('school profile fields', () => {
+  it('accepts catalogue schools and rejects unknown school IDs', () => {
+    expect(settingsSchema.parse({ schoolId: 'university-of-ottawa' }).schoolId).toBe(
+      'university-of-ottawa',
+    );
+    expect(settingsSchema.safeParse({ schoolId: 'unknown-school' }).success).toBe(false);
+    expect(settingsSchema.parse({ schoolId: null }).schoolId).toBeNull();
+  });
+
+  it('keeps course credits optional and within a sensible range', () => {
+    const course = { code: 'SEG3101', name: 'Requirements', semesterId: 'term' };
+    expect(courseSchema.parse(course).credits).toBeNull();
+    expect(courseSchema.parse({ ...course, credits: 3 }).credits).toBe(3);
+    expect(courseSchema.safeParse({ ...course, credits: 0 }).success).toBe(false);
+    expect(courseSchema.safeParse({ ...course, credits: 1001 }).success).toBe(false);
   });
 });
 
