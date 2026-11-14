@@ -73,6 +73,16 @@ const verifiedAccount = cache(async () => {
   }
 });
 
+/**
+ * The signed-in account to show the student (hosted only), from the same verified,
+ * request-scoped session that authorizes the workspace. Local installations have no account.
+ */
+export async function currentAccount(): Promise<{ email: string; name: string } | null> {
+  if (!isHosted()) return null;
+  const user = await verifiedAccount();
+  return { email: user.email, name: (user.name ?? '').trim() };
+}
+
 export async function requireWorkspaceId(): Promise<string> {
   if (!isHosted()) return LOCAL_WORKSPACE_ID;
   const user = await verifiedAccount();
