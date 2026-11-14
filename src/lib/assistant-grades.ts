@@ -1,7 +1,8 @@
 import { calculateGrades, calculateTarget } from './grades';
 import { readGradingRules } from './grading-rules';
-import { letterFor, minimumFor, passMinimum, pointsFor } from './grade-scale';
+import { letterFor, minimumFor, passMinimum } from './grade-scale';
 import { gradeAssistantFrench } from './i18n/fr';
+import { semesterStanding } from './semester-standing';
 import { schoolById, schoolName, type SchoolProfile } from './schools';
 import {
   matchingAssessment,
@@ -30,14 +31,6 @@ function courseData(data: AssistantWorkspace, course: Course) {
     assessments: data.assessments.filter((a) => a.courseId === course.id),
     rules: readGradingRules(course.gradingRules),
   };
-}
-
-/** Courses for "this semester": the active term, otherwise every current course. */
-function semesterCourses(data: AssistantWorkspace) {
-  const active = new Set(data.semesters.filter((s) => s.isActive).map((s) => s.id));
-  const current = data.courses.filter((c) => !c.archived);
-  const inActive = current.filter((c) => active.has(c.semesterId));
-  return inActive.length ? inActive : current;
 }
 
 function profileFor(data: AssistantWorkspace) {
@@ -130,12 +123,9 @@ function overview(
   profile: SchoolProfile | null,
 ): Answer {
   const s = (en: string, fr: string) => say(language, en, fr);
-  const rows = semesterCourses(data).map((course) => {
-    const { assessments, rules } = courseData(data, course);
-    return { course, summary: calculateGrades(assessments, rules) };
-  });
-  const graded = rows.filter((r) => r.summary.currentGrade !== null);
-  if (!graded.length)
+  const standing = semesterStanding(data, profile);
+  const { rows, credits, basis, floorApplied } = standing;
+  if (standing.average === null)
     return {
       text: s(
         'You don’t have any recorded grades in your current courses yet, so there’s no average to show.',
@@ -143,38 +133,15 @@ function overview(
       ),
       href: '/grades',
     };
-  const creditsReady = graded.every(
-    ({ course }) => Number.isFinite(course.credits) && Number(course.credits) > 0,
-  );
-  const overviewGrades = graded.map(({ summary }) =>
-    profile?.averageFloor === undefined
-      ? summary.currentGrade!
-      : Math.max(summary.currentGrade!, profile.averageFloor),
-  );
-  const floorApplied = graded.some(
-    ({ summary }) =>
-      profile?.averageFloor !== undefined && summary.currentGrade! < profile.averageFloor,
-  );
-  const points = overviewGrades.map((grade) => pointsFor(grade, profile));
-  const pointsReady = points.every((value) => value !== null);
-  const weighted = Boolean(profile?.gpa && profile.credits && creditsReady && pointsReady);
-  const credits = weighted ? graded.reduce((sum, row) => sum + Number(row.course.credits), 0) : 0;
-  const average = weighted
-    ? graded.reduce(
-        (sum, row, index) => sum + overviewGrades[index]! * Number(row.course.credits),
-        0,
-      ) / credits
-    : overviewGrades.reduce((sum, grade) => sum + grade, 0) / graded.length;
-  const gpa = weighted
-    ? graded.reduce((sum, row, index) => sum + points[index]! * Number(row.course.credits), 0) /
-      credits
-    : null;
+  const average = standing.average;
+  const gpa = standing.gpa;
+  const weighted = basis === 'weighted';
   let explanation: string;
   if (weighted) {
     const unit = weightUnit(profile!, language)!;
     explanation = s(
-      `This ${unit}-weighted result uses ${graded.length} course${graded.length === 1 ? '' : 's'} with recorded grades and ${fmt(credits, language)} total ${unit}. Every course grade is based only on work graded so far.`,
-      `Ce résultat pondéré selon les ${unit} utilise ${graded.length} cours notés et ${fmt(credits, language)} ${unit} au total. Chaque note de cours repose seulement sur les travaux déjà corrigés.`,
+      `This ${unit}-weighted result uses ${standing.graded} course${standing.graded === 1 ? '' : 's'} with recorded grades and ${fmt(credits, language)} total ${unit}. Every course grade is based only on work graded so far.`,
+      `Ce résultat pondéré selon les ${unit} utilise ${standing.graded} cours notés et ${fmt(credits, language)} ${unit} au total. Chaque note de cours repose seulement sur les travaux déjà corrigés.`,
     );
   } else if (!profile)
     explanation = s(
@@ -191,7 +158,7 @@ function overview(
       `Each course counts equally because the ${profile.name} profile does not define a course-weight unit. Each course grade is based only on work graded so far.`,
       `Chaque cours compte également, car le profil de ${schoolName(profile, 'fr')} ne définit pas d’unité de pondération. Chaque note repose seulement sur les travaux déjà corrigés.`,
     );
-  else if (!creditsReady)
+  else if (basis === 'missing-credits')
     explanation = s(
       `Each course counts equally because one or more graded courses is missing its ${weightUnit(profile, 'en') ?? 'course weight'}. Each course grade is based only on work graded so far.`,
       `Chaque cours compte également, car il manque les ${weightUnit(profile, 'fr') ?? 'pondérations'} d’au moins un cours noté. Chaque note repose seulement sur les travaux déjà corrigés.`,
@@ -217,8 +184,8 @@ function overview(
             `Ta moyenne de session pondérée selon les ${weightUnit(profile!, 'fr')} est de ${pct(average, language)}${gradeSuffix(average, profile)}, avec une ${profile!.gpa!.label} estimée de ${fmt(gpa!, language)}/${fmt(profile!.gpa!.max, language)}. `,
           )
         : s(
-            `Your equal-weight average across ${graded.length} course${graded.length === 1 ? '' : 's'} with grades is ${pct(average, language)}${gradeSuffix(average, profile)}. `,
-            `Ta moyenne non pondérée sur ${graded.length} cours notés est de ${pct(average, language)}${gradeSuffix(average, profile)}. `,
+            `Your equal-weight average across ${standing.graded} course${standing.graded === 1 ? '' : 's'} with grades is ${pct(average, language)}${gradeSuffix(average, profile)}. `,
+            `Ta moyenne non pondérée sur ${standing.graded} cours notés est de ${pct(average, language)}${gradeSuffix(average, profile)}. `,
           )) +
       explanation +
       floorNote +
