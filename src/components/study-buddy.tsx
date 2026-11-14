@@ -13,6 +13,11 @@ import {
   wrapEdge,
 } from '@/lib/buddy-path';
 
+/** Width of the desktop sidebar when it is shown (0 on narrow screens, where it is hidden). */
+function sidebarWidth() {
+  return document.querySelector('.app-sidebar')?.getBoundingClientRect().width ?? 0;
+}
+
 export function StudyBuddy() {
   const { data } = useWorkspace();
   const character = data.settings.studyBuddy;
@@ -30,7 +35,7 @@ export function StudyBuddy() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     const finePointer = window.matchMedia('(pointer: fine)');
     let size = buddy.offsetWidth;
-    let bounds = buddyBounds(window.innerWidth, window.innerHeight, size);
+    let bounds = buddyBounds(window.innerWidth, window.innerHeight, size, sidebarWidth());
     let position = bounds.width;
     let target = position;
     let frame = 0;
@@ -105,7 +110,7 @@ export function StudyBuddy() {
     function onResize() {
       const progress = position / edgeLength(bounds);
       size = buddy!.offsetWidth;
-      bounds = buddyBounds(window.innerWidth, window.innerHeight, size);
+      bounds = buddyBounds(window.innerWidth, window.innerHeight, size, sidebarWidth());
       position = progress * edgeLength(bounds);
       target = position;
       paint();

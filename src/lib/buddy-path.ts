@@ -5,12 +5,19 @@ export interface BuddyBounds {
   height: number;
 }
 
-export function buddyBounds(width: number, height: number, size: number): BuddyBounds {
+/** The walkable rectangle; `leftOffset` keeps the buddy off a visible sidebar so it never covers it. */
+export function buddyBounds(
+  width: number,
+  height: number,
+  size: number,
+  leftOffset = 0,
+): BuddyBounds {
   const inset = size / 2 + 12;
+  const left = Math.max(0, Math.min(leftOffset, width - inset * 2 - 1)) + inset;
   return {
-    left: inset,
+    left,
     top: inset,
-    width: Math.max(1, width - inset * 2),
+    width: Math.max(1, width - left - inset),
     height: Math.max(1, height - inset * 2),
   };
 }

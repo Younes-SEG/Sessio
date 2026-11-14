@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { legalDocuments, policyUpdated, type LegalDocument } from '@/lib/legal';
 import { LegalFooter } from '@/components/legal-footer';
+import { isHosted } from '@/lib/server/hosting';
 
 export async function generateMetadata({ params }: { params: Promise<{ document: string }> }) {
   const { document } = await params;
@@ -27,7 +28,9 @@ export default async function LegalPage({ params }: { params: Promise<{ document
         <Link href="/" className="text-lg font-semibold">
           Command
         </Link>
-        <p className="muted mt-2 text-sm">Local edition · Policy information</p>
+        <p className="muted mt-2 text-sm">
+          {isHosted() ? 'Hosted edition' : 'Local edition'} · Policy information
+        </p>
       </header>
       <main id="policy-content" tabIndex={-1} className="policy-content">
         <h1 className="text-3xl font-semibold tracking-tight">{content.title}</h1>
@@ -100,7 +103,7 @@ export default async function LegalPage({ params }: { params: Promise<{ document
           </p>
         </section>
       </main>
-      <LegalFooter />
+      <LegalFooter hosted={isHosted()} />
     </div>
   );
 }

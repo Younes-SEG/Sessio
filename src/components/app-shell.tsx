@@ -302,7 +302,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
         <main ref={contentRef} id="main-content" tabIndex={-1} className="page-content">
           {children}
         </main>
-        <LegalFooter />
+        <LegalFooter hosted={Boolean(data.hosted)} />
       </div>
       <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
         <DialogContent className="mobile-nav">

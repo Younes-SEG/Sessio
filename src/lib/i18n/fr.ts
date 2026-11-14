@@ -992,6 +992,7 @@ export const french: Record<string, string> = {
   '· Current weighted grade:': 'À Moyenne pondérée actuelle :',
   '% of course ·': '% du cours ?',
   'Command · Local edition · Ontario, Canada': 'Command · Édition locale · Ontario, Canada',
+  'Command · Hosted edition · Ontario, Canada': 'Command · Édition hébergée · Ontario, Canada',
   'It does not remove downloaded files, backups, database logs or your provider’s calendar. Download a copy first if you need one.':
     'Les fichiers téléchargés, sauvegardes, journaux de base de données et calendriers du fournisseur ne sont pas supprimés. Téléchargez d’abord une copie si nécessaire.',
   '12-hour · 2:30 PM': '12 heures · 2:30 PM',

@@ -2,7 +2,8 @@
 import { T, useT } from '@/components/language-provider';
 import Link from 'next/link';
 
-export function LegalFooter() {
+/** Policy links plus which edition is running (hosted accounts or the local install). */
+export function LegalFooter({ hosted = false }: { hosted?: boolean }) {
   const t = useT();
   return (
     <footer className="legal-footer" aria-label={t('Legal and privacy information')}>
@@ -27,7 +28,13 @@ export function LegalFooter() {
         </Link>
       </nav>
       <p className="mt-3 text-xs">
-        <T text="Command · Local edition · Ontario, Canada" />
+        <T
+          text={
+            hosted
+              ? 'Command · Hosted edition · Ontario, Canada'
+              : 'Command · Local edition · Ontario, Canada'
+          }
+        />
       </p>
     </footer>
   );
