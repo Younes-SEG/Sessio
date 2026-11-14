@@ -3,8 +3,8 @@ import { schools, type SchoolProfile } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
-    // 29 Ontario schools verified on 2026-11-14 (see src/lib/schools/ontario.ts).
-    expect(schools).toHaveLength(29);
+    // 37 Ontario schools verified on 2026-11-14 (see src/lib/schools/ontario.ts).
+    expect(schools).toHaveLength(37);
     expect(schools.map((school) => school.id)).toEqual(
       expect.arrayContaining(['university-of-ottawa', 'university-of-toronto', 'college-la-cite']),
     );
@@ -115,5 +115,29 @@ describe('school catalogue integrity', () => {
     expect(byId('queens-university')?.passRules).toHaveLength(1);
     expect(byId('universite-de-l-ontario-francais')?.passRules).toHaveLength(2);
     expect(byId('conestoga-college')?.passRules).toHaveLength(4);
+    expect(byId('georgian-college')?.averageFloor).toBe(49);
+    expect(byId('lakehead-university')?.repeatPolicy).toBe('latest');
+    expect(byId('university-of-windsor')?.repeatPolicy).toBe('highest');
+    expect(byId('cambrian-college')?.repeatPolicy).toBe('highest');
+    expect(byId('college-boreal')?.repeatPolicy).toBe('latest');
+    expect(byId('college-boreal')?.passPercent).toBe(50);
+    expect(byId('st-clair-college')?.repeatPolicy).toBe('latest');
+    expect(byId('mohawk-college')?.passRules).toHaveLength(4);
+  });
+
+  it('keeps the newly verified scales exact', () => {
+    const byId = (id: string): SchoolProfile | undefined =>
+      schools.find((school) => school.id === id);
+    const minOf = (id: string, letter: string) =>
+      byId(id)?.letterScale?.find((grade) => grade.letter === letter)?.min;
+    const pointsOf = (id: string, letter: string) =>
+      byId(id)?.letterScale?.find((grade) => grade.letter === letter)?.points;
+    expect(byId('carleton-university')?.gpa?.max).toBe(12);
+    expect(pointsOf('carleton-university', 'C-')).toBe(4);
+    expect(minOf('lakehead-university', 'E')).toBe(40);
+    expect(minOf('canadore-college', 'C+')).toBe(65);
+    expect(pointsOf('college-boreal', 'A')).toBe(3.5);
+    expect(byId('college-boreal')?.failLabel).toBe('EC');
+    expect(byId('humber-polytechnic')?.letterScale).toBeNull();
   });
 });
