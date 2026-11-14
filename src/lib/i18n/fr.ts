@@ -1,3 +1,12 @@
+export const gradeAssistantFrench = {
+  averageFloorNote: (floor: string) =>
+    ` Pour cette moyenne seulement, les notes de cours inférieures à ${floor} comptent comme ${floor}; les notes individuelles ne changent pas.`,
+  guidelineNote: (school: string) =>
+    ` Les conversions en lettres de ${school} sont des lignes directrices; l’enseignant décide, donc ce résultat est une estimation.`,
+  passRulesNote: (defaultPercent: string, variants: string) =>
+    ` La note de passage par défaut est ${defaultPercent}. Variantes selon le programme ou le type de cours : ${variants}. Vérifie laquelle s’applique; Command ne la devine pas.`,
+};
+
 export const french: Record<string, string> = {
   'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous ?',
   'Search for your school': 'Rechercher votre \u00e9tablissement',

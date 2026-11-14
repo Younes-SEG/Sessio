@@ -1,6 +1,7 @@
 import { calculateGrades, calculateTarget } from './grades';
 import { readGradingRules } from './grading-rules';
 import { letterFor, minimumFor, passMinimum, pointsFor } from './grade-scale';
+import { gradeAssistantFrench } from './i18n/fr';
 import { schoolById, schoolName, type SchoolProfile } from './schools';
 import {
   matchingAssessment,
@@ -54,10 +55,32 @@ function weightUnit(profile: SchoolProfile, language: string) {
 
 function scaleNote(profile: SchoolProfile | null, language: string) {
   if (!profile?.letterScale) return '';
+  if (profile.lettersAreGuidelines)
+    return say(
+      language,
+      ` The ${profile.name} letter conversions are guidelines; the instructor decides, so this result is an estimate.`,
+      gradeAssistantFrench.guidelineNote(schoolName(profile, 'fr')),
+    );
   return say(
     language,
     ` Letters use the ${profile.name} profile; your course outline is the final word.`,
     ` Les lettres suivent le profil de ${schoolName(profile, 'fr')} ; ton plan de cours a le dernier mot.`,
+  );
+}
+
+function passRulesNote(profile: SchoolProfile | null, language: string) {
+  if (!profile?.passRules?.length || profile.passPercent === null) return '';
+  const variants = profile.passRules
+    .map((rule) => {
+      const label = language === 'fr' ? rule.labelFr : rule.label;
+      const separator = language === 'fr' ? ' : ' : ': ';
+      return `${label}${separator}${pct(rule.passPercent, language)}`;
+    })
+    .join('; ');
+  return say(
+    language,
+    ` The default pass mark is ${pct(profile.passPercent, language)}. Program/course variants: ${variants}. Check which one applies; Command does not guess.`,
+    gradeAssistantFrench.passRulesNote(pct(profile.passPercent, language), variants),
   );
 }
 
@@ -123,14 +146,25 @@ function overview(
   const creditsReady = graded.every(
     ({ course }) => Number.isFinite(course.credits) && Number(course.credits) > 0,
   );
-  const points = graded.map(({ summary }) => pointsFor(summary.currentGrade!, profile));
+  const overviewGrades = graded.map(({ summary }) =>
+    profile?.averageFloor === undefined
+      ? summary.currentGrade!
+      : Math.max(summary.currentGrade!, profile.averageFloor),
+  );
+  const floorApplied = graded.some(
+    ({ summary }) =>
+      profile?.averageFloor !== undefined && summary.currentGrade! < profile.averageFloor,
+  );
+  const points = overviewGrades.map((grade) => pointsFor(grade, profile));
   const pointsReady = points.every((value) => value !== null);
   const weighted = Boolean(profile?.gpa && profile.credits && creditsReady && pointsReady);
   const credits = weighted ? graded.reduce((sum, row) => sum + Number(row.course.credits), 0) : 0;
   const average = weighted
-    ? graded.reduce((sum, row) => sum + row.summary.currentGrade! * Number(row.course.credits), 0) /
-      credits
-    : graded.reduce((sum, row) => sum + row.summary.currentGrade!, 0) / graded.length;
+    ? graded.reduce(
+        (sum, row, index) => sum + overviewGrades[index]! * Number(row.course.credits),
+        0,
+      ) / credits
+    : overviewGrades.reduce((sum, grade) => sum + grade, 0) / graded.length;
   const gpa = weighted
     ? graded.reduce((sum, row, index) => sum + points[index]! * Number(row.course.credits), 0) /
       credits
@@ -167,6 +201,14 @@ function overview(
       `Each course counts equally because the ${profile.name} profile does not provide grade points for every letter. Each course grade is based only on work graded so far.`,
       `Chaque cours compte également, car le profil de ${schoolName(profile, 'fr')} ne fournit pas de points pour chaque lettre. Chaque note repose seulement sur les travaux déjà corrigés.`,
     );
+  const floorNote = floorApplied
+    ? say(
+        language,
+        ` For this overview only, course grades below ${pct(profile!.averageFloor!, language)} count as ${pct(profile!.averageFloor!, language)}; individual course grades do not change.`,
+        gradeAssistantFrench.averageFloorNote(pct(profile!.averageFloor!, language)),
+      )
+    : '';
+  const overviewGuidelineNote = profile?.lettersAreGuidelines ? scaleNote(profile, language) : '';
   return {
     text:
       (weighted
@@ -177,7 +219,10 @@ function overview(
         : s(
             `Your equal-weight average across ${graded.length} course${graded.length === 1 ? '' : 's'} with grades is ${pct(average, language)}${gradeSuffix(average, profile)}. `,
             `Ta moyenne non pondérée sur ${graded.length} cours notés est de ${pct(average, language)}${gradeSuffix(average, profile)}. `,
-          )) + explanation,
+          )) +
+      explanation +
+      floorNote +
+      overviewGuidelineNote,
     href: '/grades',
     items: rows.map(({ course, summary }) => ({
       title: `${course.code} · ${course.name}`,
@@ -237,13 +282,7 @@ function invalid(course: Course, language: string, reason?: string): Answer {
 }
 
 /** Required average across everything still ungraded (the Grades page calculation). */
-function overall(
-  data: AssistantWorkspace,
-  course: Course,
-  goal: Goal,
-  language: string,
-  profile: SchoolProfile | null,
-): Answer {
+function overall(data: AssistantWorkspace, course: Course, goal: Goal, language: string): Answer {
   const s = (en: string, fr: string) => say(language, en, fr);
   const { assessments, rules } = courseData(data, course);
   const result = calculateTarget(assessments, goal.value, rules);
@@ -269,11 +308,10 @@ function overall(
       href,
     };
   return {
-    text:
-      s(
-        `To finish ${course.code} with ${goalText}, you need an average of ${pct(up(result.requiredAverage!), language)} on the remaining ${pct(result.remainingWeight, language)} of the course. ${result.assumption}`,
-        `Pour terminer ${course.code} avec ${goalText}, il te faut une moyenne de ${pct(up(result.requiredAverage!), language)} sur les ${pct(result.remainingWeight, language)} du cours qui restent. ${result.assumption}`,
-      ) + (goal.letter ? scaleNote(profile, language) : ''),
+    text: s(
+      `To finish ${course.code} with ${goalText}, you need an average of ${pct(up(result.requiredAverage!), language)} on the remaining ${pct(result.remainingWeight, language)} of the course. ${result.assumption}`,
+      `Pour terminer ${course.code} avec ${goalText}, il te faut une moyenne de ${pct(up(result.requiredAverage!), language)} sur les ${pct(result.remainingWeight, language)} du cours qui restent. ${result.assumption}`,
+    ),
     href,
   };
 }
@@ -285,7 +323,6 @@ function onAssessment(
   goal: Goal,
   name: string,
   language: string,
-  profile: SchoolProfile | null,
 ): Answer {
   const s = (en: string, fr: string) => say(language, en, fr);
   const href = `/courses/${course.id}`;
@@ -305,7 +342,7 @@ function onAssessment(
         s(
           `${focus.name} is already graded in ${course.code}, so there’s nothing left to aim for on it. `,
           `${focus.name} est déjà corrigé en ${course.code} ; il n’y a donc plus d’objectif à viser dessus. `,
-        ) + overall(data, course, goal, language, profile).text,
+        ) + overall(data, course, goal, language).text,
       href,
     };
   const check = calculateTarget(assessments, goal.value, rules);
@@ -314,7 +351,7 @@ function onAssessment(
   const others = assessments.filter((a) => a.id !== focus.id && a.status !== 'GRADED');
   const missing = Math.max(0, 100 - summary.configuredWeight);
   if ((others.length || missing > EPSILON) && summary.currentGrade === null)
-    return overall(data, course, goal, language, profile);
+    return overall(data, course, goal, language);
   const assumed = summary.currentGrade ?? 0;
   const finalAt = (percent: number) =>
     calculateGrades(
@@ -383,9 +420,7 @@ function onAssessment(
       s(
         `To finish ${course.code} with ${goalText}, you need at least ${pct(needed, language)}${raw} on ${focus.name}.`,
         `Pour terminer ${course.code} avec ${goalText}, il te faut au moins ${pct(needed, language)}${raw} à ${focus.name}.`,
-      ) +
-      assumption +
-      (goal.letter ? scaleNote(profile, language) : ''),
+      ) + assumption,
     href,
   };
 }
@@ -416,7 +451,14 @@ export function gradeStatusAnswer(
     };
   }
   if (!requested.goal) return current(data, course, language, profile);
-  if (intent.assessment)
-    return onAssessment(data, course, requested.goal, intent.assessment, language, profile);
-  return overall(data, course, requested.goal, language, profile);
+  const answer = intent.assessment
+    ? onAssessment(data, course, requested.goal, intent.assessment, language)
+    : overall(data, course, requested.goal, language);
+  return {
+    ...answer,
+    text:
+      answer.text +
+      (requested.goal.letter ? scaleNote(profile, language) : '') +
+      (intent.targetPass ? passRulesNote(profile, language) : ''),
+  };
 }

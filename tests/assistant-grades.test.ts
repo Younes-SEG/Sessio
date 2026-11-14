@@ -202,6 +202,54 @@ describe('grade answers are calculated by the app, never the model', () => {
     expect(answer.text).toContain('135 total hours');
   });
 
+  it('applies an average floor only in the multi-course overview and GPA', () => {
+    const profile = syntheticProfile({ averageFloor: 40, roundPercentBeforeLetter: false });
+    const data: AssistantWorkspace = {
+      ...base,
+      courses: base.courses.map((item) =>
+        item.id === 'seg'
+          ? { ...item, credits: 3 }
+          : item.id === 'csi'
+            ? { ...item, credits: 6 }
+            : item,
+      ),
+      assessments: [
+        assessment({
+          id: 'low',
+          courseId: 'seg',
+          name: 'Course total',
+          weight: 100,
+          score: 10,
+          status: 'GRADED',
+        }),
+        assessment({
+          id: 'high',
+          courseId: 'csi',
+          name: 'Course total',
+          weight: 100,
+          score: 90,
+          status: 'GRADED',
+        }),
+      ],
+    };
+    const overview = gradeStatusAnswer(data, intent({}), 'en', undefined, profile);
+    // The overview uses 40 instead of 10: (40*3 + 90*6)/9 = 73.3;
+    // GPA = (1*3 + 10*6)/9 = 7.0. The course itself remains 10% (F).
+    expect(overview.text).toContain('73.3% (B)');
+    expect(overview.text).toContain('estimated CGPA of 7/10');
+    expect(overview.text).toContain('For this overview only');
+    expect(overview.items?.[0].detail).toContain('10% (F)');
+    const standing = gradeStatusAnswer(
+      data,
+      intent({ course: 'SEG3102' }),
+      'en',
+      data.courses[0],
+      profile,
+    );
+    expect(standing.text).toContain('10% (F)');
+    expect(standing.text).not.toContain('40%');
+  });
+
   it('uses percentages only and asks for a percentage target without a school scale', () => {
     const data: AssistantWorkspace = { ...base, settings: { schoolId: null } };
     const overview = gradeStatusAnswer(data, intent({}), 'en');
@@ -252,6 +300,38 @@ describe('grade answers are calculated by the app, never the model', () => {
     const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg, profile);
     expect(answer.text).toContain('a pass (60%)');
     expect(answer.text).toContain('average of 52%');
+  });
+
+  it('lists pass-rule variants without guessing which program applies', () => {
+    const conestoga = schoolById('conestoga-college')!;
+    const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg, conestoga);
+    expect(answer.text).toContain('a pass (55%)');
+    expect(answer.text).toContain('The default pass mark is 55%');
+    expect(answer.text).toContain('Health sciences: 65%');
+    expect(answer.text).toContain('Gas technician: 75%');
+    expect(answer.text).toContain('Command does not guess');
+
+    const french = gradeStatusAnswer(base, intent({ targetPass: true }), 'fr', seg, conestoga);
+    expect(french.text).toContain('Sciences de la santé : 65 %');
+    expect(french.text).toContain('Command ne la devine pas');
+  });
+
+  it('marks York letter conversions as estimates but not uOttawa conversions', () => {
+    const york = schoolById('york-university')!;
+    const yorkStanding = gradeStatusAnswer(base, intent({ course: 'SEG3102' }), 'en', seg, york);
+    expect(yorkStanding.text).toContain('letter conversions are guidelines');
+    expect(yorkStanding.text).toContain('the instructor decides');
+    expect(yorkStanding.text).toContain('an estimate');
+
+    const yorkTarget = gradeStatusAnswer(base, intent({ targetLetter: 'B' }), 'en', seg, york);
+    expect(yorkTarget.text).toContain('letter conversions are guidelines');
+    const yorkOverview = gradeStatusAnswer(base, intent({}), 'fr', undefined, york);
+    expect(yorkOverview.text).toContain('sont des lignes directrices');
+    expect(yorkOverview.text).toContain('une estimation');
+
+    const uOttawaStanding = gradeStatusAnswer(base, intent({ course: 'SEG3102' }), 'en', seg);
+    expect(uOttawaStanding.text).not.toContain('letter conversions are guidelines');
+    expect(uOttawaStanding.text).not.toContain('an estimate');
   });
 
   it('works out the score needed on the final when it is the only work left', () => {
