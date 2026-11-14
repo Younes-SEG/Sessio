@@ -20,7 +20,8 @@ export const schools = [
       { letter: 'E', min: 40, points: 1 },
       { letter: 'F', min: 0, points: 0 },
     ],
-    roundPercentBeforeLetter: false,
+    // A-3.2: the final course grade is rounded half up on the first decimal (69.5 -> 70 = B).
+    roundPercentBeforeLetter: true,
     failLabel: 'F',
     gpa: { max: 10, label: 'CGPA' },
     passPercent: 50,

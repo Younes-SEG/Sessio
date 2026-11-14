@@ -41,7 +41,12 @@ describe('school catalogue integrity', () => {
             expect(grade.points).toBeLessThanOrEqual(school.gpa?.max ?? grade.points);
           }
         }
-        expect(school.letterScale.at(-1)?.min).toBe(0);
+        // A scale may stop above 0% only when a separate fail label (e.g. EC) covers the rest.
+        const failLetterInScale = school.letterScale.some(
+          (grade) => grade.letter === school.failLabel,
+        );
+        if (failLetterInScale) expect(school.letterScale.at(-1)?.min).toBe(0);
+        else expect(school.passPercent).not.toBeNull();
       }
       if (school.gpa) {
         expect(school.gpa.max).toBeGreaterThan(0);

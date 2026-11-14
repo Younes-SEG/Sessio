@@ -1,6 +1,6 @@
 import { calculateGrades, calculateTarget } from './grades';
 import { readGradingRules } from './grading-rules';
-import { letterFor, minimumFor, pointsFor } from './grade-scale';
+import { letterFor, minimumFor, passMinimum, pointsFor } from './grade-scale';
 import { schoolById, schoolName, type SchoolProfile } from './schools';
 import {
   matchingAssessment,
@@ -12,7 +12,7 @@ import {
 
 type Answer = Pick<AssistantReply, 'text' | 'items' | 'href'>;
 type Course = AssistantWorkspace['courses'][number];
-type Goal = { value: number; label: string; letter: boolean };
+type Goal = { value: number; label: string; letter: boolean; shown?: number };
 
 const EPSILON = 0.000001;
 /** Round requirements up so a student is never told a slightly-too-low score. */
@@ -65,14 +65,21 @@ function target(intent: AssistantIntent, language: string, profile: SchoolProfil
   if (intent.targetLetter) {
     const grade = minimumFor(intent.targetLetter, profile);
     return grade
-      ? { goal: { value: grade.min, label: grade.letter, letter: true } satisfies Goal }
+      ? {
+          goal: {
+            value: grade.min,
+            shown: grade.published,
+            label: grade.letter,
+            letter: true,
+          } satisfies Goal,
+        }
       : { goal: null, unsupported: intent.targetLetter };
   }
   if (intent.targetPass) {
     return profile?.passPercent !== null && profile?.passPercent !== undefined
       ? {
           goal: {
-            value: profile.passPercent,
+            value: passMinimum(profile)!,
             label: say(
               language,
               `a pass (${pct(profile.passPercent, language)})`,
@@ -240,7 +247,9 @@ function overall(
   const s = (en: string, fr: string) => say(language, en, fr);
   const { assessments, rules } = courseData(data, course);
   const result = calculateTarget(assessments, goal.value, rules);
-  const goalText = goal.letter ? `${goal.label} (${pct(goal.value, language)})` : goal.label;
+  const goalText = goal.letter
+    ? `${goal.label} (${pct(goal.shown ?? goal.value, language)})`
+    : goal.label;
   const href = `/courses/${course.id}`;
   if (result.status === 'invalid') return invalid(course, language, result.assumption);
   if (result.status === 'secured')
@@ -321,7 +330,9 @@ function onAssessment(
       rules,
     ).earnedPoints +
     (missing * assumed) / 100;
-  const goalText = goal.letter ? `${goal.label} (${pct(goal.value, language)})` : goal.label;
+  const goalText = goal.letter
+    ? `${goal.label} (${pct(goal.shown ?? goal.value, language)})`
+    : goal.label;
   const assumption =
     others.length || missing > EPSILON
       ? s(
