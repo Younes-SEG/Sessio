@@ -3,8 +3,8 @@ import type { SchoolProfile } from './types';
 /**
  * Ontario school profiles verified on 2026-11-14 by reading each official policy directly.
  * Only facts read from the source are filled in: default credits and the course platform stay
- * null unless confirmed. Partially verified schools (Carleton, Lakehead, Brock, Windsor, Hearst,
- * several colleges) are deliberately absent; see docs/known-issues.md item 11.
+ * null unless confirmed. Partially verified schools (Brock, Hearst, Centennial, Confederation,
+ * Niagara, Northern, Sault) are deliberately absent; see docs/research/README.md.
  */
 type Row = readonly [letter: string, min: number, points?: number];
 const scale = (...rows: readonly Row[]) =>
@@ -383,6 +383,68 @@ export const ontarioSchools = [
     notes: 'Unusual cut-offs (A+ from 94%). E is a failure; F is a serious failure.',
   },
   {
+    ...university,
+    id: 'carleton-university',
+    name: 'Carleton University',
+    letterScale: refined([12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]),
+    // No university-wide rounding rule; non-standard conversions must be in the course outline.
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: { max: 12, label: 'CGPA' },
+    passPercent: 50,
+    credits: { unitLabel: 'credits', unitLabelFr: 'crédits', defaultPerCourse: 0.5 },
+    sources: source(
+      'https://carleton.ca/esp/how-to-calc-cgpa/',
+      'Enriched Support Program - How to Calculate your CGPA',
+    ),
+    notes: 'CGPA is credit-weighted; half-credit courses count 0.5.',
+  },
+  {
+    ...university,
+    id: 'lakehead-university',
+    name: 'Lakehead University',
+    letterScale: scale(
+      ['A+', 90],
+      ['A', 80],
+      ['B', 70],
+      ['C', 60],
+      ['D', 50],
+      ['E', 40],
+      ['F', 0],
+    ),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    repeatPolicy: 'latest',
+    credits: null,
+    sources: source(
+      'https://navigator.lakeheadu.ca/~/Catalog/ViewCatalog.aspx?pageid=viewcatalog&catalogid=19&topicgroupid=9348',
+      'Course Calendar - V Standing',
+    ),
+    notes:
+      'E (40-49%) and F are failures; an F of 0 is reserved for academic dishonesty. Some areas of concentration require more than D.',
+  },
+  {
+    ...university,
+    id: 'university-of-windsor',
+    name: 'University of Windsor',
+    letterScale: refined(),
+    // Bands are published with decimals (85-89.9), so no rounding.
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: source(
+      'https://www.uwindsor.ca/law/student-resources/sites/uwindsor.ca.law.student-resources/files/grading_policy.pdf',
+      'Senate Policy on Grading and Calculation of Averages (amended 2018-04-13)',
+    ),
+    notes:
+      'Integer percentage grades; letters are the transcript equivalents. Averages are credit-weighted. Nursing clinical courses use the latest attempt.',
+  },
+  {
     ...college,
     id: 'algonquin-college',
     name: 'Algonquin College',
@@ -678,5 +740,115 @@ export const ontarioSchools = [
       'Policy 1.4.4 Grade Point System',
     ),
     notes: 'Some programs set a 60% (C) pass mark; health sciences use a separate variant.',
+  },
+  {
+    ...college,
+    id: 'georgian-college',
+    name: 'Georgian College',
+    // B covers 3.0-3.9 grade points, so points per letter aren't fixed; GPA is reported in %.
+    letterScale: scale(['A', 80], ['B', 70], ['C', 60], ['D', 50], ['F', 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    averageFloor: 49,
+    credits: null,
+    sources: source(
+      'https://cat.georgiancollege.ca/academic-regulations/grade-record-promotion/',
+      'Academic Catalogue - 5. Academic grade record and promotion',
+    ),
+    notes:
+      'GPA is a credit-weighted percentage. Degree courses and graduate certificates need 60%; some nursing courses 65%.',
+  },
+  {
+    ...college,
+    id: 'cambrian-college',
+    name: 'Cambrian College',
+    letterScale: scale(['A', 80, 4], ['B', 70, 3], ['C', 60, 2], ['D', 50, 1], ['F', 0, 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: { max: 4, label: 'GPA' },
+    passPercent: 50,
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: source(
+      'https://cambriancollege.ca/supports-services/registrars-office/transcripts-gpa-and-policies',
+      "Registrar's Office - Transcripts, GPA and Policies",
+    ),
+    notes: 'GPA is credit-weighted.',
+  },
+  {
+    ...college,
+    ...percentOnly,
+    id: 'humber-polytechnic',
+    name: 'Humber Polytechnic',
+    roundPercentBeforeLetter: false,
+    passPercent: 50,
+    credits: null,
+    sources: source(
+      'https://humbercollege.widen.net/content/kx2jkp1xbz/pdf/2025-05-29_-_Transcript-Grading-Method_-_Study-at-Humber_-_Grading-Transcripts_001.pdf',
+      'Transcript Key - Grading System',
+    ),
+    notes:
+      'Percentage grades only. GPA is a credit-weighted percentage. A course outline may set a different pass mark.',
+  },
+  {
+    ...college,
+    id: 'college-boreal',
+    name: 'Collège Boréal',
+    nameFr: 'Collège Boréal',
+    letterScale: scale(
+      ['A+', 90, 4],
+      ['A', 85, 3.5],
+      ['A-', 80, 3.3],
+      ['B+', 77, 3.1],
+      ['B', 73, 3],
+      ['B-', 70, 2.8],
+      ['C+', 67, 2.6],
+      ['C', 63, 2.3],
+      ['C-', 60, 2.1],
+      ['D+', 57, 1.9],
+      ['D', 53, 1.6],
+      ['D-', 50, 1.2],
+    ),
+    roundPercentBeforeLetter: false,
+    failLabel: 'EC',
+    gpa: { max: 4, label: 'MPC' },
+    passPercent: 60,
+    credits: null,
+    sources: source(
+      'https://collegeboreal.ca/wp-content/uploads/2023/03/bar-018a-bareme-de-notation-fra-et-angpour-diplome.pdf',
+      'Barème de notation / Grading System',
+    ),
+    notes:
+      'Default pass mark is 60% (C-) unless the program requires more. MPC is weighted by course hours; EC counts as 0.',
+  },
+  {
+    ...college,
+    id: 'canadore-college',
+    name: 'Canadore College',
+    letterScale: scale(
+      ['A+', 90],
+      ['A', 85],
+      ['A-', 80],
+      ['B+', 77],
+      ['B', 73],
+      ['B-', 70],
+      ['C+', 65],
+      ['C', 60],
+      ['D+', 55],
+      ['D', 50],
+      ['F', 0],
+    ),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    credits: null,
+    sources: source(
+      'https://extwebapps.canadorecollege.ca/courseoutlines/copdfs/AMD100/AMD100%202025-2026.pdf',
+      'Course outline AMD100 2025-2026 - Grading System',
+    ),
+    notes: 'Scale from official course outlines; grade points are not published.',
   },
 ] as const satisfies ReadonlyArray<SchoolProfile>;
