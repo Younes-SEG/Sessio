@@ -49,6 +49,39 @@ describe('uOttawa grading follows Academic Regulation A-3', () => {
   });
 });
 
+describe('verified Ontario profiles match their published tables', () => {
+  const school = (id: string) => schoolById(id)!;
+  it('handles unusual cut-offs', () => {
+    expect(letterFor(93, school('royal-military-college-of-canada'))).toBe('A');
+    expect(letterFor(94, school('royal-military-college-of-canada'))).toBe('A+');
+    expect(letterFor(93.9, school('lambton-college'))).toBe('A');
+    expect(letterFor(86, school('george-brown-polytechnic'))).toBe('A');
+    expect(letterFor(85.9, school('george-brown-polytechnic'))).toBe('A-');
+    expect(letterFor(67, school('durham-college'))).toBe('B-');
+    expect(pointsFor(95, school('durham-college'))).toBe(5);
+    expect(letterFor(80, school('seneca-polytechnic'))).toBe('A');
+    expect(letterFor(62, school('ontario-tech-university'))).toBe('C');
+  });
+  it('applies documented rounding only where the policy says so', () => {
+    expect(letterFor(79.5, school('algonquin-college'))).toBe('A-');
+    expect(letterFor(49.5, school('toronto-metropolitan-university'))).toBe('D-');
+    expect(letterFor(89.95, school('queens-university'))).toBe('A');
+    expect(letterFor(72.9, school('university-of-toronto'))).toBe('B-');
+  });
+  it('uses each school pass mark and fail label', () => {
+    expect(letterFor(54, school('conestoga-college'))).toBe('F');
+    expect(letterFor(55, school('conestoga-college'))).toBe('D');
+    expect(letterFor(59, school('college-la-cite'))).toBe('EC');
+    expect(letterFor(60, school('college-la-cite'))).toBe('C-');
+    expect(letterFor(45, school('york-university'))).toBe('E');
+    expect(passMinimum(school('college-la-cite'))).toBe(60);
+  });
+  it('gives no letters for percentage-only schools', () => {
+    expect(letterFor(85, school('university-of-waterloo'))).toBeNull();
+    expect(letterFor(85, school('mohawk-college'))).toBeNull();
+  });
+});
+
 describe('schools whose fail label is not a letter', () => {
   it('replaces passing letters below the pass mark with the fail label', () => {
     expect(letterFor(55, laCiteLike)).toBe('EC');

@@ -2,6 +2,11 @@ export const french: Record<string, string> = {
   'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous ?',
   'Search for your school': 'Rechercher votre \u00e9tablissement',
   'School name or province': 'Nom de l\u2019\u00e9tablissement ou province',
+  'School name or short form, e.g. uOttawa':
+    'Nom de l\u2019\u00e9tablissement ou abr\u00e9viation, p. ex. uOttawa',
+  'No exact match. Closest schools:':
+    'Aucune correspondance exacte. \u00c9tablissements les plus proches :',
+  'Matching schools': '\u00c9tablissements correspondants',
   Schools: '\u00c9tablissements',
   Selected: 'S\u00e9lectionn\u00e9',
   'No listed school matches your search.':
