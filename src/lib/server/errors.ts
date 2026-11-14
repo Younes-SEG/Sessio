@@ -1,8 +1,4 @@
-export type AccessDenialReason =
-  | 'unverified'
-  | 'not-invited'
-  | 'account-deleting'
-  | 'cross-origin';
+import type { AccessDenialReason } from '../access-denial';
 
 export class ApiError extends Error {
   static accessDenied(reason: AccessDenialReason, message: string) {

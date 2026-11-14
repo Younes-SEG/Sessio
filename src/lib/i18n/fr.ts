@@ -39,6 +39,16 @@ export const french: Record<string, string> = {
   Continue: 'Continuer',
   Skip: 'Passer',
   'Account deletion and support': 'Suppression du compte et assistance',
+  'Command is invitation only': 'Command est accessible sur invitation seulement',
+  'Your email is verified, but this account has not been invited to Command. Contact support if you believe you should have access.':
+    'Votre adresse courriel est vérifiée, mais ce compte n’a pas été invité à utiliser Command. Communiquez avec le soutien si vous croyez devoir y avoir accès.',
+  'Your account is being deleted': 'Votre compte est en cours de suppression',
+  'This workspace is unavailable while your account is being deleted. Contact support if you need help.':
+    'Cet espace de travail est inaccessible pendant la suppression de votre compte. Communiquez avec le soutien si vous avez besoin d’aide.',
+  'Access denied': 'Accès refusé',
+  'Command could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.':
+    'Command n’a pas pu confirmer l’accès à cet espace de travail. Déconnectez-vous et réessayez, ou communiquez avec le soutien si le problème persiste.',
+  'Contact support': 'Communiquer avec le soutien',
   'Gmail connections are not available for this account yet.':
     'La connexion Gmail n’est pas encore disponible pour ce compte.',
   'AI is paused. Your planner is still available.':

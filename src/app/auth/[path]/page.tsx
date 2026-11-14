@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Terminal } from 'lucide-react';
-import { AuthPanel } from '@/components/auth-panel';
+import { AccessDeniedPanel, AuthPanel } from '@/components/auth-panel';
 import { T } from '@/components/language-provider';
 import { isAuthConfigured } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
+import { publicOperator } from '@/lib/server/operator';
 
 export const dynamic = 'force-dynamic';
 const views = new Set([
@@ -14,7 +15,11 @@ const views = new Set([
   'reset-password',
   'verify-email',
   'sign-out',
+  'invitation-only',
+  'account-deleting',
+  'access-denied',
 ]);
+const accessViews = new Set(['invitation-only', 'account-deleting', 'access-denied']);
 export default async function AuthPage({
   params,
   searchParams,
@@ -26,6 +31,7 @@ export default async function AuthPage({
   const { path } = await params;
   if (!views.has(path)) notFound();
   const { token } = await searchParams;
+  const accessView = accessViews.has(path);
   return (
     <main className="grid min-h-screen place-items-center px-5 py-8">
       <div className="w-full max-w-md">
@@ -39,7 +45,12 @@ export default async function AuthPage({
           Command
         </Link>
         <section className="card p-4 sm:p-9">
-          {isAuthConfigured() ? (
+          {accessView ? (
+            <AccessDeniedPanel
+              mode={path as 'invitation-only' | 'account-deleting' | 'access-denied'}
+              supportEmail={publicOperator().email}
+            />
+          ) : isAuthConfigured() ? (
             <AuthPanel mode={path} token={typeof token === 'string' ? token : undefined} />
           ) : (
             <>
