@@ -24,6 +24,8 @@ import { CalendarSubscriptions } from './calendar-subscriptions';
 import { PrivacyControls } from './privacy-controls';
 import { BuddyCharacter, buddyCharacters } from './buddy-character';
 import { EmailUpdatesLink } from './email-updates';
+import { SchoolPicker } from './school-picker';
+import { dismissSchoolPrompt } from './school-prompt';
 
 export function SettingsView() {
   const t = useT();
@@ -46,6 +48,7 @@ export function SettingsView() {
         'settings',
         {
           displayName: String(form.get('displayName') ?? '').trim(),
+          schoolId: String(form.get('schoolId') ?? '').trim() || null,
           theme: form.get('theme'),
           timeFormat: form.get('timeFormat'),
           weekStartsOn: Number(form.get('weekStartsOn')),
@@ -55,6 +58,7 @@ export function SettingsView() {
         },
         'preferences',
       );
+      dismissSchoolPrompt();
       setSaved(true);
     } catch (cause) {
       setError(
@@ -245,8 +249,25 @@ export function SettingsView() {
 
 function PreferenceFields({ settings }: { settings: Settings }) {
   const t = useT();
+  const [schoolId, setSchoolId] = useState(settings.schoolId ?? null);
   return (
     <div className="divide-y divide-[var(--border)] px-5 sm:px-5">
+      <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
+        <div>
+          <h3 className="text-sm font-medium">{t('School')}</h3>
+          <p className="muted mt-2 text-xs leading-relaxed">
+            {t('Used for letter grades, GPA and default course weights.')}
+          </p>
+        </div>
+        <div className="space-y-3">
+          <SchoolPicker value={schoolId} onChange={setSchoolId} name="schoolId" />
+          {schoolId && (
+            <Button type="button" size="sm" variant="outline" onClick={() => setSchoolId(null)}>
+              {t('Clear school')}
+            </Button>
+          )}
+        </div>
+      </div>
       <div className="grid gap-4 py-6 sm:grid-cols-[1fr_1.4fr]">
         <div>
           <Label htmlFor="settings-name">

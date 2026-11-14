@@ -2446,6 +2446,43 @@ it('remembers onboarding completion only for the signed-in workspace', async () 
   identity.current = 'local';
 });
 
+it('keeps school and course credits owned, exportable, validated and erasable', async () => {
+  identity.current = 'school-profile-owner';
+  await getWorkspace();
+  await saveEntity('settings', { schoolId: 'university-of-ottawa' }, 'preferences');
+  await expect(
+    saveEntity('settings', { schoolId: 'unknown-school' }, 'preferences'),
+  ).rejects.toBeDefined();
+  const semester = await saveEntity('semesters', {
+    name: 'Fall 2026',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    isActive: true,
+  });
+  const course = await saveEntity('courses', {
+    code: 'SEG3102',
+    name: 'Software Design',
+    semesterId: semester.id,
+    credits: 3,
+  });
+  expect((await getWorkspace()).settings.schoolId).toBe('university-of-ottawa');
+  expect((await getWorkspace()).courses.find((item) => item.id === course.id)?.credits).toBe(3);
+  const exported = await exportWorkspace();
+  expect(exported.workspace.settings.schoolId).toBe('university-of-ottawa');
+  expect(exported.workspace.courses.find((item) => item.id === course.id)?.credits).toBe(3);
+
+  identity.current = 'school-profile-other';
+  expect((await getWorkspace()).settings.schoolId).toBeNull();
+  expect((await getWorkspace()).courses).toHaveLength(0);
+
+  identity.current = 'school-profile-owner';
+  await eraseWorkspace();
+  const erased = await getWorkspace();
+  expect(erased.settings.schoolId).toBeNull();
+  expect(erased.courses).toHaveLength(0);
+  identity.current = 'local';
+});
+
 it('atomically bounds AI reservations and keeps them across workspace erasure', async () => {
   identity.current = 'user:quota-owner';
   vi.stubEnv('COMMAND_AI_ENFORCE_LOCAL', 'true');

@@ -20,6 +20,7 @@ export interface Course {
   name: string;
   semesterId: string;
   instructor: string | null;
+  credits?: number | null;
   color: string;
   notes: string;
   archived: boolean;
@@ -80,6 +81,7 @@ export interface ScheduleEntry {
 export interface Settings {
   id: string;
   displayName: string;
+  schoolId?: string | null;
   theme: 'LIGHT' | 'DARK' | 'SYSTEM';
   timeFormat: '12' | '24';
   weekStartsOn: 0 | 1;

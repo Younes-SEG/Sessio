@@ -135,6 +135,7 @@ model Course {
   name        String
   semesterId  String
   instructor  String?
+  credits     Float?
   color       String          @default("#5b67e8")
   notes       String          @default("")
   archived    Boolean         @default(false)
@@ -316,6 +317,7 @@ model Settings {
   id            String  @id @default("preferences")
   workspaceId   String  @unique @default("local")
   displayName   String  @default("")
+  schoolId      String?
   theme         Theme   @default(SYSTEM)
   timeFormat    String  @default("12")
   weekStartsOn  Int     @default(1)

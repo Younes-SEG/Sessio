@@ -6,6 +6,7 @@ import {
   type AssistantWorkspace,
 } from '../src/lib/assistant';
 import { letterFor, minimumFor } from '../src/lib/grade-scale';
+import { schoolById, type SchoolProfile } from '../src/lib/schools';
 
 type Assessment = AssistantWorkspace['assessments'][number];
 const assessment = (values: Partial<Assessment> & Pick<Assessment, 'id' | 'name' | 'weight'>) =>
@@ -33,6 +34,7 @@ const course = (id: string, code: string, semesterId = 'term') =>
 
 // SEG3102: A1 20% at 80%, Midterm 30% at 60% -> 34 of 50 graded points (68%); Final 50% left.
 const base: AssistantWorkspace = {
+  settings: { schoolId: 'university-of-ottawa' },
   semesters: [
     {
       id: 'term',
@@ -89,6 +91,13 @@ const base: AssistantWorkspace = {
   schedules: [],
 };
 const seg = base.courses[0];
+const uOttawa = schoolById('university-of-ottawa')!;
+const syntheticProfile = (overrides: Partial<SchoolProfile>): SchoolProfile => ({
+  ...uOttawa,
+  id: 'synthetic-school',
+  name: 'Synthetic School',
+  ...overrides,
+});
 const intent = (values: Partial<AssistantIntent>): AssistantIntent => ({
   kind: 'grade_status',
   course: null,
@@ -104,18 +113,37 @@ const intent = (values: Partial<AssistantIntent>): AssistantIntent => ({
 });
 
 describe('uOttawa letter scale', () => {
-  it('uses the official undergraduate cut-offs without rounding up', () => {
-    expect(minimumFor('B')).toBe(70);
-    expect(minimumFor('A+')).toBe(90);
-    expect(letterFor(69.9)).toBe('C+');
-    expect(letterFor(70)).toBe('B');
-    expect(letterFor(84.99)).toBe('A-');
-    expect(letterFor(39)).toBe('F');
+  it('rounds the final course grade half up as Academic Regulation A-3.2 requires', () => {
+    expect(minimumFor('B', uOttawa)).toEqual({ letter: 'B', min: 69.5, published: 70 });
+    expect(minimumFor('A+', uOttawa)?.min).toBe(89.5);
+    expect(letterFor(69.4, uOttawa)).toBe('C+');
+    expect(letterFor(69.5, uOttawa)).toBe('B');
+    expect(letterFor(84.99, uOttawa)).toBe('A');
+    expect(letterFor(39, uOttawa)).toBe('F');
   });
-  it('accepts only real letters in model output', () => {
+  it('rounds to the nearest whole percent before assigning a letter when configured', () => {
+    const profile = syntheticProfile({ roundPercentBeforeLetter: true });
+    expect(letterFor(79.49, profile)).toBe('B+');
+    expect(letterFor(79.5, profile)).toBe('A-');
+    expect(minimumFor('A-', profile)?.min).toBe(79.5);
+    // 49.5 rounds to 50, which passes.
+    expect(minimumFor('D', profile)?.min).toBe(49.5);
+  });
+  it('uses a custom failure label below the exact school pass mark', () => {
+    const profile = syntheticProfile({
+      passPercent: 60,
+      failLabel: 'EC',
+      roundPercentBeforeLetter: false,
+    });
+    expect(letterFor(59.9, profile)).toBe('EC');
+    expect(letterFor(60, profile)).toBe('C');
+  });
+  it('keeps model letter targets bounded for server-side profile validation', () => {
     expect(assistantIntentSchema.parse(intent({ targetLetter: 'B+' })).targetLetter).toBe('B+');
-    expect(() => assistantIntentSchema.parse(intent({ targetLetter: 'Z' as never }))).toThrow();
+    expect(assistantIntentSchema.parse(intent({ targetLetter: 'Z' })).targetLetter).toBe('Z');
+    expect(() => assistantIntentSchema.parse(intent({ targetLetter: 'x'.repeat(21) }))).toThrow();
     expect(() => assistantIntentSchema.parse(intent({ targetPercent: 120 }))).toThrow();
+    expect(assistantIntentSchema.parse(intent({ targetPass: true })).targetPass).toBe(true);
   });
 });
 
@@ -125,6 +153,8 @@ describe('grade answers are calculated by the app, never the model', () => {
     // (68 + 90) / 2 = 79 -> B+; the inactive Winter course (10%) is excluded.
     expect(answer.text).toContain('79%');
     expect(answer.text).toContain('(B+)');
+    expect(answer.text).toContain('equal-weight');
+    expect(answer.text).toContain('missing its units');
     expect(answer.text).toContain('2 courses');
     expect(answer.items?.map((i) => i.title.split(' ·')[0])).toEqual([
       'SEG3102',
@@ -132,6 +162,65 @@ describe('grade answers are calculated by the app, never the model', () => {
       'MAT1341',
     ]);
     expect(answer.items?.[2].detail).toBe('No grades yet');
+  });
+
+  it('uses course weights for the school average and GPA when every graded course has them', () => {
+    const data: AssistantWorkspace = {
+      ...base,
+      courses: base.courses.map((item) =>
+        item.id === 'seg'
+          ? { ...item, credits: 3 }
+          : item.id === 'csi'
+            ? { ...item, credits: 6 }
+            : item,
+      ),
+    };
+    const answer = gradeStatusAnswer(data, intent({}), 'en');
+    // Percentage: (68*3 + 90*6)/9 = 82.7. GPA: (5*3 + 10*6)/9 = 8.3.
+    expect(answer.text).toContain('units-weighted semester average is 82.7% (A-)');
+    expect(answer.text).toContain('estimated CGPA of 8.3/10');
+    expect(answer.text).toContain('based only on work graded so far');
+  });
+
+  it('uses normative instructional hours as the school-defined GPA weight', () => {
+    const profile = syntheticProfile({
+      credits: { unitLabel: 'hours', unitLabelFr: 'heures', defaultPerCourse: 45 },
+    });
+    const data: AssistantWorkspace = {
+      ...base,
+      courses: base.courses.map((item) =>
+        item.id === 'seg'
+          ? { ...item, credits: 45 }
+          : item.id === 'csi'
+            ? { ...item, credits: 90 }
+            : item,
+      ),
+    };
+    const answer = gradeStatusAnswer(data, intent({}), 'en', undefined, profile);
+    expect(answer.text).toContain('hours-weighted semester average is 82.7% (A-)');
+    expect(answer.text).toContain('estimated CGPA of 8.3/10');
+    expect(answer.text).toContain('135 total hours');
+  });
+
+  it('uses percentages only and asks for a percentage target without a school scale', () => {
+    const data: AssistantWorkspace = { ...base, settings: { schoolId: null } };
+    const overview = gradeStatusAnswer(data, intent({}), 'en');
+    expect(overview.text).toContain('79%');
+    expect(overview.text).not.toContain('(B+)');
+    expect(overview.text).toContain('no school profile is selected');
+
+    const standing = gradeStatusAnswer(data, intent({ course: 'SEG3102' }), 'en', seg);
+    expect(standing.text).toContain('68%');
+    expect(standing.text).not.toContain('(C+)');
+    const target = gradeStatusAnswer(data, intent({ targetLetter: 'B' }), 'en', seg);
+    expect(target.text).toContain('What final percentage');
+    expect(target.text).not.toContain('average of 71%');
+  });
+
+  it('asks for a percentage when a letter is absent from the selected school profile', () => {
+    const answer = gradeStatusAnswer(base, intent({ targetLetter: 'Z' }), 'en', seg);
+    expect(answer.text).toContain('not defined as a target');
+    expect(answer.text).toContain('What final percentage');
   });
 
   it('reports one course’s current standing', () => {
@@ -142,10 +231,27 @@ describe('grade answers are calculated by the app, never the model', () => {
   });
 
   it('works out the average needed on remaining work for a letter', () => {
-    // (70 - 34) / 50 = 72%
+    // uOttawa rounds half up, so a B needs 69.5: (69.5 - 34) / 50 = 71%
     const answer = gradeStatusAnswer(base, intent({ targetLetter: 'B' }), 'en', seg);
     expect(answer.text).toContain('B (70%)');
-    expect(answer.text).toContain('average of 72%');
+    expect(answer.text).toContain('average of 71%');
+  });
+
+  it('uses the selected school pass threshold without asking the model to infer a letter', () => {
+    const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg);
+    expect(answer.text).toContain('a pass (50%)');
+    expect(answer.text).toContain('average of 31%');
+  });
+
+  it('uses a 60% school pass mark for pass targets', () => {
+    const profile = syntheticProfile({
+      passPercent: 60,
+      failLabel: 'EC',
+      roundPercentBeforeLetter: false,
+    });
+    const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg, profile);
+    expect(answer.text).toContain('a pass (60%)');
+    expect(answer.text).toContain('average of 52%');
   });
 
   it('works out the score needed on the final when it is the only work left', () => {
@@ -155,7 +261,7 @@ describe('grade answers are calculated by the app, never the model', () => {
       'en',
       seg,
     );
-    expect(answer.text).toContain('at least 72% on Final Exam');
+    expect(answer.text).toContain('at least 71% on Final Exam');
     expect(answer.text).not.toContain('assumes');
   });
 
@@ -170,11 +276,11 @@ describe('grade answers are calculated by the app, never the model', () => {
       'en',
       seg,
     );
-    expect(answer.text).toContain('72% (43.2/60)');
+    expect(answer.text).toContain('71% (42.6/60)');
   });
 
   it('assumes the current grade on other remaining work and says so', () => {
-    // A2 10% left besides a 40% final: A2 at 68% -> 6.8 points; (70 - 34 - 6.8) / 40 = 73%.
+    // A2 10% left besides a 40% final: A2 at 68% -> 6.8 points; (69.5 - 34 - 6.8) / 40 = 71.75% -> 71.8%.
     const data = {
       ...base,
       assessments: [
@@ -188,7 +294,7 @@ describe('grade answers are calculated by the app, never the model', () => {
       'en',
       seg,
     );
-    expect(answer.text).toContain('at least 73% on Final Exam');
+    expect(answer.text).toContain('at least 71.8% on Final Exam');
     expect(answer.text).toContain('keep your current 68%');
   });
 
@@ -246,11 +352,11 @@ describe('grade answers are calculated by the app, never the model', () => {
     };
     const course = data.courses[0];
     expect(gradeStatusAnswer(data, intent({}), 'en', course).text).toContain('100% (A+)');
-    // (70 - 20) / 80 = 62.5%
+    // (69.5 - 20) / 80 = 61.875% -> 61.9%
     expect(
       gradeStatusAnswer(data, intent({ targetLetter: 'B', assessment: 'Final Exam' }), 'en', course)
         .text,
-    ).toContain('at least 62.5% on Final Exam');
+    ).toContain('at least 61.9% on Final Exam');
   });
 
   it('answers in French with French number formatting', () => {
@@ -260,7 +366,7 @@ describe('grade answers are calculated by the app, never the model', () => {
       'fr',
       seg,
     );
-    expect(answer.text).toContain('72 %');
+    expect(answer.text).toContain('71 %');
     expect(answer.text).toContain('Pour terminer SEG3102');
   });
 

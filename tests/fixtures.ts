@@ -52,6 +52,7 @@ export function workspace(overrides: Partial<Workspace> = {}): Workspace {
         name: 'Software Requirements',
         semesterId: 'semester-1',
         instructor: null,
+        credits: null,
         color: '#34d399',
         notes: '',
         archived: false,
@@ -64,6 +65,7 @@ export function workspace(overrides: Partial<Workspace> = {}): Workspace {
     settings: {
       id: 'settings',
       displayName: 'Alex',
+      schoolId: null,
       theme: 'SYSTEM',
       timeFormat: '24',
       weekStartsOn: 1,
