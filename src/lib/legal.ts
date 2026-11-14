@@ -78,8 +78,8 @@ export const legalDocuments = {
       {
         title: 'Audience and future changes',
         paragraphs: [
-          'Command is designed for postsecondary study and general personal planning, not a child-directed service. It does not collect age or parental-consent records. A future child-directed or hosted version would need a separate privacy and age-consent assessment before collecting children’s information.',
-          'The planned publisher jurisdiction is Ontario, Canada. Operator identity and a privacy/security contact have not been designated for public release yet. This notice must be reviewed and those details supplied before public distribution. Material changes to data collection or optional services need an updated notice and any consent required for that change.',
+          'Command is designed for postsecondary study and general personal planning, not a child-directed service. It does not collect age or parental-consent records. A child-directed version would need a separate privacy and age-consent assessment before collecting children’s information.',
+          'The planned publisher jurisdiction is Ontario, Canada. When a hosted operator and support contact are configured, they appear under “Account deletion and support” below. This notice is a preview and must receive a final review before public distribution. Material changes to data collection or optional services need an updated notice and any consent required for that change.',
         ],
       },
     ],
@@ -87,7 +87,7 @@ export const legalDocuments = {
   terms: {
     title: 'Terms of use',
     introduction:
-      'These terms describe the current preview of Command. Public-release operator and contact details are still pending.',
+      'These terms describe the current preview of Command. When a hosted operator and support contact are configured, they appear under “Account deletion and support” below. Final release terms are still pending.',
     sections: [
       {
         title: 'Using Command',
@@ -184,7 +184,7 @@ export const legalDocuments = {
       {
         title: 'Publisher details',
         paragraphs: [
-          'Planned jurisdiction: Ontario, Canada. Operator/business name, public contact email and any legally required business address or registration details are intentionally not supplied yet. Public distribution is pending those details and a final policy review. No business identity or contact address has been invented.',
+          'Planned jurisdiction: Ontario, Canada. When a hosted operator name and support contact are configured, they appear under “Account deletion and support” below. Any legally required business address or registration details are not supplied yet. Public distribution is pending a final policy review. No business identity or contact address has been invented.',
         ],
       },
       {
