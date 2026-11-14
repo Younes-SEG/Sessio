@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { Workspace } from './types';
 import { matchEmailAssessment } from './email-grades';
-import { LETTER_GRADES } from './grade-scale';
 
 const shortText = z.string().max(200).nullable();
 const queryKind = z.enum(['assessments', 'grades', 'tasks', 'classes', 'events', 'study_sessions']);
@@ -56,14 +55,15 @@ export const assistantIntentSchema = z.object({
   toDate: shortText,
   question: z.string().max(600).nullable(),
   // grade_status only: a desired final course result, as a letter or a percentage.
-  targetLetter: z.enum(LETTER_GRADES).nullable().optional(),
+  targetLetter: z.string().trim().min(1).max(20).nullable().optional(),
   targetPercent: z.number().min(0).max(100).nullable().optional(),
+  targetPass: z.boolean().nullable().optional(),
 });
 export type AssistantIntent = z.infer<typeof assistantIntentSchema>;
 export type AssistantWorkspace = Pick<
   Workspace,
   'courses' | 'semesters' | 'assessments' | 'tasks' | 'events' | 'schedules'
->;
+> & { settings?: Pick<Workspace['settings'], 'schoolId'> };
 export type AssistantReply = {
   id: string;
   text: string;

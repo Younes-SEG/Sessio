@@ -66,7 +66,7 @@ async function snapshot(tx: Tx, workspaceId: string): Promise<AssistantWorkspace
     where: { semester: { workspaceId }, deletedAt: null, archived: false },
   });
   const courseIds = courses.map((c) => c.id);
-  const [semesters, assessments, tasks, events, schedules] = await Promise.all([
+  const [semesters, assessments, tasks, events, schedules, settings] = await Promise.all([
     tx.semester.findMany({ where: { workspaceId } }),
     tx.assessment.findMany({ where: { courseId: { in: courseIds } } }),
     tx.task.findMany({
@@ -77,8 +77,19 @@ async function snapshot(tx: Tx, workspaceId: string): Promise<AssistantWorkspace
       where: { workspaceId, OR: [{ courseId: null }, { courseId: { in: courseIds } }] },
     }),
     tx.scheduleEntry.findMany({ where: { courseId: { in: courseIds } } }),
+    tx.settings.findUnique({ where: { workspaceId }, select: { schoolId: true } }),
   ]);
-  return JSON.parse(JSON.stringify({ courses, semesters, assessments, tasks, events, schedules }));
+  return JSON.parse(
+    JSON.stringify({
+      courses,
+      semesters,
+      assessments,
+      tasks,
+      events,
+      schedules,
+      settings: settings ?? { schoolId: null },
+    }),
+  );
 }
 
 function clarify(id: string, text: string): AssistantReply {
@@ -134,6 +145,7 @@ async function prepare(
   if (intent.kind === 'grade_status') {
     const hasTarget =
       Boolean(intent.targetLetter) ||
+      Boolean(intent.targetPass) ||
       (intent.targetPercent !== null && intent.targetPercent !== undefined);
     if (!course && (hasTarget || intent.assessment))
       return {
@@ -151,7 +163,7 @@ async function prepare(
         status: 'answer',
         ...gradeStatusAnswer(data, intent, language, course),
         // Only the question goes back to the model, never the calculated grades.
-        context: `Completed read-only grade question: ${JSON.stringify({ kind: intent.kind, course: course?.code ?? null, assessment: intent.assessment, targetLetter: intent.targetLetter ?? null, targetPercent: intent.targetPercent ?? null })}. No changes were made.`,
+        context: `Completed read-only grade question: ${JSON.stringify({ kind: intent.kind, course: course?.code ?? null, assessment: intent.assessment, targetLetter: intent.targetLetter ?? null, targetPercent: intent.targetPercent ?? null, targetPass: intent.targetPass ?? null })}. No changes were made.`,
       },
     };
   }
