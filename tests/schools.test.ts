@@ -3,7 +3,10 @@ import { schools } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
-    expect(schools).toHaveLength(1);
+    expect(schools.map((school) => school.id)).toEqual([
+      'university-of-ottawa',
+      'university-of-toronto',
+    ]);
     expect(new Set(schools.map((school) => school.id)).size).toBe(schools.length);
     for (const school of schools) {
       expect(school.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);

@@ -5,7 +5,7 @@ import { Search } from 'lucide-react';
 import { useLanguage, useT } from './language-provider';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { schoolName, schools } from '@/lib/schools';
+import { schoolName, schools, type SchoolProfile } from '@/lib/schools';
 
 export function SchoolPicker({
   value,
@@ -25,7 +25,7 @@ export function SchoolPicker({
   const matches = useMemo(() => {
     const term = query.trim().toLocaleLowerCase(t.locale);
     if (!term) return schools;
-    return schools.filter((school) =>
+    return (schools as readonly SchoolProfile[]).filter((school) =>
       [school.name, school.nameFr, school.province]
         .filter(Boolean)
         .some((part) => part!.toLocaleLowerCase(t.locale).includes(term)),
