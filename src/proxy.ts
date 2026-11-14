@@ -42,5 +42,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|icon.svg|third-party-notices.txt|licenses/).*)'],
+  // Public, openly licensed static files stay outside the gate: signed-out pages (sign-in,
+  // legal) still need the fonts, and redirecting them served HTML in place of a font file.
+  matcher: ['/((?!_next/static|_next/image|icon.svg|third-party-notices.txt|licenses/|fonts/).*)'],
 };
