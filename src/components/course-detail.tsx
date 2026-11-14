@@ -27,6 +27,7 @@ import { useWorkspace } from '@/components/workspace-provider';
 import { calculateGrades, calculateTarget, ruleContributions } from '@/lib/grades';
 import { CourseGradingRules } from './course-grading-rules';
 import { CourseSyllabusStatus } from './course-syllabus-status';
+import { GradeLetter, SchoolGradeNotes } from './school-grade';
 import type { GradingRule } from '@/lib/grading-rules';
 import type { Assessment, Course, ScheduleEntry } from '@/lib/types';
 import { statusLabel } from '@/components/editors/fields';
@@ -388,6 +389,7 @@ function GradeSummary({
         </p>
         <p className="mt-3 text-3xl font-semibold tracking-tight">
           {percent(grades.currentGrade)}
+          <GradeLetter percent={grades.currentGrade} className="text-xl" />
           <span className="ml-2 text-sm font-normal text-[var(--muted-foreground)]">
             {grades.currentGrade === null ? t('No grades yet') : t('on graded work')}
           </span>
@@ -395,6 +397,7 @@ function GradeSummary({
         <p className="muted mt-3 text-xs">
           <T text="Weighted average of graded assessments only." />
         </p>
+        <SchoolGradeNotes />
       </div>
       <div className="card p-4 sm:p-5">
         <p className="muted text-sm">

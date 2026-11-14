@@ -8,6 +8,31 @@ export const gradeAssistantFrench = {
 };
 
 export const french: Record<string, string> = {
+  'This term': 'Cette session',
+  average: 'de moyenne',
+  '{count} course with grades': '{count} cours not\u00e9',
+  '{count} courses with grades': '{count} cours not\u00e9s',
+  'Weighted by {unit}.': 'Pond\u00e9r\u00e9e selon les {unit}.',
+  '{courses}, using only work graded so far.':
+    '{courses}, selon les travaux d\u00e9j\u00e0 corrig\u00e9s seulement.',
+  'Courses count equally; no school is selected, so no letters or GPA are shown.':
+    'Les cours comptent \u00e9galement ; aucun \u00e9tablissement n\u2019est choisi, donc aucune lettre ni MPC n\u2019est affich\u00e9e.',
+  'Courses count equally; {school} reports averages, not a GPA.':
+    'Les cours comptent \u00e9galement ; {school} publie des moyennes, pas une MPC.',
+  'Courses count equally because {school} has no standard course weight.':
+    'Les cours comptent \u00e9galement, car {school} n\u2019a pas de pond\u00e9ration de cours standard.',
+  'Courses count equally. Add credits to every graded course to see your GPA.':
+    'Les cours comptent \u00e9galement. Ajoutez les cr\u00e9dits de chaque cours not\u00e9 pour voir votre MPC.',
+  'Courses count equally because {school} doesn\u2019t publish grade points for every letter.':
+    'Les cours comptent \u00e9galement, car {school} ne publie pas de points pour chaque lettre.',
+  'Grades below {floor} count as {floor} here, as {school} does; course grades don\u2019t change.':
+    'Ici, les notes inf\u00e9rieures \u00e0 {floor} comptent comme {floor}, comme le fait {school} ; les notes des cours ne changent pas.',
+  'Letters are estimates; your instructor decides.':
+    'Les lettres sont des estimations ; votre enseignant ou enseignante d\u00e9cide.',
+  'Choose your school': 'Choisir votre \u00e9tablissement',
+  'Pass mark: {pass}.': 'Note de passage : {pass}.',
+  'Usual pass mark: {pass}; some programs differ.':
+    'Note de passage habituelle : {pass} ; certains programmes diff\u00e8rent.',
   'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous ?',
   'Search for your school': 'Rechercher votre \u00e9tablissement',
   'School name or province': 'Nom de l\u2019\u00e9tablissement ou province',
