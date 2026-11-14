@@ -35,6 +35,8 @@ import { ensureStudyTasks } from '../src/lib/server/study-tasks';
 import { retireCalendarTasks } from '../src/lib/server/calendar-reconcile';
 import { parseCalendarFeed } from '../src/lib/calendar-feed';
 import { POST as calendarChange } from '../src/app/api/calendar-subscriptions/route';
+import { GET as privacyExport } from '../src/app/api/privacy/export/route';
+import { POST as privacyErase } from '../src/app/api/privacy/erase/route';
 import { beginGmail, finishGmail } from '../src/lib/server/gmail-oauth';
 import {
   emailOverview,
@@ -370,6 +372,97 @@ async function chatFixture(owner: string) {
     data: { courseId: course.id, name: 'Assignment 1', type: 'ASSIGNMENT', weight: 10 },
   });
   return { course, assessment };
+}
+
+async function privacyFixture(owner: string, marker: string) {
+  identity.current = owner;
+  const semester = await db.semester.create({
+    data: {
+      workspaceId: owner,
+      name: `${marker} semester`,
+      startDate: new Date('2091-01-01'),
+      endDate: new Date('2091-05-01'),
+      isActive: true,
+    },
+  });
+  const course = await db.course.create({
+    data: { semesterId: semester.id, code: marker, name: `${marker} course` },
+  });
+  const assessment = await db.assessment.create({
+    data: {
+      courseId: course.id,
+      name: `${marker} assessment`,
+      type: 'ASSIGNMENT',
+      weight: 20,
+    },
+  });
+  const task = await db.task.create({
+    data: { workspaceId: owner, courseId: course.id, title: `${marker} task` },
+  });
+  const event = await db.calendarEvent.create({
+    data: {
+      workspaceId: owner,
+      courseId: course.id,
+      title: `${marker} event`,
+      startAt: new Date('2091-02-01T12:00:00Z'),
+      endAt: new Date('2091-02-01T13:00:00Z'),
+    },
+  });
+  const schedule = await db.scheduleEntry.create({
+    data: {
+      courseId: course.id,
+      title: `${marker} schedule`,
+      dayOfWeek: 1,
+      startTime: '10:00',
+      endTime: '11:00',
+    },
+  });
+  const connection = await db.calendarSubscription.create({
+    data: {
+      workspaceId: owner,
+      name: `${marker} calendar`,
+      url: `https://calendar.example/${marker}`,
+      fromDate: new Date('2091-01-01'),
+      throughDate: new Date('2091-05-01'),
+      timeZone: 'UTC',
+    },
+  });
+  const chat = await db.assistantConversation.create({
+    data: {
+      id: randomUUID(),
+      workspaceId: owner,
+      title: `${marker} chat`,
+      entries: [{ role: 'user', text: `${marker} message` }],
+    },
+  });
+  const settings = await db.settings.upsert({
+    where: { workspaceId: owner },
+    create: { id: `preferences:${owner}`, workspaceId: owner, displayName: marker },
+    update: { displayName: marker },
+  });
+  return {
+    owner,
+    marker,
+    semester,
+    course,
+    assessment,
+    task,
+    event,
+    schedule,
+    connection,
+    chat,
+    settings,
+    ids: [
+      semester.id,
+      course.id,
+      assessment.id,
+      task.id,
+      event.id,
+      schedule.id,
+      connection.id,
+      chat.id,
+    ],
+  };
 }
 it('chat saves an exact grade once, isolates ownership, and supports conditional Undo', async () => {
   const { assessment } = await chatFixture('chat-grade');
@@ -1790,6 +1883,97 @@ it('isolates complete workspaces, cross-references, imports, sync and erasure', 
   expect(await db.task.count({ where: { workspaceId: 'forged' } })).toBe(0);
 });
 
+it('exports only the signed-in workspace when the request forges target identifiers', async () => {
+  const accountA = await privacyFixture('user:privacy-export-a', 'EXPORT-A-ONLY');
+  const accountB = await privacyFixture('user:privacy-export-b', 'EXPORT-B-ONLY');
+  identity.current = accountB.owner;
+  const target = new URLSearchParams({
+    workspaceId: accountA.owner,
+    accountId: accountA.owner,
+    userId: accountA.owner,
+    target: accountA.owner,
+    id: accountA.course.id,
+  });
+  const response = await privacyExport(
+    new Request(`http://localhost/api/privacy/export?${target}`, {
+      headers: {
+        'x-workspace-id': accountA.owner,
+        'x-account-id': accountA.owner,
+        'x-user-id': accountA.owner,
+      },
+    }),
+  );
+  expect(response.status).toBe(200);
+  expect(response.headers.get('cache-control')).toBe('private, no-store');
+  const exported = JSON.stringify(await response.json());
+  expect(exported).toContain(accountB.marker);
+  for (const id of accountB.ids) expect(exported).toContain(id);
+  expect(exported).not.toContain(accountA.marker);
+  expect(exported).not.toContain(accountA.owner);
+  for (const id of accountA.ids) expect(exported).not.toContain(id);
+});
+
+it('ignores forged erase targets and keeps the other workspace intact in both directions', async () => {
+  const accountA = await privacyFixture('user:privacy-erase-a', 'ERASE-A-ONLY');
+  const accountB = await privacyFixture('user:privacy-erase-b', 'ERASE-B-ONLY');
+  identity.current = accountB.owner;
+  const target = new URLSearchParams({
+    workspaceId: accountA.owner,
+    accountId: accountA.owner,
+    userId: accountA.owner,
+    target: accountA.owner,
+    id: accountA.course.id,
+  });
+  const forged = await privacyErase(
+    new Request(`http://localhost/api/privacy/erase?${target}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'http://localhost',
+        'x-workspace-id': accountA.owner,
+        'x-account-id': accountA.owner,
+        'x-user-id': accountA.owner,
+      },
+      body: JSON.stringify({
+        confirmation: 'DELETE MY DATA',
+        workspaceId: accountA.owner,
+        accountId: accountA.owner,
+        userId: accountA.owner,
+        target: accountA.owner,
+        id: accountA.course.id,
+      }),
+    }),
+  );
+  expect(forged.status).toBe(200);
+  expect(await forged.json()).toEqual({ erased: true });
+  expect(await db.course.findUnique({ where: { id: accountA.course.id } })).toEqual(
+    accountA.course,
+  );
+  expect(await db.task.findUnique({ where: { id: accountA.task.id } })).toEqual(accountA.task);
+  expect(await db.course.findUnique({ where: { id: accountB.course.id } })).toBeNull();
+  expect(await db.task.findUnique({ where: { id: accountB.task.id } })).toBeNull();
+  expect(
+    await db.accountLifecycle.findUniqueOrThrow({ where: { workspaceId: accountA.owner } }),
+  ).toMatchObject({ status: 'ACTIVE', blockedAt: null, erasedAt: null, authDeletedAt: null });
+
+  const survivingB = await privacyFixture(accountB.owner, 'ERASE-B-SURVIVES-A');
+  identity.current = accountA.owner;
+  const ownErase = await privacyErase(
+    new Request('http://localhost/api/privacy/erase', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost' },
+      body: JSON.stringify({ confirmation: 'DELETE MY DATA' }),
+    }),
+  );
+  expect(ownErase.status).toBe(200);
+  expect(await db.course.findUnique({ where: { id: accountA.course.id } })).toBeNull();
+  expect(await db.task.findUnique({ where: { id: accountA.task.id } })).toBeNull();
+  expect(await db.course.findUnique({ where: { id: survivingB.course.id } })).toEqual(
+    survivingB.course,
+  );
+  expect(await db.task.findUnique({ where: { id: survivingB.task.id } })).toEqual(survivingB.task);
+});
+
 it('calendar imports merge translated source identities, preserve grades, and leave planning tasks independent', async () => {
   const workspaceId = 'calendar-translations';
   const options = {
@@ -2544,26 +2728,119 @@ it('atomically bounds AI reservations and keeps them across workspace erasure', 
 
 it('blocks stale writes at the database and erases only the selected account', async () => {
   const other = await chatFixture('user:deletion-other');
-  const owner = await chatFixture('user:deletion-owner');
-  await blockAccount('user:deletion-owner');
-  await expect(assertAccountActive('user:deletion-owner')).rejects.toMatchObject({
+  const ownerId = 'user:deletion-owner';
+  const owner = await chatFixture(ownerId);
+  const task = await db.task.create({ data: { workspaceId: ownerId, title: 'Stale task' } });
+  const subtask = await db.subtask.create({ data: { taskId: task.id, title: 'Stale subtask' } });
+  const event = await db.calendarEvent.create({
+    data: {
+      workspaceId: ownerId,
+      title: 'Stale event',
+      startAt: new Date('2090-05-01T12:00:00Z'),
+      endAt: new Date('2090-05-01T13:00:00Z'),
+    },
+  });
+  const settings = await db.settings.create({
+    data: { id: `preferences:${ownerId}`, workspaceId: ownerId },
+  });
+  const subscription = await db.calendarSubscription.create({
+    data: {
+      workspaceId: ownerId,
+      name: 'Stale calendar',
+      url: 'https://calendar.example/stale-deletion-owner',
+      fromDate: new Date('2090-01-01'),
+      throughDate: new Date('2090-12-31'),
+      timeZone: 'UTC',
+    },
+  });
+  const imported = await db.importedCalendarItem.create({
+    data: { subscriptionId: subscription.id, sourceKey: 'stale-source' },
+  });
+  const oauth = await db.gmailOAuthState.create({
+    data: {
+      id: 'stale-oauth',
+      workspaceId: ownerId,
+      verifier: 'synthetic-verifier',
+      expiresAt: new Date('2090-01-01'),
+    },
+  });
+  const gmail = await db.gmailConnection.create({
+    data: {
+      workspaceId: ownerId,
+      email: 'deletion-owner@example.test',
+      refreshToken: 'synthetic-token',
+      query: DEFAULT_GMAIL_QUERY,
+    },
+  });
+  const email = await db.emailUpdate.create({
+    data: {
+      connectionId: gmail.id,
+      messageId: 'stale-message',
+      subject: 'Stale subject',
+      sender: 'sender@example.test',
+      receivedAt: new Date('2090-01-01'),
+      excerpt: 'Synthetic excerpt',
+    },
+  });
+  const request = await db.assistantRequest.create({
+    data: { workspaceId: ownerId, id: 'stale-request' },
+  });
+  const conversation = await db.assistantConversation.create({
+    data: { workspaceId: ownerId, id: 'stale-conversation', title: 'Stale chat' },
+  });
+  const schedule = await db.scheduleEntry.create({
+    data: {
+      courseId: owner.course.id,
+      title: 'Stale schedule',
+      dayOfWeek: 1,
+      startTime: '10:00',
+      endTime: '11:00',
+    },
+  });
+
+  await blockAccount(ownerId);
+  await expect(assertAccountActive(ownerId)).rejects.toMatchObject({
     status: 403,
     reason: 'account-deleting',
   });
-  await expect(
-    db.assessment.update({ where: { id: owner.assessment.id }, data: { score: 3 } }),
-  ).rejects.toThrow();
-  await expect(
-    db.settings.create({ data: { id: 'stale-preference', workspaceId: 'user:deletion-owner' } }),
-  ).rejects.toThrow();
-  await eraseBlockedAccount('user:deletion-owner');
-  expect(await db.settings.count({ where: { workspaceId: 'user:deletion-owner' } })).toBe(0);
+  const staleWrites = [
+    () => db.semester.update({ where: { id: owner.course.semesterId }, data: { name: 'stale' } }),
+    () => db.course.update({ where: { id: owner.course.id }, data: { name: 'stale' } }),
+    () => db.assessment.update({ where: { id: owner.assessment.id }, data: { score: 3 } }),
+    () => db.task.update({ where: { id: task.id }, data: { title: 'stale' } }),
+    () => db.subtask.update({ where: { id: subtask.id }, data: { title: 'stale' } }),
+    () => db.calendarEvent.update({ where: { id: event.id }, data: { title: 'stale' } }),
+    () => db.settings.update({ where: { id: settings.id }, data: { displayName: 'stale' } }),
+    () =>
+      db.calendarSubscription.update({ where: { id: subscription.id }, data: { name: 'stale' } }),
+    () =>
+      db.importedCalendarItem.update({ where: { id: imported.id }, data: { sourceKey: 'stale' } }),
+    () => db.gmailOAuthState.update({ where: { id: oauth.id }, data: { claimed: true } }),
+    () => db.gmailConnection.update({ where: { id: gmail.id }, data: { autoSync: false } }),
+    () => db.emailUpdate.update({ where: { id: email.id }, data: { excerpt: 'stale' } }),
+    () =>
+      db.assistantRequest.update({
+        where: { workspaceId_id: { workspaceId: ownerId, id: request.id } },
+        data: { status: 'stale' },
+      }),
+    () =>
+      db.assistantConversation.update({
+        where: { workspaceId_id: { workspaceId: ownerId, id: conversation.id } },
+        data: { title: 'stale' },
+      }),
+    () => db.scheduleEntry.update({ where: { id: schedule.id }, data: { title: 'stale' } }),
+  ];
+  expect(staleWrites).toHaveLength(15);
+  for (const write of staleWrites) await expect(write()).rejects.toThrow();
+
+  await eraseBlockedAccount(ownerId, true);
+  expect(await db.settings.count({ where: { workspaceId: ownerId } })).toBe(0);
   expect(await db.course.findUnique({ where: { id: owner.course.id } })).toBeNull();
   expect(await db.course.findUnique({ where: { id: other.course.id } })).not.toBeNull();
   await expect(
-    db.task.create({ data: { workspaceId: 'user:deletion-owner', title: 'stale recreation' } }),
+    db.task.create({ data: { workspaceId: ownerId, title: 'stale recreation' } }),
   ).rejects.toThrow();
-  await eraseBlockedAccount('user:deletion-owner'); // Retry is safe.
+  await eraseBlockedAccount(ownerId, true); // Retry is safe.
 });
 
 it('erases linked course tasks and calendar events without touching another account', async () => {
