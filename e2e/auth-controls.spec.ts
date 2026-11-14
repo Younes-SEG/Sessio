@@ -84,3 +84,31 @@ test('sign out requires confirmation, supports cancellation and retains failures
   await expect(page).toHaveURL(/\/auth\/sign-in$/);
   expect(requests).toBe(2);
 });
+
+for (const [path, heading, detail] of [
+  [
+    'invitation-only',
+    'Command is invitation only',
+    'Your email is verified, but this account has not been invited to Command.',
+  ],
+  [
+    'account-deleting',
+    'Your account is being deleted',
+    'This workspace is unavailable while your account is being deleted.',
+  ],
+  ['access-denied', 'Access denied', 'Command could not confirm access to this workspace.'],
+] as const) {
+  test(`${path} explains the denial without loading a workspace`, async ({ page }) => {
+    let requests = 0;
+    await page.route('**/api/**', async (route) => {
+      requests++;
+      await route.abort();
+    });
+    await page.goto(`/auth/${path}`);
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    await expect(page.getByText(detail, { exact: false })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+    expect(requests).toBe(0);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+}

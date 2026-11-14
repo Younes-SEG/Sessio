@@ -17,7 +17,7 @@ describe('same-origin mutation guard', () => {
           headers: { host: 'evil.example', origin: 'https://evil.example' },
         }),
       ),
-    ).toThrow();
+    ).toThrow(expect.objectContaining({ status: 403, reason: 'cross-origin' }));
     expect(() =>
       assertSameOrigin(
         new Request('https://command.example/api/tasks', {

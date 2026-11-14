@@ -2,7 +2,16 @@
 import { LanguageSwitch, T, useT } from '@/components/language-provider';
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, LogOut, UserPlus } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LogOut,
+  ShieldAlert,
+  UserPlus,
+} from 'lucide-react';
 import { AlertDialog } from 'radix-ui';
 import { authClient } from '@/lib/auth-client';
 import { Button } from './ui/button';
@@ -89,6 +98,53 @@ export function SignOutButton({ className }: { className?: string }) {
         </AlertDialog.Content>
       </AlertDialog.Portal>
     </AlertDialog.Root>
+  );
+}
+
+export function AccessDeniedPanel({
+  mode,
+  supportEmail,
+}: {
+  mode: 'invitation-only' | 'account-deleting' | 'access-denied';
+  supportEmail: string;
+}) {
+  const t = useT();
+  const content = {
+    'invitation-only': {
+      title: 'Command is invitation only',
+      description:
+        'Your email is verified, but this account has not been invited to Command. Contact support if you believe you should have access.',
+    },
+    'account-deleting': {
+      title: 'Your account is being deleted',
+      description:
+        'This workspace is unavailable while your account is being deleted. Contact support if you need help.',
+    },
+    'access-denied': {
+      title: 'Access denied',
+      description:
+        'Command could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.',
+    },
+  }[mode];
+  return (
+    <>
+      <div className="mb-5 flex justify-end">
+        <LanguageSwitch />
+      </div>
+      <ShieldAlert className="mb-3 text-muted-foreground" size={28} aria-hidden="true" />
+      <h1 className="text-3xl font-semibold tracking-tight">{t(content.title)}</h1>
+      <p className="muted mt-3 leading-relaxed">{t(content.description)}</p>
+      {supportEmail && (
+        <p className="mt-4 text-sm">
+          <a className="underline" href={`mailto:${supportEmail}`}>
+            {t('Contact support')}
+          </a>
+        </p>
+      )}
+      <div className="mt-6">
+        <SignOutButton />
+      </div>
+    </>
   );
 }
 

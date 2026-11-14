@@ -72,6 +72,7 @@ async function handle(request: Request, context: Context) {
         error: {
           message:
             error instanceof ApiError ? error.message : 'Sign-in is temporarily unavailable.',
+          ...(error instanceof ApiError && error.reason ? { reason: error.reason } : {}),
         },
       },
       {

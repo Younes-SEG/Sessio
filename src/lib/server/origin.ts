@@ -25,6 +25,6 @@ export function assertSameOrigin(request: Request) {
     (origin && origin !== expectedOrigin) ||
     request.headers.get('sec-fetch-site') === 'cross-site'
   ) {
-    throw new ApiError(403, 'Changes must come from this application.');
+    throw ApiError.accessDenied('cross-origin', 'Changes must come from this application.');
   }
 }

@@ -65,7 +65,7 @@ const verifiedAccount = cache(async () => {
     )
       throw new ApiError(401, 'Sign in to open your workspace.');
     if (!data.user.emailVerified)
-      throw new ApiError(403, 'Verify your email to open your workspace.');
+      throw ApiError.accessDenied('unverified', 'Verify your email to open your workspace.');
     return data.user;
   } catch (error) {
     if (error instanceof ApiError) throw error;

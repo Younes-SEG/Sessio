@@ -6,7 +6,10 @@ import { eraseWorkspaceRecords } from './privacy-records';
 export async function assertAccountActive(workspaceId: string) {
   const state = await db.accountLifecycle.findUnique({ where: { workspaceId } });
   if (state && state.status !== 'ACTIVE')
-    throw new ApiError(403, 'This account is being deleted. Contact support if you need help.');
+    throw ApiError.accessDenied(
+      'account-deleting',
+      'This account is being deleted. Contact support if you need help.',
+    );
 }
 function accountId(workspaceId: string) {
   if (!/^user:[a-zA-Z0-9_-]{1,180}$/.test(workspaceId))

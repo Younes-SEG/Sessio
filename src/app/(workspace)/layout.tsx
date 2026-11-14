@@ -5,6 +5,7 @@ import { LocalTimeContent } from '@/components/local-time-content';
 import { redirect } from 'next/navigation';
 import { ApiError } from '@/lib/server/errors';
 import { isHosted } from '@/lib/server/hosting';
+import { accessDeniedDestination } from '@/lib/access-denial';
 export const dynamic = 'force-dynamic';
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   // A per-request server timestamp keeps the first client render identical to its HTML.
@@ -15,8 +16,9 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
     data = await getWorkspace();
   } catch (error) {
     if (isHosted() && error instanceof ApiError) {
-      if (error.status === 403) redirect('/auth/verify-email');
-      if (error.status === 401 || error.status === 503) redirect('/auth/sign-in');
+      const destination = accessDeniedDestination(error.status, error.reason);
+      if (destination) redirect(destination);
+      if (error.status === 503) redirect('/auth/sign-in');
     }
     /* The setup screen gives a recoverable path when PostgreSQL is offline. */
   }

@@ -2546,7 +2546,10 @@ it('blocks stale writes at the database and erases only the selected account', a
   const other = await chatFixture('user:deletion-other');
   const owner = await chatFixture('user:deletion-owner');
   await blockAccount('user:deletion-owner');
-  await expect(assertAccountActive('user:deletion-owner')).rejects.toMatchObject({ status: 403 });
+  await expect(assertAccountActive('user:deletion-owner')).rejects.toMatchObject({
+    status: 403,
+    reason: 'account-deleting',
+  });
   await expect(
     db.assessment.update({ where: { id: owner.assessment.id }, data: { score: 3 } }),
   ).rejects.toThrow();

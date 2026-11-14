@@ -12,6 +12,7 @@ import {
 import type { EditorKind, EditorState, EntityKind, Workspace } from '@/lib/types';
 import { EmailAutoSync } from './email-updates';
 import { applyThemePreference, themePreference } from '@/lib/theme';
+import { accessDeniedDestination } from '@/lib/access-denial';
 interface WorkspaceContextValue {
   data: Workspace;
   now: Date;
@@ -57,14 +58,17 @@ export function WorkspaceProvider({
   const refresh = useCallback(async () => {
     const number = ++requestNumber.current;
     const response = await fetch('/api/workspace', { cache: 'no-store' });
-    if (response.status === 401 || response.status === 403) {
-      window.location.replace(response.status === 403 ? '/auth/verify-email' : '/auth/sign-in');
+    const result: unknown = await response.json().catch(() => null);
+    const reason =
+      result && typeof result === 'object' && 'reason' in result ? result.reason : undefined;
+    const destination = accessDeniedDestination(response.status, reason);
+    if (destination) {
+      window.location.replace(destination);
       return;
     }
     if (!response.ok) throw new Error('Unable to refresh your workspace. Please retry.');
-    const value: Workspace = await response.json();
     if (number === requestNumber.current) {
-      setData(value);
+      setData(result as Workspace);
       setNow(new Date());
     }
   }, []);
@@ -87,7 +91,13 @@ export function WorkspaceProvider({
         body: input ? JSON.stringify(input) : undefined,
       });
       const result = await response.json().catch(() => ({}));
-      if (response.status === 401) window.location.replace('/auth/sign-in');
+      const reason =
+        result && typeof result === 'object' && 'reason' in result ? result.reason : undefined;
+      const destination = accessDeniedDestination(response.status, reason);
+      if (destination) {
+        window.location.replace(destination);
+        return;
+      }
       if (!response.ok)
         throw new Error(result.error || 'This change could not be saved. Please try again.');
       if (kind === 'settings' && input?.theme !== undefined)
