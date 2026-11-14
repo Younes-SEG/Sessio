@@ -26,6 +26,7 @@ import { ApiError } from './errors';
 import { assessmentSchema, eventSchema } from './validation';
 import { interpretAssistant } from './assistant-ai';
 import { answerAssistantQuery } from '@/lib/assistant-query';
+import { gradeStatusAnswer } from '@/lib/assistant-grades';
 
 type Tx = Prisma.TransactionClient;
 type Plan = {
@@ -130,6 +131,30 @@ async function prepare(
     };
   }
   const course = courses[0];
+  if (intent.kind === 'grade_status') {
+    const hasTarget =
+      Boolean(intent.targetLetter) ||
+      (intent.targetPercent !== null && intent.targetPercent !== undefined);
+    if (!course && (hasTarget || intent.assessment))
+      return {
+        reply: clarify(
+          id,
+          s(
+            'Which course is this for? Use its code or name, like SEG3102.',
+            'C’est pour quel cours ? Indique son code ou son nom, par exemple SEG3102.',
+          ),
+        ),
+      };
+    return {
+      reply: {
+        id,
+        status: 'answer',
+        ...gradeStatusAnswer(data, intent, language, course),
+        // Only the question goes back to the model, never the calculated grades.
+        context: `Completed read-only grade question: ${JSON.stringify({ kind: intent.kind, course: course?.code ?? null, assessment: intent.assessment, targetLetter: intent.targetLetter ?? null, targetPercent: intent.targetPercent ?? null })}. No changes were made.`,
+      },
+    };
+  }
   if (intent.kind === 'query') {
     try {
       return {

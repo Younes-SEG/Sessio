@@ -50,7 +50,8 @@ type RequestBody =
 export function AssistantPanel() {
   const { language } = useLanguage();
   const s = (en: string, fr: string) => say(language, en, fr);
-  const { refresh } = useWorkspace();
+  const { refresh, data: workspace } = useWorkspace();
+  const hosted = Boolean(workspace.hosted);
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [input, setInput] = useState('');
@@ -672,10 +673,15 @@ export function AssistantPanel() {
             </Button>
           </form>
           <p className="assistant-privacy">
-            {s(
-              'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini. Avoid personal or confidential information on the free tier.',
-              'Les conversations sont enregistrées dans ton espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini. Évite les renseignements personnels ou confidentiels avec le niveau gratuit.',
-            )}{' '}
+            {hosted
+              ? s(
+                  'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini through Command’s paid API access. Grade numbers are calculated by Command, not the AI.',
+                  'Les conversations sont enregistrées dans ton espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini par l’accès payant de Command. Les notes sont calculées par Command, pas par l’IA.',
+                )
+              : s(
+                  'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini. Avoid personal or confidential information on the free tier.',
+                  'Les conversations sont enregistrées dans ton espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini. Évite les renseignements personnels ou confidentiels avec le niveau gratuit.',
+                )}{' '}
             <Link href="/legal/privacy" onClick={() => setOpen(false)} className="underline">
               {s('Privacy details', 'Détails de confidentialité')}
             </Link>

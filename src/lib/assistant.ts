@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Workspace } from './types';
 import { matchEmailAssessment } from './email-grades';
+import { LETTER_GRADES } from './grade-scale';
 
 const shortText = z.string().max(200).nullable();
 const queryKind = z.enum(['assessments', 'grades', 'tasks', 'classes', 'events', 'study_sessions']);
@@ -25,7 +26,16 @@ export const assistantQuerySchema = z.object({
 });
 export type AssistantQuery = z.infer<typeof assistantQuerySchema>;
 export const assistantIntentSchema = z.object({
-  kind: z.enum(['chat', 'query', 'agenda', 'next_assessment', 'grade', 'schedule', 'clarify']),
+  kind: z.enum([
+    'chat',
+    'query',
+    'agenda',
+    'next_assessment',
+    'grade',
+    'grade_status',
+    'schedule',
+    'clarify',
+  ]),
   query: assistantQuerySchema.nullable().optional(),
   agendaScope: z
     .enum(['all', 'study_sessions', 'classes', 'events', 'tasks', 'assessments'])
@@ -45,6 +55,9 @@ export const assistantIntentSchema = z.object({
   fromDate: shortText,
   toDate: shortText,
   question: z.string().max(600).nullable(),
+  // grade_status only: a desired final course result, as a letter or a percentage.
+  targetLetter: z.enum(LETTER_GRADES).nullable().optional(),
+  targetPercent: z.number().min(0).max(100).nullable().optional(),
 });
 export type AssistantIntent = z.infer<typeof assistantIntentSchema>;
 export type AssistantWorkspace = Pick<
