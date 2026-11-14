@@ -87,6 +87,7 @@ it.each(['missing', 'expired', 'invalid expiry', 'mismatched user', 'unverified'
     session.mockResolvedValue(reason === 'missing' ? { data: null } : result);
     await expect(requireWorkspaceId()).rejects.toMatchObject({
       status: reason === 'unverified' ? 403 : 401,
+      ...(reason === 'unverified' ? { reason: 'unverified' } : {}),
     });
   },
 );

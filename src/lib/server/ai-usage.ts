@@ -68,7 +68,7 @@ export async function reserveAi(
       throw new ApiError(503, 'AI is paused. Your planner is still available.');
     const account = await tx.accountLifecycle.findUnique({ where: { workspaceId } });
     if (account && account.status !== 'ACTIVE')
-      throw new ApiError(403, 'This account is being deleted.');
+      throw ApiError.accessDenied('account-deleting', 'This account is being deleted.');
     if (
       BigInt(await tx.aiAttempt.count({ where: { status: 'RESERVED', expiresAt: { gt: now } } })) >=
       concurrency

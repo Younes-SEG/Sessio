@@ -19,7 +19,10 @@ export function hostedAccessAllowed(workspaceId: string) {
 }
 export function assertHostedAccess(workspaceId: string) {
   if (!hostedAccessAllowed(workspaceId))
-    throw new ApiError(403, 'Command is currently available to invited accounts only.');
+    throw ApiError.accessDenied(
+      'not-invited',
+      'Command is currently available to invited accounts only.',
+    );
 }
 export function signupAllowed() {
   return !isHosted() || process.env.COMMAND_ALLOW_SIGNUP === 'true';

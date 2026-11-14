@@ -54,7 +54,10 @@ export function validateDeleteOrigin(request: Request) {
 
 export function apiError(error: unknown) {
   if (error instanceof ApiError)
-    return NextResponse.json({ error: error.message }, { status: error.status });
+    return NextResponse.json(
+      { error: error.message, ...(error.reason ? { reason: error.reason } : {}) },
+      { status: error.status },
+    );
   if (error instanceof ZodError)
     return NextResponse.json(
       {
