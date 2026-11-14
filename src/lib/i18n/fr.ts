@@ -1,4 +1,37 @@
 export const french: Record<string, string> = {
+  'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous ?',
+  'Search for your school': 'Rechercher votre \u00e9tablissement',
+  'School name or province': 'Nom de l\u2019\u00e9tablissement ou province',
+  Schools: '\u00c9tablissements',
+  Selected: 'S\u00e9lectionn\u00e9',
+  'No listed school matches your search.':
+    'Aucun \u00e9tablissement r\u00e9pertori\u00e9 ne correspond.',
+  'Your school helps Command use the right grade scale and course credits.':
+    'Votre \u00e9tablissement aide Command \u00e0 utiliser le bon bar\u00e8me et les bons cr\u00e9dits.',
+  'Save school': 'Enregistrer l\u2019\u00e9tablissement',
+  'Choose school': 'Choisir un \u00e9tablissement',
+  "My school isn't listed": 'Mon \u00e9tablissement n\u2019est pas dans la liste',
+  'Dismiss school question': 'Fermer la question sur l\u2019\u00e9tablissement',
+  'Unable to save your school. Please try again.':
+    'Impossible d\u2019enregistrer votre \u00e9tablissement. Veuillez r\u00e9essayer.',
+  'Could not save your school. Please try again.':
+    'Impossible d\u2019enregistrer votre \u00e9tablissement. Veuillez r\u00e9essayer.',
+  'YOUR SCHOOL, YOUR SCALE': 'VOTRE \u00c9TABLISSEMENT, VOTRE BAR\u00c8ME',
+  'This helps Command use the right letter grades, GPA scale and course credits.':
+    'Cela aide Command \u00e0 utiliser les bonnes notes en lettres, l\u2019\u00e9chelle de MPC et les bons cr\u00e9dits.',
+  'You can change this later in Settings.':
+    'Vous pourrez modifier ce choix dans les r\u00e9glages.',
+  School: '\u00c9tablissement',
+  'Used for letter grades, GPA and default course credits.':
+    'Utilis\u00e9 pour les notes en lettres, la MPC et les cr\u00e9dits par d\u00e9faut.',
+  'Clear school': 'Effacer l\u2019\u00e9tablissement',
+  'Credits (optional)': 'Cr\u00e9dits (facultatif)',
+  'Used for credit-weighted semester averages.':
+    'Utilis\u00e9s pour les moyennes de session pond\u00e9r\u00e9es selon les cr\u00e9dits.',
+  'Choose a supported school.': 'Choisissez un \u00e9tablissement pris en charge.',
+  'Saving...': 'Enregistrement...',
+  Continue: 'Continuer',
+  Skip: 'Passer',
   'Account deletion and support': 'Suppression du compte et assistance',
   'Gmail connections are not available for this account yet.':
     'La connexion Gmail n’est pas encore disponible pour ce compte.',

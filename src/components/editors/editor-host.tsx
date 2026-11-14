@@ -51,6 +51,7 @@ function serialize(kind: EditorKind, form: FormData): Record<string, unknown> {
         name: text('name'),
         semesterId: text('semesterId'),
         instructor: optional('instructor'),
+        credits: text('credits') ? number('credits') : null,
         color: text('color'),
         notes: text('notes'),
         archived: checked('archived'),
@@ -236,7 +237,11 @@ function EntityDialog({ editor }: { editor: EditorState }) {
             <form onSubmit={submit} className={confirmDelete ? 'hidden' : 'form-stack'}>
               <fieldset disabled={busy} className="min-w-0">
                 {editor.kind === 'courses' && (
-                  <CourseFields initial={initial} semesters={data.semesters} />
+                  <CourseFields
+                    initial={initial}
+                    semesters={data.semesters}
+                    schoolId={data.settings.schoolId}
+                  />
                 )}
                 {editor.kind === 'semesters' && <SemesterFields initial={initial} />}
                 {editor.kind === 'assessments' && (

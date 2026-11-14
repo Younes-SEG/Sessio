@@ -35,6 +35,7 @@ import { StudyBuddy } from './study-buddy';
 import { LegalFooter } from './legal-footer';
 import { SignOutButton } from './auth-panel';
 import { SchoolUpdatesBadge } from './email-updates';
+import { SchoolPrompt } from './school-prompt';
 import { addDays, isOverdue, toDate } from '@/lib/dates';
 const navigation = [
   { href: '/', label: 'Home', icon: Home },
@@ -293,6 +294,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
             {t(error)}
           </p>
         )}
+        {!onboarding && <SchoolPrompt />}
         <main ref={contentRef} id="main-content" tabIndex={-1} className="page-content">
           {children}
         </main>

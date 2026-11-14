@@ -15,6 +15,8 @@ import { ArrowLeft, ArrowRight, BookOpen, Compass, Terminal } from 'lucide-react
 import { useWorkspace } from './workspace-provider';
 import { LanguageSwitch, useT } from './language-provider';
 import { Button } from './ui/button';
+import { SchoolPicker } from './school-picker';
+import { dismissSchoolPrompt } from './school-prompt';
 
 type TourStep = {
   path: string;
@@ -205,16 +207,22 @@ export function TourReplay() {
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { data, save } = useWorkspace();
   const router = useRouter();
-  const [phase, setPhase] = useState<'welcome' | 'tour' | null>(() =>
+  const [phase, setPhase] = useState<'welcome' | 'school' | 'tour' | null>(() =>
     data.settings.onboardingCompleted ? null : 'welcome',
   );
+  const [afterSchool, setAfterSchool] = useState<'tour' | 'finish'>('tour');
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  function begin() {
+  function beginTour() {
     setStep(0);
     setError('');
     setPhase('tour');
+  }
+  function askSchool(next: 'tour' | 'finish') {
+    setAfterSchool(next);
+    setError('');
+    setPhase('school');
   }
   function move(index: number) {
     setStep(index);
@@ -236,16 +244,46 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       setBusy(false);
     }
   }
+  async function finishSchool(schoolId: string | null) {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    try {
+      if (schoolId) await save('settings', { schoolId }, 'preferences');
+      dismissSchoolPrompt();
+      if (afterSchool === 'tour') {
+        setStep(0);
+        setPhase('tour');
+      } else {
+        if (!data.settings.onboardingCompleted)
+          await save('settings', { onboardingCompleted: true }, 'preferences');
+        setPhase(null);
+        router.push('/');
+        requestAnimationFrame(() => document.getElementById('main-content')?.focus());
+      }
+    } catch {
+      setError('Could not save your school. Please try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <Context.Provider
       value={{
         active: phase !== null,
         navigationTarget: phase === 'tour' && steps[step].navigation ? steps[step].target : '',
-        replay: begin,
+        replay: beginTour,
       }}
     >
       {phase === 'welcome' ? (
-        <Welcome onBegin={begin} onSkip={finish} busy={busy} error={error} />
+        <Welcome
+          onBegin={() => askSchool('tour')}
+          onSkip={() => askSchool('finish')}
+          busy={busy}
+          error={error}
+        />
+      ) : phase === 'school' ? (
+        <SchoolStep onChoose={finishSchool} busy={busy} error={error} />
       ) : (
         <>
           <div
@@ -261,6 +299,63 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         </>
       )}
     </Context.Provider>
+  );
+}
+
+function SchoolStep({
+  onChoose,
+  busy,
+  error,
+}: {
+  onChoose: (schoolId: string | null) => void;
+  busy: boolean;
+  error: string;
+}) {
+  const t = useT();
+  const [selected, setSelected] = useState<string | null>(null);
+  return (
+    <div className="welcome-screen">
+      <header className="welcome-topbar">
+        <span className="welcome-brand">
+          <span className="brand-symbol">
+            <Terminal size={20} aria-hidden />
+          </span>
+          Command
+        </span>
+        <LanguageSwitch />
+      </header>
+      <main className="welcome-main" id="main-content">
+        <div className="welcome-illustration" aria-hidden>
+          <BookOpen size={38} strokeWidth={1.3} />
+        </div>
+        <p className="welcome-eyebrow">{t('YOUR SCHOOL, YOUR SCALE')}</p>
+        <h1>{t('Which school do you attend?')}</h1>
+        <p className="welcome-description">
+          {t('This helps Command use the right letter grades, GPA scale and course credits.')}
+        </p>
+        <div className="mx-auto mt-6 w-full max-w-xl text-left">
+          <SchoolPicker value={selected} onChange={setSelected} autoFocus />
+        </div>
+        <div className="welcome-actions mt-6">
+          <Button onClick={() => onChoose(selected)} disabled={!selected || busy}>
+            {busy ? t('Saving...') : t('Continue')}
+            <ArrowRight aria-hidden />
+          </Button>
+          <Button variant="outline" onClick={() => onChoose(null)} disabled={busy}>
+            {t("My school isn't listed")}
+          </Button>
+          <Button variant="ghost" onClick={() => onChoose(null)} disabled={busy}>
+            {t('Skip')}
+          </Button>
+        </div>
+        {error && (
+          <p role="alert" className="text-destructive mt-4 text-sm">
+            {t(error)}
+          </p>
+        )}
+      </main>
+      <footer className="welcome-footer">{t('You can change this later in Settings.')}</footer>
+    </div>
   );
 }
 

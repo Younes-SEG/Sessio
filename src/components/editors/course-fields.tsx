@@ -3,15 +3,19 @@ import { T, useT } from '@/components/language-provider';
 import { Field, NotesField, SelectField, TextField } from './fields';
 import { Input } from '@/components/ui/input';
 import type { Course, Semester } from '@/lib/types';
+import { schoolById } from '@/lib/schools';
 
 export function CourseFields({
   initial,
   semesters,
+  schoolId,
 }: {
   initial: Partial<Course>;
   semesters: Semester[];
+  schoolId?: string | null;
 }) {
   const t = useT();
+  const defaultCredits = schoolById(schoolId)?.credits?.defaultPerCourse;
   return (
     <div className="form-grid">
       <TextField
@@ -44,6 +48,16 @@ export function CourseFields({
         label={t('Instructor (optional)')}
         value={initial.instructor}
         placeholder={t('Professor’s name')}
+      />
+      <TextField
+        name="credits"
+        label={t('Credits (optional)')}
+        type="number"
+        min={0.01}
+        max={1000}
+        step="any"
+        value={initial.credits ?? (!initial.id ? defaultCredits : undefined)}
+        hint={t('Used for credit-weighted semester averages.')}
       />
       <Field
         name="color"
