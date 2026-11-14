@@ -4,10 +4,11 @@ import {
   buildRestoreFixtureSummary,
   type RestoreFixtureAggregate,
 } from './restore-fixture-summary-data';
+import { restoreUtcTypes } from './restore-pg-types';
 import { restoreSelection } from './restore-target';
 
 const { connectionString, workspaceId } = restoreSelection();
-const client = new Client({ connectionString });
+const client = new Client({ connectionString, types: restoreUtcTypes() });
 let transactionOpen = false;
 
 async function aggregate(sql: string): Promise<RestoreFixtureAggregate> {

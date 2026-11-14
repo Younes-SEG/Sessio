@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import { Client } from 'pg';
 import { requirePausedRestoreAi } from './restore-ai-controls';
+import { restoreUtcTypes } from './restore-pg-types';
 import { restoreSelection } from './restore-target';
 
 const { connectionString, workspaceId } = restoreSelection();
-const client = new Client({ connectionString });
+const client = new Client({ connectionString, types: restoreUtcTypes() });
 try {
   await client.connect();
   await client.query('BEGIN READ ONLY');
