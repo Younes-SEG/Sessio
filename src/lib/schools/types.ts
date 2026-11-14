@@ -6,6 +6,12 @@ export type SchoolSource = {
   checked: `${number}-${number}-${number}`;
 };
 
+export type SchoolPassRule = {
+  label: string;
+  labelFr: string;
+  passPercent: number;
+};
+
 export type SchoolProfile = {
   id: string;
   name: string;
@@ -17,6 +23,10 @@ export type SchoolProfile = {
   failLabel: string;
   gpa: { max: number; label: string } | null;
   passPercent: number | null;
+  passRules?: ReadonlyArray<SchoolPassRule>;
+  averageFloor?: number;
+  repeatPolicy?: 'highest' | 'latest' | 'all';
+  lettersAreGuidelines?: boolean;
   credits: { unitLabel: string; unitLabelFr: string; defaultPerCourse: number } | null;
   lms: SchoolLms | null;
   sources: readonly [SchoolSource, ...SchoolSource[]];

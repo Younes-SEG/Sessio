@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { schools } from '../src/lib/schools';
+import { schools, type SchoolProfile } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
@@ -9,7 +9,8 @@ describe('school catalogue integrity', () => {
       expect.arrayContaining(['university-of-ottawa', 'university-of-toronto', 'college-la-cite']),
     );
     expect(new Set(schools.map((school) => school.id)).size).toBe(schools.length);
-    for (const school of schools) {
+    for (const entry of schools) {
+      const school: SchoolProfile = entry;
       expect(school.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
       expect(school.name.trim()).not.toBe('');
       expect(school.province.trim()).not.toBe('');
@@ -29,7 +30,8 @@ describe('school catalogue integrity', () => {
   });
 
   it('keeps scales ordered and numeric settings sensible', () => {
-    for (const school of schools) {
+    for (const entry of schools) {
+      const school: SchoolProfile = entry;
       if (school.letterScale) {
         expect(school.letterScale.length).toBeGreaterThan(1);
         expect(new Set(school.letterScale.map((grade) => grade.letter)).size).toBe(
@@ -61,6 +63,29 @@ describe('school catalogue integrity', () => {
         expect(school.passPercent).toBeGreaterThanOrEqual(0);
         expect(school.passPercent).toBeLessThanOrEqual(100);
       }
+      if (school.passRules) {
+        expect(school.passRules.length).toBeGreaterThan(0);
+        expect(new Set(school.passRules.map((rule) => rule.label)).size).toBe(
+          school.passRules.length,
+        );
+        for (const rule of school.passRules) {
+          expect(rule.label.trim()).not.toBe('');
+          expect(rule.labelFr.trim()).not.toBe('');
+          expect(rule.passPercent).toBeGreaterThanOrEqual(0);
+          expect(rule.passPercent).toBeLessThanOrEqual(100);
+        }
+      }
+      if (school.averageFloor !== undefined) {
+        expect(school.averageFloor).toBeGreaterThanOrEqual(0);
+        expect(school.averageFloor).toBeLessThanOrEqual(100);
+      }
+      if (school.repeatPolicy !== undefined) {
+        expect(['highest', 'latest', 'all']).toContain(school.repeatPolicy);
+      }
+      if (school.lettersAreGuidelines !== undefined) {
+        expect(typeof school.lettersAreGuidelines).toBe('boolean');
+        expect(school.letterScale).not.toBeNull();
+      }
       if (school.credits) {
         expect(school.credits.unitLabel.trim()).not.toBe('');
         expect(school.credits.unitLabelFr.trim()).not.toBe('');
@@ -68,5 +93,27 @@ describe('school catalogue integrity', () => {
         expect(school.credits.defaultPerCourse).toBeLessThanOrEqual(1000);
       }
     }
+  });
+
+  it('stores the verified rule extensions on the intended profiles', () => {
+    const byId = (id: string): SchoolProfile | undefined =>
+      schools.find((school) => school.id === id);
+    expect(byId('university-of-waterloo')?.averageFloor).toBe(32);
+    expect(byId('western-university')?.averageFloor).toBe(40);
+    expect(byId('ocad-university')?.averageFloor).toBe(45);
+    expect(byId('york-university')?.lettersAreGuidelines).toBe(true);
+    expect(byId('ontario-tech-university')?.lettersAreGuidelines).toBe(true);
+    expect(byId('wilfrid-laurier-university')?.lettersAreGuidelines).toBe(true);
+    expect(byId('conestoga-college')?.repeatPolicy).toBe('latest');
+    expect(byId('algonquin-college')?.repeatPolicy).toBe('highest');
+    expect(byId('college-la-cite')?.repeatPolicy).toBe('highest');
+    expect(byId('sheridan-college')?.repeatPolicy).toBe('highest');
+    expect(byId('fanshawe-college')?.repeatPolicy).toBe('highest');
+    expect(byId('durham-college')?.repeatPolicy).toBe('highest');
+    expect(byId('loyalist-college')?.repeatPolicy).toBe('highest');
+    expect(byId('university-of-ottawa')?.passRules).toHaveLength(2);
+    expect(byId('queens-university')?.passRules).toHaveLength(1);
+    expect(byId('universite-de-l-ontario-francais')?.passRules).toHaveLength(2);
+    expect(byId('conestoga-college')?.passRules).toHaveLength(4);
   });
 });

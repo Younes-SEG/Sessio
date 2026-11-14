@@ -26,6 +26,14 @@ export const schools = [
     failLabel: 'F',
     gpa: { max: 10, label: 'CGPA' },
     passPercent: 50,
+    passRules: [
+      {
+        label: 'Faculty of Education, MED/CLI, and PHA',
+        labelFr: 'Faculté d’éducation, MED/CLI et PHA',
+        passPercent: 60,
+      },
+      { label: 'Nursing (NSG)', labelFr: 'Sciences infirmières (NSG)', passPercent: 65 },
+    ],
     credits: { unitLabel: 'units', unitLabelFr: 'cr\u00e9dits', defaultPerCourse: 3 },
     lms: 'brightspace',
     sources: [

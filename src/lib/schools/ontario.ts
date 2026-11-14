@@ -61,13 +61,13 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 9, label: 'GPA' },
     passPercent: 50,
+    lettersAreGuidelines: true,
     credits: null,
     sources: source(
       'https://calendars.students.yorku.ca/2025-2026/grades-and-grading-schemes',
       'Undergraduate Calendar - Grades and Grading Schemes',
     ),
-    notes:
-      'Percentages are official guidelines only; instructors assign letter grades, so letter answers are estimates. Schulich has no standard percentage scale.',
+    notes: 'Schulich has no standard percentage scale.',
   },
   {
     ...university,
@@ -89,13 +89,14 @@ export const ontarioSchools = [
     name: 'University of Waterloo',
     roundPercentBeforeLetter: false,
     passPercent: 50,
+    averageFloor: 32,
     credits: { unitLabel: 'credits', unitLabelFr: 'crédits', defaultPerCourse: 0.5 },
     sources: source(
       'https://uwaterloo.ca/engineering/undergraduate-students/first-year/your-academic-student-record',
       'Engineering - Your academic student record',
     ),
     notes:
-      'Integer percentage grades, no letters. Averages are credit-weighted and not rounded; grades from 0 to 32 count as 32 in averages. Standing thresholds vary by faculty.',
+      'Integer percentage grades, no letters. Averages are credit-weighted and not rounded. Standing thresholds vary by faculty.',
   },
   {
     ...university,
@@ -106,13 +107,13 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: null,
     passPercent: 50,
+    averageFloor: 40,
     credits: null,
     sources: source(
       'https://www.uwo.ca/univsec/pdf/academic_policies/general/grades_undergrad.pdf',
       'Senate policy - Grading Scale for Undergraduate Students (effective 2024-09-01)',
     ),
-    notes:
-      'No GPA: Western reports percentage averages. Marks below 40% count as 40% in averages. Law uses a different scale.',
+    notes: 'No GPA: Western reports percentage averages. Law uses a different scale.',
   },
   {
     ...university,
@@ -141,12 +142,19 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4.3, label: 'GPA' },
     passPercent: 50,
+    passRules: [
+      {
+        label: 'Medicine and Nursing',
+        labelFr: 'Médecine et sciences infirmières',
+        passPercent: 60,
+      },
+    ],
     credits: null,
     sources: source(
       'https://www.queensu.ca/registrar/academic-info/grades/official-gpa-scale',
       'Registrar - Official GPA Grading Scale',
     ),
-    notes: 'C- is the minimum pass in Medicine and Nursing; B- in Graduate Studies.',
+    notes: 'B- is the minimum pass in Graduate Studies.',
   },
   {
     ...university,
@@ -157,13 +165,12 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 12, label: 'GPA' },
     passPercent: 50,
+    lettersAreGuidelines: true,
     credits: { unitLabel: 'credits', unitLabelFr: 'crédits', defaultPerCourse: 0.5 },
     sources: source(
       'https://students.wlu.ca/academics/support-and-advising/gpa-calculator/index.html',
       'GPA Calculator (matches the Academic Calendar)',
     ),
-    notes:
-      'The conversion applies unless the instructor announces otherwise in writing at the start of the course.',
   },
   {
     ...university,
@@ -185,13 +192,13 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4.3, label: 'GPA' },
     passPercent: 50,
+    lettersAreGuidelines: true,
     credits: null,
     sources: source(
       'https://ontariotechu.ca/policy/policy-library/policies/academic/grading-system-and-academic-standing-policy-undergraduate.php',
       'Grading System and Academic Standing Policy (Undergraduate), approved 2024-03-26',
     ),
-    notes:
-      'No C-, D+ or D-. Percentages are a guideline for conversion, so letter answers are estimates.',
+    notes: 'No C-, D+ or D-.',
   },
   {
     ...university,
@@ -276,13 +283,24 @@ export const ontarioSchools = [
     failLabel: 'E',
     gpa: { max: 4.3, label: 'MPC' },
     passPercent: 50,
+    passRules: [
+      {
+        label: 'Specialization courses (C requirement)',
+        labelFr: 'Cours de spécialisation (exigence C)',
+        passPercent: 55,
+      },
+      {
+        label: 'Specialization courses (B requirement)',
+        labelFr: 'Cours de spécialisation (exigence B)',
+        passPercent: 70,
+      },
+    ],
     credits: null,
     sources: source(
       'https://uontario.ca/fileadmin/Site_Corpo/Documents_0_papier/Politiques_et_directives/Politiques_academiques/Etudes/Directive_Evaluation_etudiants_Systeme_notation_2025-03-04.pdf',
       "Directive sur l'évaluation et le système de notation (révisée 2025-03-04)",
     ),
-    notes:
-      'Specialization courses need C (55%) or B (70%) depending on the program and use DE as their failing grade.',
+    notes: 'Specialization courses use DE as their failing grade.',
   },
   {
     ...university,
@@ -307,12 +325,13 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: null,
     passPercent: 50,
+    averageFloor: 45,
     credits: null,
     sources: source(
       'https://www.ocadu.ca/media/4630/download',
       'Policy 1021: Grading - Undergraduate (effective Sept 2022)',
     ),
-    notes: 'Final grades are percentages; fail grades below 45% count as 45% in averages.',
+    notes: 'Final grades are percentages.',
   },
   {
     ...university,
@@ -373,6 +392,7 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4, label: 'GPA' },
     passPercent: 50,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://www.algonquincollege.com/policies/files/2022/04/AA14.pdf',
@@ -403,6 +423,7 @@ export const ontarioSchools = [
     failLabel: 'EC',
     gpa: { max: 4.3, label: 'MPC' },
     passPercent: 60,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://www.collegelacite.ca/directives-pedagogiques/systeme-de-notation-et-conditions-de-promotion',
@@ -487,6 +508,7 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4, label: 'GPA' },
     passPercent: 50,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://myotr.sheridancollege.ca/grading_systems.html',
@@ -513,6 +535,7 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4.2, label: 'GPA' },
     passPercent: 50,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://www.fanshawec.ca/sites/default/files/2024-05/A112_Course_Grade_System_0.pdf',
@@ -537,13 +560,22 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 4, label: 'GPA' },
     passPercent: 55,
+    passRules: [
+      {
+        label: 'Degree, ECE, pre-service firefighter, and social services',
+        labelFr: 'Grade, EPE, formation préalable de pompier et services sociaux',
+        passPercent: 60,
+      },
+      { label: 'Health sciences', labelFr: 'Sciences de la santé', passPercent: 65 },
+      { label: 'Apprenticeship', labelFr: 'Apprentissage', passPercent: 70 },
+      { label: 'Gas technician', labelFr: 'Technicien gazier', passPercent: 75 },
+    ],
+    repeatPolicy: 'latest',
     credits: null,
     sources: source(
       'https://conestogac.on.ca/policies/grading-appendix-a-conestoga-grading-system',
       'Grading Appendix A: Conestoga Grading System',
     ),
-    notes:
-      'General pass mark is 55%. Degree, ECE, firefighter and social services courses need 60%, health sciences 65%, apprenticeship 70%, gas technician 75%.',
   },
   {
     ...college,
@@ -565,6 +597,7 @@ export const ontarioSchools = [
     failLabel: 'F',
     gpa: { max: 5, label: 'GPA' },
     passPercent: 50,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://durhamcollege.ca/wp-content/uploads/112-academic-grading.pdf',
@@ -622,6 +655,7 @@ export const ontarioSchools = [
     name: 'Loyalist College',
     roundPercentBeforeLetter: false,
     passPercent: 50,
+    repeatPolicy: 'highest',
     credits: null,
     sources: source(
       'https://loyalistcollege.com/about/publications-policies-and-procedures/policies-procedures/grading-and-transcripts-policy/',
