@@ -530,7 +530,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
           >
             <Plus /> <T text="Add term" />
           </Button>
-          <Link href="/settings#terms" className="text-sm text-primary underline">
+          <Link href="/settings/terms" className="text-sm text-primary underline">
             <T text="Manage terms" />
           </Link>
         </div>

@@ -174,7 +174,7 @@ export function CalendarView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link data-tour="calendar-connect" href="/settings#calendar-connections">
+            <Link data-tour="calendar-connect" href="/settings/calendar#calendar-connections">
               <T text="Connect calendar" />
             </Link>
           </Button>

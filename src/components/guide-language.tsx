@@ -50,7 +50,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         <h2 className="section-title">1. Vos cours et sessions</h2>
         <p>
           Dans{' '}
-          <Link href="/settings#terms" className="underline">
+          <Link href="/settings/terms" className="underline">
             Paramètres → Sessions
           </Link>
           , créez une session et définissez ses dates. Choisissez la session active pour les vues
@@ -71,7 +71,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           Dans Brightspace, ouvrez Calendrier → Paramètres, activez les flux et copiez le lien dans
           S’abonner. Choisissez tous les calendriers pour inclure tous vos cours. Collez le lien
           dans{' '}
-          <Link href="/settings#calendar-connections" className="underline">
+          <Link href="/settings/calendar#calendar-connections" className="underline">
             Paramètres → Connecter votre calendrier
           </Link>
           , vérifiez la période et choisissez Enregistrer le calendrier. L’aperçu permet de vérifier

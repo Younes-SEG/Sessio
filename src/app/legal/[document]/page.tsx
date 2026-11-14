@@ -69,7 +69,7 @@ export default async function LegalPage({ params }: { params: Promise<{ document
         )}
         {['privacy', 'about'].includes(document) && (
           <p className="mt-6">
-            <Link href="/settings#your-data" className="underline">
+            <Link href="/settings/privacy" className="underline">
               Manage your workspace data
             </Link>
           </p>

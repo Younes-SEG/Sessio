@@ -45,7 +45,7 @@ export default function GuidePage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/settings#calendar-connections">
+              <Link href="/settings/calendar#calendar-connections">
                 <CalendarDays />
                 Connect calendar
               </Link>
@@ -115,7 +115,7 @@ export default function GuidePage() {
             </li>
             <li>
               Paste the link in{' '}
-              <Link className="underline" href="/settings#calendar-connections">
+              <Link className="underline" href="/settings/calendar#calendar-connections">
                 Settings → Connect your calendar
               </Link>
               . Check Import dates for the term you want.

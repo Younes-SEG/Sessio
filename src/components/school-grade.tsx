@@ -139,7 +139,7 @@ export function SemesterStandingCard() {
           `${t('Letters are estimates; your instructor decides.')} `}
         {fill(t('{courses}, using only work graded so far.'), { courses })}{' '}
         {standing.basis === 'no-profile' && (
-          <Link className="underline" href="/settings">
+          <Link className="underline" href="/settings/profile">
             {t('Choose your school')}
           </Link>
         )}

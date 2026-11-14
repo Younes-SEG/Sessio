@@ -37,7 +37,7 @@ export function CoursesView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline">
-            <Link data-tour="course-terms" href="/settings#terms">
+            <Link data-tour="course-terms" href="/settings/terms">
               <T text="Manage terms" />
             </Link>
           </Button>
