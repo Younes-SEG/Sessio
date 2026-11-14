@@ -48,7 +48,7 @@ export function SchoolPicker({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={t('School name or province')}
-            className="pl-9"
+            className="input-with-icon"
             autoFocus={autoFocus}
           />
         </div>
