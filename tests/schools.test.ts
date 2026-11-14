@@ -3,10 +3,11 @@ import { schools } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
-    expect(schools.map((school) => school.id)).toEqual([
-      'university-of-ottawa',
-      'university-of-toronto',
-    ]);
+    // 29 Ontario schools verified on 2026-11-14 (see src/lib/schools/ontario.ts).
+    expect(schools).toHaveLength(29);
+    expect(schools.map((school) => school.id)).toEqual(
+      expect.arrayContaining(['university-of-ottawa', 'university-of-toronto', 'college-la-cite']),
+    );
     expect(new Set(schools.map((school) => school.id)).size).toBe(schools.length);
     for (const school of schools) {
       expect(school.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);

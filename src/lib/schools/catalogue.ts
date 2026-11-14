@@ -1,3 +1,4 @@
+import { ontarioSchools } from './ontario';
 import type { SchoolProfile } from './types';
 
 export const schools = [
@@ -74,6 +75,7 @@ export const schools = [
     notes:
       'Undergraduate scale. Final marks are submitted as whole percentages; some courses use CR/NCR or H/P/F instead.',
   },
+  ...ontarioSchools,
 ] as const satisfies ReadonlyArray<SchoolProfile>;
 
 export type SchoolId = (typeof schools)[number]['id'];
