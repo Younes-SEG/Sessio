@@ -20,6 +20,16 @@ describe('study buddy edge movement', () => {
     expect(edgePoint(cursorEdge(500, 10, bounds), bounds)).toEqual({ x: 500, y: 42 });
     expect(edgePoint(cursorEdge(5, 200, bounds), bounds)).toEqual({ x: 42, y: 200 });
   });
+  it('never walks over a visible sidebar', () => {
+    const withSidebar = buddyBounds(1000, 700, 60, 208);
+    const length = edgeLength(withSidebar);
+    for (let distance = 0; distance <= length; distance += 11) {
+      const { x } = edgePoint(distance, withSidebar);
+      // Half the 60px buddy (30) plus its margin stays right of the 208px sidebar.
+      expect(x).toBeGreaterThanOrEqual(208 + 42);
+      expect(x).toBeLessThanOrEqual(958);
+    }
+  });
   it('takes the short path across the perimeter seam', () => {
     expect(edgeDelta(5, 995, 1000)).toBe(-10);
     expect(edgeDelta(995, 5, 1000)).toBe(10);
