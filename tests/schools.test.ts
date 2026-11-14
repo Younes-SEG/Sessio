@@ -9,6 +9,8 @@ describe('school catalogue integrity', () => {
       expect(school.id).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
       expect(school.name.trim()).not.toBe('');
       expect(school.province.trim()).not.toBe('');
+      expect(typeof school.roundPercentBeforeLetter).toBe('boolean');
+      expect(school.failLabel.trim()).not.toBe('');
       expect(school.sources.length).toBeGreaterThan(0);
       for (const source of school.sources) {
         expect(() => new URL(source.url)).not.toThrow();

@@ -13,6 +13,8 @@ export type SchoolProfile = {
   province: string;
   kind: SchoolKind;
   letterScale: ReadonlyArray<{ letter: string; min: number; points?: number }> | null;
+  roundPercentBeforeLetter: boolean;
+  failLabel: string;
   gpa: { max: number; label: string } | null;
   passPercent: number | null;
   credits: { unitLabel: string; unitLabelFr: string; defaultPerCourse: number } | null;

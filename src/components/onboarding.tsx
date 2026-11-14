@@ -331,7 +331,7 @@ function SchoolStep({
         <p className="welcome-eyebrow">{t('YOUR SCHOOL, YOUR SCALE')}</p>
         <h1>{t('Which school do you attend?')}</h1>
         <p className="welcome-description">
-          {t('This helps Command use the right letter grades, GPA scale and course credits.')}
+          {t('This helps Command use the right letter grades, GPA scale and course weights.')}
         </p>
         <div className="mx-auto mt-6 w-full max-w-xl text-left">
           <SchoolPicker value={selected} onChange={setSelected} autoFocus />

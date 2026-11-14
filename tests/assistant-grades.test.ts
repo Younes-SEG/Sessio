@@ -6,7 +6,7 @@ import {
   type AssistantWorkspace,
 } from '../src/lib/assistant';
 import { letterFor, minimumFor } from '../src/lib/grade-scale';
-import { schoolById } from '../src/lib/schools';
+import { schoolById, type SchoolProfile } from '../src/lib/schools';
 
 type Assessment = AssistantWorkspace['assessments'][number];
 const assessment = (values: Partial<Assessment> & Pick<Assessment, 'id' | 'name' | 'weight'>) =>
@@ -91,6 +91,13 @@ const base: AssistantWorkspace = {
   schedules: [],
 };
 const seg = base.courses[0];
+const uOttawa = schoolById('university-of-ottawa')!;
+const syntheticProfile = (overrides: Partial<SchoolProfile>): SchoolProfile => ({
+  ...uOttawa,
+  id: 'synthetic-school',
+  name: 'Synthetic School',
+  ...overrides,
+});
 const intent = (values: Partial<AssistantIntent>): AssistantIntent => ({
   kind: 'grade_status',
   course: null,
@@ -107,13 +114,24 @@ const intent = (values: Partial<AssistantIntent>): AssistantIntent => ({
 
 describe('uOttawa letter scale', () => {
   it('uses the official undergraduate cut-offs without rounding up', () => {
-    const scale = schoolById('university-of-ottawa')!.letterScale;
-    expect(minimumFor('B', scale)?.min).toBe(70);
-    expect(minimumFor('A+', scale)?.min).toBe(90);
-    expect(letterFor(69.9, scale)).toBe('C+');
-    expect(letterFor(70, scale)).toBe('B');
-    expect(letterFor(84.99, scale)).toBe('A-');
-    expect(letterFor(39, scale)).toBe('F');
+    expect(minimumFor('B', uOttawa)?.min).toBe(70);
+    expect(minimumFor('A+', uOttawa)?.min).toBe(90);
+    expect(letterFor(69.9, uOttawa)).toBe('C+');
+    expect(letterFor(70, uOttawa)).toBe('B');
+    expect(letterFor(84.99, uOttawa)).toBe('A-');
+    expect(letterFor(39, uOttawa)).toBe('F');
+  });
+  it('rounds to the nearest whole percent before assigning a letter when configured', () => {
+    const profile = syntheticProfile({ roundPercentBeforeLetter: true });
+    expect(letterFor(79.49, profile)).toBe('B+');
+    expect(letterFor(79.5, profile)).toBe('A-');
+    expect(minimumFor('A-', profile)?.min).toBe(79.5);
+    expect(minimumFor('D', profile)?.min).toBe(50);
+  });
+  it('uses a custom failure label below the exact school pass mark', () => {
+    const profile = syntheticProfile({ passPercent: 60, failLabel: 'EC' });
+    expect(letterFor(59.9, profile)).toBe('EC');
+    expect(letterFor(60, profile)).toBe('C');
   });
   it('keeps model letter targets bounded for server-side profile validation', () => {
     expect(assistantIntentSchema.parse(intent({ targetLetter: 'B+' })).targetLetter).toBe('B+');
@@ -131,7 +149,7 @@ describe('grade answers are calculated by the app, never the model', () => {
     expect(answer.text).toContain('79%');
     expect(answer.text).toContain('(B+)');
     expect(answer.text).toContain('equal-weight');
-    expect(answer.text).toContain('missing credits');
+    expect(answer.text).toContain('missing its units');
     expect(answer.text).toContain('2 courses');
     expect(answer.items?.map((i) => i.title.split(' ·')[0])).toEqual([
       'SEG3102',
@@ -141,7 +159,7 @@ describe('grade answers are calculated by the app, never the model', () => {
     expect(answer.items?.[2].detail).toBe('No grades yet');
   });
 
-  it('uses course credits for the school average and GPA when every graded course has them', () => {
+  it('uses course weights for the school average and GPA when every graded course has them', () => {
     const data: AssistantWorkspace = {
       ...base,
       courses: base.courses.map((item) =>
@@ -154,9 +172,29 @@ describe('grade answers are calculated by the app, never the model', () => {
     };
     const answer = gradeStatusAnswer(data, intent({}), 'en');
     // Percentage: (68*3 + 90*6)/9 = 82.7. GPA: (5*3 + 10*6)/9 = 8.3.
-    expect(answer.text).toContain('credit-weighted semester average is 82.7% (A-)');
+    expect(answer.text).toContain('units-weighted semester average is 82.7% (A-)');
     expect(answer.text).toContain('estimated CGPA of 8.3/10');
     expect(answer.text).toContain('based only on work graded so far');
+  });
+
+  it('uses normative instructional hours as the school-defined GPA weight', () => {
+    const profile = syntheticProfile({
+      credits: { unitLabel: 'hours', unitLabelFr: 'heures', defaultPerCourse: 45 },
+    });
+    const data: AssistantWorkspace = {
+      ...base,
+      courses: base.courses.map((item) =>
+        item.id === 'seg'
+          ? { ...item, credits: 45 }
+          : item.id === 'csi'
+            ? { ...item, credits: 90 }
+            : item,
+      ),
+    };
+    const answer = gradeStatusAnswer(data, intent({}), 'en', undefined, profile);
+    expect(answer.text).toContain('hours-weighted semester average is 82.7% (A-)');
+    expect(answer.text).toContain('estimated CGPA of 8.3/10');
+    expect(answer.text).toContain('135 total hours');
   });
 
   it('uses percentages only and asks for a percentage target without a school scale', () => {
@@ -198,6 +236,13 @@ describe('grade answers are calculated by the app, never the model', () => {
     const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg);
     expect(answer.text).toContain('a pass (50%)');
     expect(answer.text).toContain('average of 32%');
+  });
+
+  it('uses a 60% school pass mark for pass targets', () => {
+    const profile = syntheticProfile({ passPercent: 60, failLabel: 'EC' });
+    const answer = gradeStatusAnswer(base, intent({ targetPass: true }), 'en', seg, profile);
+    expect(answer.text).toContain('a pass (60%)');
+    expect(answer.text).toContain('average of 52%');
   });
 
   it('works out the score needed on the final when it is the only work left', () => {

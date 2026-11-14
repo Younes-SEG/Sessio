@@ -71,7 +71,7 @@ export function SchoolPrompt() {
             {t('Which school do you attend?')}
           </h2>
           <p className="muted mt-1 text-xs leading-relaxed">
-            {t('Your school helps Command use the right grade scale and course credits.')}
+            {t('Your school helps Command use the right grade scale and course weights.')}
           </p>
           {expanded ? (
             <div className="mt-4 max-w-xl space-y-3">

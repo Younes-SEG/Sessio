@@ -15,7 +15,13 @@ export function CourseFields({
   schoolId?: string | null;
 }) {
   const t = useT();
-  const defaultCredits = schoolById(schoolId)?.credits?.defaultPerCourse;
+  const school = schoolById(schoolId);
+  const defaultCredits = school?.credits?.defaultPerCourse;
+  const unitLabel =
+    t.locale === 'fr-CA' ? school?.credits?.unitLabelFr : school?.credits?.unitLabel;
+  const weightLabel = unitLabel
+    ? `${unitLabel.charAt(0).toLocaleUpperCase(t.locale)}${unitLabel.slice(1)} (${t('optional')})`
+    : t('Course weight (optional)');
   return (
     <div className="form-grid">
       <TextField
@@ -51,13 +57,13 @@ export function CourseFields({
       />
       <TextField
         name="credits"
-        label={t('Credits (optional)')}
+        label={weightLabel}
         type="number"
         min={0.01}
         max={1000}
         step="any"
         value={initial.credits ?? (!initial.id ? defaultCredits : undefined)}
-        hint={t('Used for credit-weighted semester averages.')}
+        hint={t('Used to weight semester averages and GPA.')}
       />
       <Field
         name="color"

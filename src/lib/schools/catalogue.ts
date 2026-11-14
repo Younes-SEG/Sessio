@@ -20,9 +20,11 @@ export const schools = [
       { letter: 'E', min: 40, points: 1 },
       { letter: 'F', min: 0, points: 0 },
     ],
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
     gpa: { max: 10, label: 'CGPA' },
     passPercent: 50,
-    credits: { unitLabel: 'unit', unitLabelFr: 'cr\u00e9dit', defaultPerCourse: 3 },
+    credits: { unitLabel: 'units', unitLabelFr: 'cr\u00e9dits', defaultPerCourse: 3 },
     lms: 'brightspace',
     sources: [
       {

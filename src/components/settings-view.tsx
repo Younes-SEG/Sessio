@@ -256,7 +256,7 @@ function PreferenceFields({ settings }: { settings: Settings }) {
         <div>
           <h3 className="text-sm font-medium">{t('School')}</h3>
           <p className="muted mt-2 text-xs leading-relaxed">
-            {t('Used for letter grades, GPA and default course credits.')}
+            {t('Used for letter grades, GPA and default course weights.')}
           </p>
         </div>
         <div className="space-y-3">

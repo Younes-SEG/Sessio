@@ -6,8 +6,8 @@ export const french: Record<string, string> = {
   Selected: 'S\u00e9lectionn\u00e9',
   'No listed school matches your search.':
     'Aucun \u00e9tablissement r\u00e9pertori\u00e9 ne correspond.',
-  'Your school helps Command use the right grade scale and course credits.':
-    'Votre \u00e9tablissement aide Command \u00e0 utiliser le bon bar\u00e8me et les bons cr\u00e9dits.',
+  'Your school helps Command use the right grade scale and course weights.':
+    'Votre \u00e9tablissement aide Command \u00e0 utiliser le bon bar\u00e8me et les bonnes pond\u00e9rations de cours.',
   'Save school': 'Enregistrer l\u2019\u00e9tablissement',
   'Choose school': 'Choisir un \u00e9tablissement',
   "My school isn't listed": 'Mon \u00e9tablissement n\u2019est pas dans la liste',
@@ -17,17 +17,18 @@ export const french: Record<string, string> = {
   'Could not save your school. Please try again.':
     'Impossible d\u2019enregistrer votre \u00e9tablissement. Veuillez r\u00e9essayer.',
   'YOUR SCHOOL, YOUR SCALE': 'VOTRE \u00c9TABLISSEMENT, VOTRE BAR\u00c8ME',
-  'This helps Command use the right letter grades, GPA scale and course credits.':
-    'Cela aide Command \u00e0 utiliser les bonnes notes en lettres, l\u2019\u00e9chelle de MPC et les bons cr\u00e9dits.',
+  'This helps Command use the right letter grades, GPA scale and course weights.':
+    'Cela aide Command \u00e0 utiliser les bonnes notes en lettres, l\u2019\u00e9chelle de MPC et les bonnes pond\u00e9rations de cours.',
   'You can change this later in Settings.':
     'Vous pourrez modifier ce choix dans les r\u00e9glages.',
   School: '\u00c9tablissement',
-  'Used for letter grades, GPA and default course credits.':
-    'Utilis\u00e9 pour les notes en lettres, la MPC et les cr\u00e9dits par d\u00e9faut.',
+  'Used for letter grades, GPA and default course weights.':
+    'Utilis\u00e9 pour les notes en lettres, la MPC et les pond\u00e9rations de cours par d\u00e9faut.',
   'Clear school': 'Effacer l\u2019\u00e9tablissement',
-  'Credits (optional)': 'Cr\u00e9dits (facultatif)',
-  'Used for credit-weighted semester averages.':
-    'Utilis\u00e9s pour les moyennes de session pond\u00e9r\u00e9es selon les cr\u00e9dits.',
+  optional: 'facultatif',
+  'Course weight (optional)': 'Pond\u00e9ration du cours (facultatif)',
+  'Used to weight semester averages and GPA.':
+    'Utilis\u00e9 pour pond\u00e9rer les moyennes de session et la MPC.',
   'Choose a supported school.': 'Choisissez un \u00e9tablissement pris en charge.',
   'Saving...': 'Enregistrement...',
   Continue: 'Continuer',
@@ -132,7 +133,7 @@ export const french: Record<string, string> = {
   'Connect Gmail': 'Connecter Gmail',
   'Connected Gmail': 'Gmail connecté',
   'Loading your workspace…': 'Chargement de ton espace…',
-  'Loading email connection…':'Chargement de la connexion aux courriels…',
+  'Loading email connection…': 'Chargement de la connexion aux courriels…',
   'Unable to load email updates.': 'Impossible de charger les mises à jour par courriel.',
   'Unable to connect Gmail.': 'Impossible de connecter Gmail.',
   'Connecting…': 'Connexion…',
