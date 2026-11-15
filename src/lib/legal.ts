@@ -1,85 +1,133 @@
-export const policyUpdated = 'November 10, 2026';
+export const policyUpdated = 'November 14, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
+export type LegalText = {
+  title: string;
+  introduction: string;
+  sections: readonly { title: string; paragraphs: readonly string[] }[];
+};
+
+// The French versions in legal-fr.ts must keep the same documents and section structure
+// (tests/legal-translations.test.ts). Update both together.
 export const legalDocuments = {
   privacy: {
     title: 'Privacy policy',
     introduction:
-      'Command has a local edition and a hosted edition with private accounts. This policy describes where each edition processes your information, including optional syllabus reading.',
+      'This policy explains what personal information Command collects, why, where it is processed, how long it is kept and the choices you have. It covers the hosted edition and notes where the downloadable local edition differs.',
     sections: [
       {
-        title: 'AI allowances and account deletion records',
+        title: 'Who is responsible',
         paragraphs: [
-          'Hosted AI uses content-free usage records: a pseudonymous account reference, feature and model, timestamps, provider token counts when available, pricing configuration and conservative spending reservations. These records do not contain chat text, grades, uploaded documents or emails. They survive chat deletion and workspace erasure so those actions cannot reset spending limits. Current and previous calendar-month usage is eligible for retention; older records are removed by the operator cleanup command. Cleanup scheduling and backup expiry must be verified before public release. Your own usage records are included in workspace exports when accounting is configured.',
-          'A blocked or deleted hosted account retains a minimal account identifier and deletion state to stop existing requests and restored copies from recreating its data. Those markers contain no academic records. Their final retention period depends on the verified provider and backup recovery window; it has not yet been finalized for public release. Workspace erasure remains separate from complete login-account deletion. The operator must verify account ownership, provider deletion and grant revocation before confirming completion.',
+          'The hosted edition of Command is operated from Ontario, Canada, by the operator named under “Account deletion and support” at the bottom of this page. The operator is responsible for the personal information described here and has designated a person in charge of protecting it, the Privacy Officer.',
+          'Write to the Privacy Officer at the support email shown below for privacy questions, requests to access or correct your information, account deletion, complaints, or to report a security concern. We answer within 30 days.',
+          'The downloadable local edition runs on your own computer. Its data stays there unless you use an optional online feature described below, and whoever installs it controls that copy.',
         ],
       },
       {
-        title: 'Ask Command',
+        title: 'What we collect and why',
         paragraphs: [
-          'Sending a chat message sends its text, recent conversation context, language and device time zone to Google Gemini through the application server. Context includes recent user messages, conversational replies, clarification choices, and the scope of previous read-only questions. It can include course or assessment names suggested by Command. Full workspace records and email contents are not included automatically. Google may use unpaid-tier content to improve its products and human reviewers may review it. Google instructs users not to submit personal, sensitive or confidential information to unpaid services. Do not send private grades or other personal information through an unpaid configuration; the operator must verify appropriate paid-service data terms before offering personal academic assistance publicly. Gemini also has an 18-and-over API/client eligibility restriction; a postsecondary audience alone does not establish eligibility. The server validates the interpreted request and checks ownership before reading or changing workspace records.',
-          'Chat titles, messages, replies and recent conversation context are saved in your workspace database so you can reopen a conversation after refreshing or signing back in. Hosted chats are scoped to the signed-in account; the local edition uses the local installation workspace. Conversations remain until you delete them or erase the workspace. Only recent relevant context from the selected conversation is sent to Gemini, not your entire chat history. New chat starts separate context. Reopening a chat does not replay saved actions. Each conversation can contain up to 200 successful exchanges; start another when it is full. Individual action receipts support confirmation and Undo for 24 hours and are pruned after 30 days when another chat request is made. Saved transcripts can therefore remain after action controls expire. Deleting a conversation removes its messages, title, context, pending actions and Undo data while keeping grades and events already saved. Content-free request identifiers, status and timestamps remain for up to the next cleanup to prevent repeated actions and enforce request limits. Chats and action receipts are included in workspace exports and removed by workspace erasure. Failed requests can keep the submitted user message in their conversation; they do not store provider error details.',
+          'Account: your email address, an optional name and sign-in records, so you can sign in and keep your workspace private.',
+          'Workspace: the courses, assessments, grades, tasks, notes, calendar entries, terms and preferences you enter or import, so Command can organize your studies.',
+          'Optional connections: a private calendar link you choose to connect, a syllabus you choose to read, chat messages you send to Ask Command and, in the local edition only, school email notices from a Gmail account you connect. Each is used only for the feature you started.',
+          'Service records: content-free AI usage records, deletion records and short security logs, so we can enforce fair-use limits, honour deletions and protect the service.',
+          'We collect only what each feature needs. We do not sell personal information, show ads, build marketing profiles or use your information to train AI models.',
+        ],
+      },
+      {
+        title: 'Where your information is processed',
+        paragraphs: [
+          'Hosted Command relies on these service providers, which process information on our behalf: Vercel runs the application (United States, Washington, D.C. region); Neon stores the database and handles sign-in (United States, Virginia); Render runs the syllabus reader (United States, Ohio); and Google provides the Gemini AI used by Ask Command and syllabus reading (United States and other Google locations). Calendar providers you connect, such as Brightspace, receive requests from our server.',
+          'Because these providers are outside Canada, your information is stored and processed in the United States and can be subject to the laws of that country, including lawful access by its courts and authorities. We chose providers with strong security practices, limit what each one receives, and assessed these transfers before offering the service to students in Quebec.',
         ],
       },
       {
         title: 'Your workspace and account',
         paragraphs: [
-          'Your courses, assessments, grades, tasks, subtasks, notes, calendar entries, semesters and preferences are stored in PostgreSQL. In the downloaded local edition, that database is on your computer and no account is required. In the hosted edition, Vercel processes application requests and Neon stores workspace data. Server-side ownership checks restrict workspace access to the signed-in account. This does not prevent access by authorized service operators or infrastructure providers.',
-          'Hosted sign-in uses Neon Auth to process your email, optional name, password authentication and sessions. Verification and password-reset emails are transactional, not marketing. Command does not store plaintext passwords in its workspace tables. A verified account identifier links your workspace to your login. No date of birth, student ID, payment details or marketing profile is required. Hosting and authentication providers may retain operational and security logs under their own policies; regions, backup retention and operator contact details must be finalized for the public release.',
+          'Your workspace is stored in PostgreSQL. In the local edition that database is on your computer and no account is required. In the hosted edition, Vercel processes application requests and Neon stores workspace data. Server-side ownership checks restrict workspace access to the signed-in account. This does not prevent access by authorized service operators or infrastructure providers.',
+          'Hosted sign-in uses Neon Auth to process your email, optional name, password authentication and sessions. Verification and password-reset emails are transactional, not marketing. Command does not store plaintext passwords in its workspace tables. A verified account identifier links your workspace to your login. No date of birth, student ID, payment details or marketing profile is required.',
         ],
       },
       {
-        title: 'Calendar connections',
+        title: 'Ask Command',
         paragraphs: [
-          'Previewing a subscription sends the link to the Command server running your edition, which requests the calendar from its provider. For the hosted edition this means Vercel processes the private link and Neon stores it after connection. The calendar provider receives the request and may log the server network address and feed credential. Preview data is not saved to the database unless you choose Connect and import.',
-          'Connecting saves the private feed URL, selected dates and time zone, imported entries, sync status and the date/version of the connection notice you accepted. Local servers check approximately every 15 minutes while running. Hosted connections are checked when you use the app, at most once per 15 minutes automatically, or when you request a manual sync. Feed links can grant calendar access; do not publish them or put them in a shared repository.',
-          'Disconnect stops checks but retains the link for reconnection. Forget link removes the saved connection and sync mapping while keeping imported academic entries. You can delete those entries individually or erase your workspace. Reimporting a forgotten connection can create duplicates.',
+          'Sending a chat message sends its text, recent conversation context, your language and device time zone to Google Gemini through the application server. Context can include course or assessment names Command suggests. Your full workspace and email contents are not sent automatically. The server checks each interpreted request and your ownership before reading or changing workspace records.',
+          'The hosted edition uses Google’s paid Gemini API. Under Google’s terms for paid services, Google does not use these prompts or responses to improve its products; it keeps them for a limited time to detect abuse. A local installation uses whatever key its owner configures. On Google’s free tier, content may be used to improve Google products and reviewed by people, so do not send private information through a free-tier setup.',
+          'Chat titles, messages, replies and recent conversation context are saved in your workspace so you can reopen a conversation later. Conversations remain until you delete them or erase the workspace. Only recent relevant context from the selected conversation is sent to Gemini, not your whole chat history. Each conversation holds up to 200 exchanges. Action receipts support confirmation and Undo for 24 hours and are removed once they are 30 days old, during the next chat request. Deleting a conversation removes its messages, title, context, pending actions and Undo data, while keeping grades and events already saved. Content-free request identifiers, statuses and timestamps can remain until the next cleanup to prevent repeated actions and enforce limits. Chats and receipts are included in exports and removed by workspace erasure.',
         ],
       },
       {
         title: 'Syllabus imports',
         paragraphs: [
-          'Selecting a syllabus file does not start reading. Clicking Read syllabus after choosing a PDF, DOCX, JPG, PNG or TXT file, or submitting pasted text, sends its content, the selected semester dates and, for an existing course, its code/name to Command’s reading service and then its configured provider (Google Gemini or OpenAI) through the application server. Your other courses, saved grades, notes and calendar credentials are not included. The upload screen explains this transfer before you choose a file. Users do not configure an AI key or account. The service operator manages the provider connection and its costs; request allowances apply.',
-          'Original files and previews are processed in memory and are not saved by Command’s reader. Its usage database stores aggregate request counts and daily rotating, keyed hashes of network addresses or prefixes to enforce allowances. Daily identifiers are pruned hourly after the next UTC day begins; aggregate monthly counters expire the next month. Hosting logs and disk snapshots may have separate retention, which must be documented for the chosen host before public release. Requests use inline PDF/image data and text rather than persistent provider file uploads. Word text, tables and embedded JPG/PNG images are extracted in memory; macros and external links are not executed or fetched. OpenAI requests disable response storage. Google Gemini free-tier submissions may be used to improve Google products and may be reviewed by humans; only submit non-sensitive syllabi on that tier. See ai.google.dev/gemini-api/terms. Provider retention rules still apply: OpenAI may retain API content for abuse monitoring and other permitted purposes. Disabling response storage does not guarantee zero retention. Review the provider’s current data controls at developers.openai.com/api/docs/guides/your-data before submitting sensitive documents.',
-          'Saving reviewed assessments stores their dates and weights in your workspace; new assessments also keep the displayed source excerpt and page reference in their notes. Existing matched assessments retain their original notes and grades. Discarding the preview does not save academic records, but cannot undo a request already sent to the provider. Erasing Command’s workspace does not erase provider-held copies, hosting logs or temporary service usage counters.',
+          'Choosing a file does not start reading. When you click Read syllabus for a PDF, DOCX, JPG, PNG or TXT file, or submit pasted text, Command sends its content, the selected term dates and, for an existing course, its code and name to Command’s reader and then to Google Gemini. Your other courses, saved grades, notes and calendar links are not included. You do not need an AI account or key; the operator manages and pays for the connection, and request allowances apply.',
+          'The hosted reader runs on Render in Ohio, United States. Files and previews are processed in memory and are not saved by the reader. Its usage database keeps aggregate request counts and daily-rotating keyed hashes of network addresses to enforce allowances; daily identifiers are deleted after the next UTC day and monthly counters the following month. Content is sent inline, never as a stored provider file. Word documents are read in memory; macros and links are never run or fetched. Hosted reading uses Google’s paid Gemini API, so content is not used to improve Google products; Google keeps it briefly for abuse detection. A local installation can be configured with another provider, such as OpenAI, under that provider’s terms.',
+          'Saving reviewed assessments stores their dates and weights in your workspace; new assessments also keep the source excerpt and page reference in their notes. Discarding a preview saves nothing, but cannot undo a request already sent. Erasing your workspace does not erase copies held by the AI provider, hosting logs or temporary usage counters.',
+        ],
+      },
+      {
+        title: 'Calendar connections',
+        paragraphs: [
+          'Previewing a subscription sends the link to the Command server running your edition, which requests the calendar from its provider. For the hosted edition this means Vercel processes the private link and Neon stores it after connection. The calendar provider receives the request and may log the server network address and feed credential. Preview data is not saved unless you choose Connect and import.',
+          'Connecting saves the private feed URL, selected dates and time zone, imported entries, sync status and the date and version of the connection notice you accepted. Local servers check about every 15 minutes while running. Hosted connections are checked when you use the app, at most once per 15 minutes automatically, or when you ask for a manual sync. Feed links can grant calendar access; do not publish or share them.',
+          'Disconnect stops checks but keeps the link for reconnection. Forget link removes the saved connection and sync mapping while keeping imported academic entries. You can delete those entries individually or erase your workspace. Reimporting a forgotten connection can create duplicates.',
         ],
       },
       {
         title: 'Optional Gmail connection',
         paragraphs: [
-          'Command?s use and transfer of information received from Google APIs follows the Google API Services User Data Policy, including its Limited Use requirements. Gmail data is not used to train general AI models, target ads or build profiles for sale.',
-          'Connecting Gmail grants read-only mailbox access through Google OAuth. Command uses your chosen search filter to retrieve matching notifications and their message text; the Google permission itself covers the mailbox. Command does not send mail, modify Gmail, fetch attachments or linked pages, or transmit email to an AI service. Forwarded school messages are read from the personal Gmail account you authorize, not by bypassing a school account restriction.',
-          'The database stores your Gmail address, an encrypted refresh token, search preferences, connection consent date/version, sync status, and review records containing message IDs, sender, subject, date, readable message text (up to 100,000 characters, with a notice when incomplete) and proposed grade/assessment match. Raw email HTML is processed in server memory only. In the local edition this happens on your computer; in hosted deployments the application host processes messages and the workspace database stores review records. Google receives API requests and may keep its own logs.',
-          'Automatic checks run approximately every five minutes while a Command page is open and visible. Grade notices appear under Grades; course announcements and assessment-change notices appear under Updates. Clear assessment and score matches are saved automatically during email checks, including existing pending messages. Recent automatic results are shown in Grade emails. Uncertain results, incomplete messages and conflicts with manually entered grades remain for review. Newer messages may correct an unchanged automatically saved grade; older messages cannot replace newer results. Deadline changes still require review and saving. Unread reviews remain until read, reviewed, disconnected or erased. Viewing a school notification for two seconds in the active tab marks it as read in Command without changing Gmail or approving a proposed assessment change. Read notifications retain their excerpts and are removed after 90 days during successful syncs. Automatically saving, superseding, applying or dismissing a review clears its excerpt immediately; reviewed metadata is removed after 90 days during successful syncs. Newly ignored messages keep only a message identifier and processing timestamps to avoid repeated reads; these are removed after 90 days during successful syncs. Disconnecting deletes the connection and reviews, keeps saved grades, and attempts to revoke Google access. Workspace erasure deletes all saved email data and stops checks; revoke the grant separately in Google account connections if needed. Neither action deletes emails in Gmail.',
+          'Gmail connection is available only in the local edition; it is switched off in the hosted edition. Command’s use and transfer of information received from Google APIs follows the Google API Services User Data Policy, including its Limited Use requirements. Gmail data is not used to train general AI models, target ads or build profiles for sale.',
+          'Connecting Gmail grants read-only mailbox access through Google OAuth. Command uses your chosen search filter to retrieve matching school notifications and their text. It does not send mail, change Gmail, fetch attachments or linked pages, or send email to an AI service.',
+          'The database stores your Gmail address, an encrypted refresh token, search preferences, consent date and version, sync status, and review records with message IDs, sender, subject, date, readable text (up to 100,000 characters) and proposed grade matches. Raw email HTML is processed in memory only. Google receives API requests and may keep its own logs.',
+          'Automatic checks run about every five minutes while a Command page is open and visible. Clear grade matches are saved automatically; uncertain results stay for your review, and deadline changes always need your approval. Read notices, reviewed metadata and ignored-message identifiers are deleted after 90 days. Disconnecting deletes the connection and reviews, keeps saved grades and attempts to revoke Google access. Neither action deletes emails in Gmail.',
+        ],
+      },
+      {
+        title: 'AI allowances and deletion records',
+        paragraphs: [
+          'Hosted AI uses content-free usage records: a pseudonymous account reference, feature and model, timestamps, provider token counts when available, pricing configuration and spending reservations. They contain no chat text, grades, documents or emails. They survive chat deletion and workspace erasure so those actions cannot reset spending limits. Records from the current and previous calendar month are kept; older ones are deleted by a cleanup the operator runs at least monthly. Your own usage records are included in workspace exports.',
+          'A deleted hosted account keeps a minimal account identifier and deletion status so that requests already in progress and restored backups cannot recreate its data. These markers contain no academic records and are removed once no backup could still contain the account.',
         ],
       },
       {
         title: 'Tracking, cookies and third parties',
         paragraphs: [
-          'Command has no advertising, analytics, session replay, marketing SDKs, tracking cookies, or sale of workspace data. It does not send marketing email. The study buddy’s mouse reactions are calculated in browser memory; pointer positions are not stored or sent anywhere.',
-          'Application code, icons and graphics are bundled locally. Lora and Plus Jakarta Sans font files are served by this installation, with device fonts as fallbacks; no third-party font service is contacted. Calendar connections contact their providers; syllabus imports contact Command’s reader and its configured provider (Google Gemini or OpenAI) when you upload or submit text. Checking reader availability also contacts the hosted service, without sending syllabus content. Installing or updating the software through a package registry or download host is a separate network activity governed by that service.',
+          'Command has no advertising, analytics, session replay, marketing SDKs or tracking cookies, and does not sell workspace data or send marketing email. The study buddy’s mouse reactions are calculated in browser memory; pointer positions are not stored or sent anywhere.',
+          'Application code, icons, graphics and fonts are served by Command itself; no third-party font or script service is contacted. Calendar connections contact their providers, and syllabus imports contact Command’s reader and Google Gemini when you start them. Checking reader availability contacts the reader without sending syllabus content.',
         ],
       },
       {
-        title: 'Access, correction and deletion',
+        title: 'Your choices and rights',
         paragraphs: [
-          'Edit individual entries in Command. Settings → Your data lets you download a JSON copy and permanently erase the application’s workspace data. The export excludes private subscription URLs but includes your academic information, deleted courses, AI receipts and preferences; store it privately. It is a data copy, not an automatic restore format.',
-          'Deleting a course moves it to Deleted courses and retains its assessments, grades, notes and linked records so it can be restored. This is not permanent erasure. Erasing the workspace permanently deletes active and deleted course records, AI receipts, saved feed links and preferences from the active application database and stops syncing. It does not erase files you downloaded, operating-system backups, database logs/snapshots, provider-held calendars, or copies made by other software. Those copies must be removed through the systems that hold them. Command has no automatic backup-retention service.',
-          'Settings → Your data erases only the active workspace. In the hosted edition this does not delete your Neon Auth login, authentication records or provider backups. A verified account-deletion and support process, with a public contact, must be completed before broad public release. No support request form is active now.',
+          'You can view and edit your information in Command at any time. Settings → Your data downloads a complete JSON copy (private calendar links excluded) and permanently erases your workspace.',
+          'Deleting a course moves it to Deleted courses, where it can be restored; this is not permanent erasure. Erasing the workspace permanently deletes active and deleted courses, AI receipts, saved feed links and preferences from the live database and stops syncing. It cannot erase files you downloaded or copies made by other software.',
+          'Workspace erasure keeps your login so you can start again. To delete your account entirely, write to the support contact below from the email you sign in with. We verify the request, delete the workspace and your sign-in account with our providers, and confirm what was removed. Never send your password.',
+          'You can withdraw consent for optional features at any time: disconnect a calendar or Gmail, or stop using Ask Command and syllabus reading. You can also ask what personal information we hold about you and how it has been used. If you are not satisfied with our answer, you can complain to the Office of the Privacy Commissioner of Canada (priv.gc.ca) or, in Quebec, the Commission d’accès à l’information (cai.gouv.qc.ca).',
         ],
       },
       {
-        title: 'Retention and safeguards',
+        title: 'How long we keep information',
         paragraphs: [
-          'Workspace records remain until you delete them. There is no scheduled expiry. Application error logs omit raw database errors and feed credentials. Database, operating-system, proxy or calendar-provider logs are outside Command’s deletion function.',
-          'The local edition binds to your computer and rejects public workspace requests. The hosted edition requires a verified session and scopes data reads, writes, exports and erasure to that account. Protect your device and sign out on shared computers. Hosting credentials and database administration grant access beyond an ordinary user account.',
+          'Workspace records stay until you delete them or erase the workspace; there is no automatic expiry. Erased data leaves the live database immediately. It can remain in the database’s rolling restore history for up to 6 hours, and in a manual backup taken before a database change for up to 60 days, after which that backup is deleted. Testing a change to Command uses a temporary copy of the database that only the operator can reach; it is deleted when the change is finished, usually within a few days.',
+          'Other records have shorter limits: chat action receipts 30 days; read email notices and reviewed email metadata 90 days; AI usage records about two months; syllabus reader counters one day or one month. Hosting and sign-in providers keep short operational and security logs under their own policies. The local edition keeps everything on your computer until you delete it.',
         ],
       },
       {
-        title: 'Audience and future changes',
+        title: 'Security and incidents',
         paragraphs: [
-          'Command is designed for postsecondary study and general personal planning, not a child-directed service. It does not collect age or parental-consent records. A child-directed version would need a separate privacy and age-consent assessment before collecting children’s information.',
-          'The planned publisher jurisdiction is Ontario, Canada. When a hosted operator and support contact are configured, they appear under “Account deletion and support” below. This notice is a preview and must receive a final review before public distribution. Material changes to data collection or optional services need an updated notice and any consent required for that change.',
+          'The local edition binds to your computer and rejects public workspace requests. The hosted edition requires a verified session and limits reads, writes, exports and erasure to your own workspace. Connections are encrypted, and application error logs leave out database details and calendar links. Protect your device and sign out on shared computers.',
+          'We record every incident involving personal information, such as unauthorized access, use, disclosure or loss, and keep that record for at least five years. If an incident creates a real risk of significant harm, or for Quebec residents a risk of serious injury, we promptly notify the people affected and the Office of the Privacy Commissioner of Canada, and the Commission d’accès à l’information for Quebec residents, explaining what happened and what you can do.',
+        ],
+      },
+      {
+        title: 'Age and audience',
+        paragraphs: [
+          'Command is designed for postsecondary students and general personal planning. It is not directed to children and does not collect age records.',
+          'Google’s terms for its Gemini API allow it only for people 18 or older. You must be at least 18 to use Ask Command or syllabus reading. If you are under 18, you can use Command without these AI features.',
+        ],
+      },
+      {
+        title: 'Changes to this policy',
+        paragraphs: [
+          'We update this policy when our practices change and show the date at the top. For significant changes, such as a new kind of information or a new provider, we tell you in the app before the change applies and ask for your consent where the law requires it.',
         ],
       },
     ],
@@ -87,40 +135,70 @@ export const legalDocuments = {
   terms: {
     title: 'Terms of use',
     introduction:
-      'These terms describe the current preview of Command. When a hosted operator and support contact are configured, they appear under “Account deletion and support” below. Final release terms are still pending.',
+      'These terms apply when you use Command. By using it, you agree to them. The hosted edition is provided from Ontario, Canada, by the operator named under “Account deletion and support” below.',
     sections: [
       {
-        title: 'Using Command',
+        title: 'The service',
         paragraphs: [
-          'Command helps organize personal study plans. You may run the copy supplied to you on your own device for lawful personal use. Third-party software remains subject to its own licences, listed in Credits. These terms do not grant ownership of third-party materials or override their licences.',
-          'You keep ownership of your notes and academic information. Only enter or connect information you are authorized to use. Do not use the application to obtain someone else’s calendar, bypass an institution’s access controls, or violate another person’s privacy.',
+          'Command helps you organize your own studies. The hosted edition is a free, invitation-only preview that may change as it develops. You may also run the downloadable local edition on your own device for lawful personal use. Third-party software remains subject to its own licences, listed in Credits.',
         ],
       },
       {
-        title: 'Dates and grade estimates',
+        title: 'Your account',
         paragraphs: [
-          'Calendar feeds can omit work, delay updates or change their date range. Grades and weights are not imported by the calendar feed. AI syllabus suggestions can omit assessments or misread dates, source references and grading rules. Review them before saving and verify important dates, submissions and results with your institution. Grade calculations and target estimates are planning aids, not official academic records or guarantees.',
+          'You must be able to agree to these terms, and at least 18 to use Ask Command or syllabus reading, because our AI provider requires it. Keep your sign-in details private, and tell us right away if you think someone else has used your account. You are responsible for activity in your account.',
         ],
       },
       {
-        title: 'Your installation and copies',
+        title: 'Using Command responsibly',
         paragraphs: [
-          'Protect your account, computer and database, and keep private backups if you need them. A JSON export is a readable data copy; an automatic restore tool is not included. Deleting your workspace cannot remove independently created backups or provider records.',
-          'The local edition has no accounts or hosted recovery. The hosted edition stores your workspace online and uses Neon Auth accounts. You can disconnect feeds, export or erase your workspace and sign out. Local calendar refreshes stop with the server; hosted automatic refreshes depend on using the application.',
+          'Only enter or connect information you are allowed to use. Do not use Command to obtain someone else’s calendar or data, bypass an institution’s access controls, violate another person’s privacy, or upload documents you have no right to share.',
+          'Do not try to access other accounts, probe or overload the service, get around usage limits, or use Command for anything unlawful.',
         ],
       },
       {
-        title: 'Charges and refunds',
+        title: 'Your content',
         paragraphs: [
-          'Command has no checkout, paid subscription, trial conversion or in-app fees. The shared syllabus reader is managed and funded by the operator; users are not asked to provide an AI account or payment details. Request allowances and service availability limits apply. Independent internet costs are governed by your provider’s agreement. No refund transaction exists in Command.',
-          'A paid release would need clear pricing, taxes, cancellation and refund terms before a purchase is offered. Nothing here waives any non-waivable consumer right.',
+          'You keep ownership of your notes and academic information. You allow us to store and process it only to provide Command to you, as described in the Privacy policy. We do not claim ownership of it.',
         ],
       },
       {
-        title: 'Availability and changes',
+        title: 'AI features, dates and grade estimates',
         paragraphs: [
-          'Software can contain errors. There is no promise of uninterrupted operation, automatic updates or a particular academic outcome. Security fixes and changes should be accompanied by release notes and updated notices when appropriate.',
-          'Ontario, Canada is the planned publisher jurisdiction. These preview terms do not impose arbitration, waive class proceedings, or remove consumer protections that apply where you live. Operator identity, contact information and final release terms must be completed before public distribution.',
+          'Ask Command and syllabus reading use AI and can be wrong: they may miss assessments, misread dates or weights, or misunderstand a request. Review suggestions before saving and confirm important dates, submissions and results with your institution. Usage allowances apply.',
+          'Calendar feeds can omit work, delay updates or change their date range. Grade calculations and target estimates are planning aids, not official academic records or guarantees.',
+        ],
+      },
+      {
+        title: 'Your copies',
+        paragraphs: [
+          'Keep private backups if you need them; a JSON export is a readable copy, not an automatic restore tool. Deleting your workspace cannot remove backups you made yourself or records held by other services. The local edition has no accounts or hosted recovery.',
+        ],
+      },
+      {
+        title: 'Charges',
+        paragraphs: [
+          'Command is free. It has no checkout, subscription, trial or in-app fees, and the AI features are funded by the operator. If paid features are ever offered, their price, taxes, cancellation and refund terms will be shown before any purchase.',
+        ],
+      },
+      {
+        title: 'Availability, suspension and ending',
+        paragraphs: [
+          'We work to keep Command running, but it can contain errors and there is no promise of uninterrupted service or a particular academic outcome.',
+          'We may suspend an account that breaks these terms or puts the service or other users at risk. You can stop using Command at any time and delete your data. If we decide to close the hosted edition, we will give reasonable notice, where possible, so you can export your workspace.',
+        ],
+      },
+      {
+        title: 'Liability',
+        paragraphs: [
+          'Command is provided as is. To the extent the law allows, the operator is not responsible for indirect losses, or for missed deadlines or grades that result from relying on the app instead of your institution’s official information. Nothing in these terms limits rights you have under consumer protection laws that cannot be waived.',
+        ],
+      },
+      {
+        title: 'Governing law and changes',
+        paragraphs: [
+          'These terms are governed by the laws of Ontario and the federal laws of Canada that apply there. They do not require arbitration, waive class proceedings or remove consumer protections that apply where you live, including in Quebec.',
+          'We may update these terms. The date at the top shows the latest version, and we will tell you in the app before a significant change applies.',
         ],
       },
     ],
@@ -136,14 +214,14 @@ export const legalDocuments = {
           'Academic data and preferences are stored in the database for your edition. Hosted authentication uses secure, HTTP-only session cookies and signed session-cache cookies, with SameSite protections. The authentication library may use browser storage and tab messages to coordinate session changes. These support sign-in rather than advertising. Temporary workspace state, previews and mouse positions live in browser memory.',
           'Command also stores your chosen interface language in a first-party command-language cookie for up to one year. It contains only en or fr, works without an account, and is not used for tracking. You can change it with the language switch or clear it in your browser.',
           'A first-party command-theme cookie remembers LIGHT, DARK or SYSTEM for up to one year so pages can display your theme before the app loads. It contains no account or academic data and is not used for tracking. Change your theme in Command or clear the cookie in your browser.',
-          'Choosing Connect Gmail creates a temporary HTTP-only command-gmail-state cookie lasting at most ten minutes. It binds the authorization response to the browser that started the connection and is removed after the callback. It is not an advertising or analytics cookie.',
-          'Your browser may cache application files as part of ordinary browsing. Workspace responses are marked private and no-store. Calendar providers are contacted by the application server when you preview or connect a feed.',
+          'In the local edition, choosing Connect Gmail creates a temporary HTTP-only command-gmail-state cookie lasting at most ten minutes. It ties Google’s response to the browser that started the connection and is removed afterwards. It is not an advertising or analytics cookie.',
+          'Your browser may cache application files as part of ordinary browsing. Workspace responses are marked private and no-store.',
         ],
       },
       {
         title: 'Why there is no cookie banner',
         paragraphs: [
-          'The current app has no optional analytics or advertising storage to accept or reject. Hosted authentication storage supports the sign-in feature. If optional tracking is introduced, its purpose and controls must be disclosed before it runs.',
+          'Command has no optional analytics or advertising storage to accept or reject; every cookie above is needed for a feature you use. If optional tracking is ever introduced, its purpose and controls will be explained and you will be asked before it runs.',
         ],
       },
     ],
@@ -170,8 +248,8 @@ export const legalDocuments = {
       {
         title: 'Known limits and feedback',
         paragraphs: [
-          'Automated checks cannot establish complete accessibility. Calendar layouts can require horizontal scrolling on small screens. Screen-reader combinations, high magnification and additional assistive technologies still need manual testing before public release.',
-          'An accessibility and security reporting contact will be added with the public release. No feedback form collects personal information in this preview.',
+          'Automated checks cannot establish complete accessibility. Calendar layouts can require horizontal scrolling on small screens. Screen-reader combinations, high magnification and other assistive technologies still need more manual testing.',
+          'Report an accessibility barrier or a security concern to the support contact below; we aim to reply within 30 days. No feedback form collects personal information.',
         ],
       },
     ],
@@ -184,7 +262,7 @@ export const legalDocuments = {
       {
         title: 'Publisher details',
         paragraphs: [
-          'Planned jurisdiction: Ontario, Canada. When a hosted operator name and support contact are configured, they appear under “Account deletion and support” below. Any legally required business address or registration details are not supplied yet. Public distribution is pending a final policy review. No business identity or contact address has been invented.',
+          'The hosted edition is operated from Ontario, Canada, by the operator named under “Account deletion and support” below, which is also the privacy and support contact. No business address or registration number is published yet. No business identity or contact address has been invented.',
         ],
       },
       {
@@ -196,7 +274,7 @@ export const legalDocuments = {
       {
         title: 'Data requests',
         paragraphs: [
-          'For data held by this installation, use Settings → Your data to export or erase it directly. You do not need to provide additional identity documents or email anyone to remove local application data. Files and backups outside the app must be managed separately.',
+          'In either edition, Settings → Your data exports or erases your workspace directly, without identity documents or emails. For hosted account deletion and other privacy requests, write to the support contact below. Files and backups outside the app must be managed separately.',
         ],
       },
     ],
@@ -222,6 +300,6 @@ export const legalDocuments = {
       },
     ],
   },
-} as const;
+} as const satisfies Record<string, LegalText>;
 
 export type LegalDocument = keyof typeof legalDocuments;

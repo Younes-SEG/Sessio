@@ -122,6 +122,23 @@ test('course tabs and labelled editor fields pass accessibility checks', async (
   }
 });
 
+test('legal pages switch to French in place and stay accessible', async ({ page }) => {
+  await page.goto('/legal/privacy');
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeVisible();
+  await page.getByRole('button', { name: 'Passer en français' }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Politique de confidentialité' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Vos choix et vos droits' })).toBeVisible();
+  const result = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  expect(result.violations.map((v) => v.id)).toEqual([]);
+  // Leave the language cookie as English for the remaining tests.
+  await page.getByRole('button', { name: 'Switch to English' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Privacy policy' })).toBeVisible();
+});
+
 for (const theme of ['light', 'dark']) {
   test(`core pages meet automated accessibility checks in ${theme} theme`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: theme as 'light' | 'dark' });
