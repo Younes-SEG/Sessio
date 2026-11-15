@@ -302,6 +302,8 @@ export const french: Record<string, string> = {
   'Paste your Brightspace calendar link and Command creates your term, courses and deadlines for you.':
     'Collez le lien de votre calendrier Brightspace et Command crée votre session, vos cours et vos échéances pour vous.',
   'Skip for now': 'Passer pour l’instant',
+  'Import a syllabus instead': 'Importer plutôt un plan de cours',
+  'Add grade weights from a syllabus': 'Ajouter les pondérations à partir d’un plan de cours',
   'You can connect or change this later in Settings → Calendar.':
     'Vous pourrez le connecter ou le modifier plus tard dans Paramètres → Calendrier.',
   'A little tour': 'Petite visite',
