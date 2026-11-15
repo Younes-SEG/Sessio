@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { FileText, LoaderCircle, Plus, Upload } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
+import { AiAgeConfirm, useAiAgeRequired } from './ai-age-confirm';
 import { Button } from './ui/button';
 import { SyllabusSessions, SyllabusSessionDate, type SessionGroups } from './syllabus-sessions';
 import {
@@ -53,6 +54,7 @@ const types: AssessmentType[] = [
 export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }) {
   const t = useT();
   const { data, refresh, openEditor } = useWorkspace();
+  const ageRequired = useAiAgeRequired();
   const uploadLimitMB = data.hosted ? 4 : 8;
   const [courseId, setCourseId] = useState(initialCourseId || '');
   const [mode, setMode] = useState<'new' | 'existing'>(initialCourseId ? 'existing' : 'new');
@@ -424,6 +426,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
       <p className="muted text-sm leading-relaxed">
         <T text="Upload a syllabus to create a course, or add assessments to one you already have. Review the course details, dates and weights before saving." />
       </p>
+      <AiAgeConfirm />
       {configured === false && (
         <div role="status" className="card space-y-2 p-4">
           <p className="font-medium">
@@ -617,7 +620,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
           </button>
           <Button
             type="button"
-            disabled={busy || !configured || !canRead || !selectedFile}
+            disabled={busy || !configured || !canRead || !selectedFile || ageRequired}
             aria-busy={reading && Boolean(selectedFile)}
             onClick={() => {
               if (selectedFile) void analyse(selectedFile);
@@ -697,7 +700,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
           <Button
             type="submit"
             aria-busy={reading && !selectedFile}
-            disabled={busy || !configured || !canRead || !text.trim()}
+            disabled={busy || !configured || !canRead || !text.trim() || ageRequired}
           >
             {reading && !selectedFile ? (
               <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" />

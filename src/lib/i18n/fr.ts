@@ -303,6 +303,14 @@ export const french: Record<string, string> = {
     'Collez le lien de votre calendrier Brightspace et Command crée votre session, vos cours et vos échéances pour vous.',
   'Skip for now': 'Passer pour l’instant',
   'Import a syllabus instead': 'Importer plutôt un plan de cours',
+  'AI features are for people 18 or older': 'Les fonctions d’IA sont réservées aux 18 ans et plus',
+  'Ask Command and syllabus reading use Google Gemini, which may only be used by people 18 or older. Everything else in Command works at any age.':
+    'Ask Command et la lecture des plans de cours utilisent Google Gemini, qui ne peut être utilisé que par des personnes de 18 ans ou plus. Tout le reste de Command fonctionne à tout âge.',
+  'I’m 18 or older': 'J’ai 18 ans ou plus',
+  'Could not save your confirmation. Please try again.':
+    'Impossible d’enregistrer votre confirmation. Veuillez réessayer.',
+  'Confirm that you are 18 or older to use Ask Command and syllabus reading.':
+    'Confirmez que vous avez 18 ans ou plus pour utiliser Ask Command et la lecture des plans de cours.',
   'Add grade weights from a syllabus': 'Ajouter les pondérations à partir d’un plan de cours',
   'You can connect or change this later in Settings → Calendar.':
     'Vous pourrez le connecter ou le modifier plus tard dans Paramètres → Calendrier.',
