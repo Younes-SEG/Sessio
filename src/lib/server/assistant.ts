@@ -27,6 +27,7 @@ import { assessmentSchema, eventSchema } from './validation';
 import { interpretAssistant } from './assistant-ai';
 import { answerAssistantQuery } from '@/lib/assistant-query';
 import { gradeStatusAnswer } from '@/lib/assistant-grades';
+import { assertAiAgeConfirmed } from './ai-age';
 
 type Tx = Prisma.TransactionClient;
 type Plan = {
@@ -498,6 +499,8 @@ const requestSchema = z.discriminatedUnion('action', [
 export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
   const input = requestSchema.parse(raw);
   const workspaceId = await requireWorkspaceId();
+  // New messages reach Gemini; confirming/undoing a saved action does not.
+  if (input.action === 'message') await assertAiAgeConfirmed(workspaceId);
   if (input.action !== 'message')
     return transaction(async (tx) => {
       const row = await tx.assistantRequest.findUnique({

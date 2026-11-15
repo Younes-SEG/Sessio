@@ -325,4 +325,6 @@ model Settings {
   studyBuddy    String  @default("CAT")
   buddyMotion   Boolean @default(true)
   onboardingCompleted Boolean @default(false)
+  // Hosted AI (Gemini API terms): when the user confirmed they are 18 or older.
+  aiAgeConfirmedAt DateTime?
 }

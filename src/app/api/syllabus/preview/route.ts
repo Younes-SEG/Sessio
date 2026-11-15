@@ -11,6 +11,7 @@ import {
 import { db } from '@/lib/server/db';
 import { requireWorkspaceId } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
+import { assertAiAgeConfirmed } from '@/lib/server/ai-age';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
     const workspaceId = await requireWorkspaceId();
     const uploadLimit = isHosted() ? 4 * 1024 * 1024 : MAX_SYLLABUS_BYTES;
     assertSameOrigin(request);
+    await assertAiAgeConfirmed(workspaceId);
     const type = request.headers.get('content-type')?.split(';')[0];
     const kind = syllabusKindFromMime(type || '');
     if (!kind) throw new ApiError(415, 'Choose a PDF, DOCX, JPG, PNG or TXT file.');

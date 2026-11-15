@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Button } from './ui/button';
 import { useLanguage } from './language-provider';
 import { useWorkspace } from './workspace-provider';
+import { AiAgeConfirm, useAiAgeRequired } from './ai-age-confirm';
 import {
   say,
   type AssistantReply,
@@ -51,6 +52,7 @@ export function AssistantPanel() {
   const { language } = useLanguage();
   const s = (en: string, fr: string) => say(language, en, fr);
   const { refresh, data: workspace } = useWorkspace();
+  const ageRequired = useAiAgeRequired();
   const hosted = Boolean(workspace.hosted);
   const [open, setOpen] = useState(false);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -265,7 +267,8 @@ export function AssistantPanel() {
   }
   async function send() {
     const text = input.trim();
-    if (!text || busy || historyLoading || creating.current || configured === false) return;
+    if (!text || busy || historyLoading || creating.current || configured === false || ageRequired)
+      return;
     if (entries.some((e) => e.reply?.status === 'confirm' && !e.reply.actionsExpired)) {
       setError(
         s(
@@ -615,6 +618,11 @@ export function AssistantPanel() {
           )}
         </div>
         <div className="assistant-composer">
+          {ageRequired && (
+            <div className="mb-3">
+              <AiAgeConfirm />
+            </div>
+          )}
           {configured === false && (
             <p role="alert" className="mb-3 text-sm text-destructive">
               {s(
@@ -666,7 +674,9 @@ export function AssistantPanel() {
               type="submit"
               size="icon"
               className="assistant-send"
-              disabled={busy || historyLoading || !input.trim() || configured === false}
+              disabled={
+                busy || historyLoading || !input.trim() || configured === false || ageRequired
+              }
               aria-label={s('Send message', 'Envoyer')}
             >
               <Send size={17} />

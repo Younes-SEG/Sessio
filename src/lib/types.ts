@@ -89,6 +89,8 @@ export interface Settings {
   studyBuddy: 'CAT' | 'SPROUT' | 'CLOUD' | 'NONE';
   buddyMotion: boolean;
   onboardingCompleted?: boolean;
+  /** Hosted only: when the user confirmed they are 18+ for AI features. */
+  aiAgeConfirmedAt?: string | Date | null;
 }
 export interface Workspace {
   deletedCourses?: {
