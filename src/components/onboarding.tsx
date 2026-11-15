@@ -11,12 +11,13 @@ import {
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Dialog as Primitive } from 'radix-ui';
-import { ArrowLeft, ArrowRight, BookOpen, Compass, Terminal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Compass, Terminal } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
 import { LanguageSwitch, useT } from './language-provider';
 import { Button } from './ui/button';
 import { SchoolPicker } from './school-picker';
 import { dismissSchoolPrompt } from './school-prompt';
+import { CalendarSubscriptions } from './calendar-subscriptions';
 
 type TourStep = {
   path: string;
@@ -207,7 +208,7 @@ export function TourReplay() {
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { data, save } = useWorkspace();
   const router = useRouter();
-  const [phase, setPhase] = useState<'welcome' | 'school' | 'tour' | null>(() =>
+  const [phase, setPhase] = useState<'welcome' | 'school' | 'setup' | 'tour' | null>(() =>
     data.settings.onboardingCompleted ? null : 'welcome',
   );
   const [afterSchool, setAfterSchool] = useState<'tour' | 'finish'>('tour');
@@ -251,21 +252,17 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       if (schoolId) await save('settings', { schoolId }, 'preferences');
       dismissSchoolPrompt();
-      if (afterSchool === 'tour') {
-        setStep(0);
-        setPhase('tour');
-      } else {
-        if (!data.settings.onboardingCompleted)
-          await save('settings', { onboardingCompleted: true }, 'preferences');
-        setPhase(null);
-        router.push('/');
-        requestAnimationFrame(() => document.getElementById('main-content')?.focus());
-      }
+      setPhase('setup');
     } catch {
       setError('Could not save your school. Please try again.');
     } finally {
       setBusy(false);
     }
+  }
+  // Setup fills the workspace first, so the tour (or Home) shows the student's real courses.
+  function leaveSetup() {
+    if (afterSchool === 'tour') beginTour();
+    else void finish();
   }
   return (
     <Context.Provider
@@ -284,6 +281,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         />
       ) : phase === 'school' ? (
         <SchoolStep onChoose={finishSchool} busy={busy} error={error} />
+      ) : phase === 'setup' ? (
+        <SetupStep onContinue={leaveSetup} busy={busy} error={error} />
       ) : (
         <>
           <div
@@ -315,15 +314,7 @@ function SchoolStep({
   const [selected, setSelected] = useState<string | null>(null);
   return (
     <div className="welcome-screen">
-      <header className="welcome-topbar">
-        <span className="welcome-brand">
-          <span className="brand-symbol">
-            <Terminal size={20} aria-hidden />
-          </span>
-          Command
-        </span>
-        <LanguageSwitch />
-      </header>
+      <WelcomeTopbar />
       <main className="welcome-main" id="main-content">
         <div className="welcome-illustration" aria-hidden>
           <BookOpen size={38} strokeWidth={1.3} />
@@ -373,15 +364,7 @@ function Welcome({
   const t = useT();
   return (
     <div className="welcome-screen">
-      <header className="welcome-topbar">
-        <span className="welcome-brand">
-          <span className="brand-symbol">
-            <Terminal size={20} aria-hidden />
-          </span>
-          Command
-        </span>
-        <LanguageSwitch />
-      </header>
+      <WelcomeTopbar />
       <main className="welcome-main" id="main-content">
         <div className="welcome-illustration" aria-hidden>
           <BookOpen size={38} strokeWidth={1.3} />
@@ -410,10 +393,77 @@ function Welcome({
           </p>
         )}
         <p className="welcome-footnote">
-          {t('There is nothing to set up right now. You can start small.')}
+          {t('Setup takes about two minutes, and you can skip any step.')}
         </p>
       </main>
       <footer className="welcome-footer">{t('A little more clarity.')}</footer>
+    </div>
+  );
+}
+
+function WelcomeTopbar() {
+  return (
+    <header className="welcome-topbar">
+      <span className="welcome-brand">
+        <span className="brand-symbol">
+          <Terminal size={20} aria-hidden />
+        </span>
+        Command
+      </span>
+      <LanguageSwitch />
+    </header>
+  );
+}
+
+function SetupStep({
+  onContinue,
+  busy,
+  error,
+}: {
+  onContinue: () => void;
+  busy: boolean;
+  error: string;
+}) {
+  const t = useT();
+  const [connected, setConnected] = useState(false);
+  return (
+    <div className="welcome-screen">
+      <WelcomeTopbar />
+      <main className="welcome-main" id="main-content">
+        <div className="welcome-illustration" aria-hidden>
+          <CalendarDays size={38} strokeWidth={1.3} />
+        </div>
+        <p className="welcome-eyebrow">{t('YOUR SEMESTER, READY')}</p>
+        <h1>{t('Bring in your courses and deadlines')}</h1>
+        <p className="welcome-description">
+          {t(
+            'Paste your Brightspace calendar link and Command creates your term, courses and deadlines for you.',
+          )}
+        </p>
+        <div className="mx-auto mt-6 w-full max-w-xl text-left">
+          <CalendarSubscriptions onConnected={() => setConnected(true)} />
+        </div>
+        <div className="welcome-actions mt-6">
+          {connected ? (
+            <Button onClick={onContinue} disabled={busy}>
+              {busy ? t('Saving…') : t('Continue')}
+              <ArrowRight aria-hidden />
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={onContinue} disabled={busy}>
+              {busy ? t('Saving…') : t('Skip for now')}
+            </Button>
+          )}
+        </div>
+        {error && (
+          <p role="alert" className="text-destructive mt-4 text-sm">
+            {t(error)}
+          </p>
+        )}
+      </main>
+      <footer className="welcome-footer">
+        {t('You can connect or change this later in Settings → Calendar.')}
+      </footer>
     </div>
   );
 }
