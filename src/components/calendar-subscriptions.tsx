@@ -32,7 +32,8 @@ interface Subscription {
   itemCount: number;
 }
 
-export function CalendarSubscriptions() {
+/** `onConnected` lets first-run setup continue in place instead of linking away. */
+export function CalendarSubscriptions({ onConnected }: { onConnected?: () => void } = {}) {
   const t = useT();
   const { now, refresh, data } = useWorkspace();
   const [options, setOptions] = useState(() => currentTerm(now));
@@ -91,6 +92,7 @@ export function CalendarSubscriptions() {
         if (action === 'connect') {
           setUrl('');
           setPreview(null);
+          onConnected?.();
         }
         await refresh();
         setMessage(
@@ -336,8 +338,8 @@ export function CalendarSubscriptions() {
         )}
         {message && (
           <p role="status" className="text-sm text-[var(--primary)]">
-            {message}{' '}
-            {message.startsWith('Calendar connected') && (
+            {t(message)}{' '}
+            {message.startsWith('Calendar connected') && !onConnected && (
               <Link href="/calendar" className="underline">
                 <T text="View calendar" />
               </Link>

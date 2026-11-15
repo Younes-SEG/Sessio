@@ -21,6 +21,7 @@ export default defineConfig({
     'assistant-history.spec.ts',
     'assistant-accessibility.spec.ts',
     'privacy-accessibility.spec.ts',
+    'first-run-setup.spec.ts',
   ],
   workers: 1,
   timeout: 90_000,

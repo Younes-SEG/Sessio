@@ -295,8 +295,15 @@ export const french: Record<string, string> = {
     'Cinq courtes étapes. Avancez à votre rythme ou passez la visite.',
   'Show me around': 'Me faire découvrir',
   'I’ll explore on my own': 'Je préfère explorer',
-  'There is nothing to set up right now. You can start small.':
-    'Rien à configurer tout de suite. Commencez simplement.',
+  'Setup takes about two minutes, and you can skip any step.':
+    'La configuration prend environ deux minutes, et vous pouvez passer chaque étape.',
+  'YOUR SEMESTER, READY': 'VOTRE SESSION, PRÊTE',
+  'Bring in your courses and deadlines': 'Importez vos cours et vos échéances',
+  'Paste your Brightspace calendar link and Command creates your term, courses and deadlines for you.':
+    'Collez le lien de votre calendrier Brightspace et Command crée votre session, vos cours et vos échéances pour vous.',
+  'Skip for now': 'Passer pour l’instant',
+  'You can connect or change this later in Settings → Calendar.':
+    'Vous pourrez le connecter ou le modifier plus tard dans Paramètres → Calendrier.',
   'A little tour': 'Petite visite',
   'Skip tour': 'Passer la visite',
   'Previous step': 'Étape précédente',
