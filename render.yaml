@@ -9,7 +9,8 @@ services:
     dockerfilePath: ./services/syllabus/Dockerfile
     dockerContext: .
     autoDeployTrigger: off
-    healthCheckPath: /health
+    # /live passes while SYLLABUS_ENABLED=false; /health (used by the planner) would not.
+    healthCheckPath: /live
     disk:
       name: syllabus-usage
       mountPath: /var/lib/command-syllabus

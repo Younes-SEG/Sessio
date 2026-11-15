@@ -187,6 +187,8 @@ describe('hosted reader HTTP boundary', () => {
     expect(read).not.toHaveBeenCalled();
     const offline = await host({ usage: { reserve: vi.fn() }, ready: () => false, read });
     expect((await fetch(`${offline}/health`)).status).toBe(503);
+    // Host liveness stays green while reads are switched off, so deploys can finish.
+    expect((await fetch(`${offline}/live`)).status).toBe(200);
     expect((await post(offline)).status).toBe(503);
   });
   it('passes a safe provider-unavailable code through the HTTP service', async () => {
