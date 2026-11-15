@@ -1468,6 +1468,12 @@ export const french: Record<string, string> = {
     'Les répartitions égales sont ajustées à chaque ajout. Les groupes des meilleures notes retiennent les résultats les plus élevés. Gérez les règles dans l’onglet Notes du cours.',
   'This weight is managed by an automatic equal split. Manual weight changes are ignored while it is active. Manage the category total in the course Grades tab.':
     'Cette pondération est gérée par une répartition égale automatique. Les modifications manuelles sont ignorées tant qu’elle est active. Gérez le total dans l’onglet Notes du cours.',
+  'Suggested grading rule': 'Règle de notation suggérée',
+  Counted: 'Comptés',
+  'Combined course weight': 'Pondération totale du groupe',
+  'Your syllabus says only the best results in this group count. Applying this keeps the highest scores and drops the lowest, instead of adding up every one.':
+    'Selon votre plan de cours, seuls les meilleurs résultats de ce groupe comptent. Cette règle garde les meilleures notes et retire les plus faibles, au lieu de tout additionner.',
+  'Apply best-of rule': 'Appliquer la règle des meilleurs résultats',
   'Category totals found. Choose a grading rule below.':
     'Totaux par catégorie trouvés. Choisissez une règle de pondération ci-dessous.',
 };

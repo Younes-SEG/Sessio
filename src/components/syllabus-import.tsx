@@ -27,6 +27,12 @@ import { matchingCourses } from '@/lib/course-matching';
 import { reconcileSyllabusPreview } from '@/lib/syllabus-matching';
 import { SyllabusCategoryWeights } from './syllabus-category-weights';
 import { GradingRulesEditor } from './grading-rules-editor';
+import { SyllabusBestOfSuggestion, bestOfRuleName } from './syllabus-best-of-suggestion';
+import {
+  detectSyllabusBestOfSuggestions,
+  gradingRuleFromSyllabusSuggestion,
+  type SyllabusBestOfSuggestion as BestOfSuggestion,
+} from '@/lib/syllabus-grading-rules';
 import {
   configuredCourseWeight,
   gradingRuleError,
@@ -77,6 +83,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
   const [warnings, setWarnings] = useState<string[]>([]);
   const [gradingRules, setGradingRules] = useState<GradingRule[]>([]);
   const [gradingNotes, setGradingNotes] = useState('');
+  const [dismissedSuggestions, setDismissedSuggestions] = useState<string[]>([]);
   const [sessions, setSessions] = useState<SyllabusSession[]>([]);
   const [exceptions, setExceptions] = useState<SyllabusException[]>([]);
   const [sessionNotice, setSessionNotice] = useState('');
@@ -143,12 +150,22 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
   ];
   const total = configuredCourseWeight(ruleAssessments, gradingRules);
   const ruleError = gradingRuleError(gradingRules, ruleAssessments);
+  const bestOfSuggestions = rows
+    ? detectSyllabusBestOfSuggestions({
+        categories,
+        items: selected,
+        warnings,
+        assessments: ruleAssessments,
+        rules: gradingRules,
+      }).filter((s) => !dismissedSuggestions.includes(s.key))
+    : [];
 
   function clearReview() {
     setRows(null);
     setCategories([]);
     setGradingRules([]);
     setGradingNotes('');
+    setDismissedSuggestions([]);
     setSessions([]);
     setExceptions([]);
     setSessionNotice('');
@@ -311,6 +328,18 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
     setGradingRules([...gradingRules.filter((r) => r.id !== current?.id), rule]);
     setReviewed(false);
     setError('');
+  }
+  function applyBestOf(suggestion: BestOfSuggestion) {
+    const rule = gradingRuleFromSyllabusSuggestion(
+      suggestion,
+      crypto.randomUUID(),
+      t(bestOfRuleName(suggestion.type)),
+    );
+    if (!rule) return;
+    setGradingRules([...gradingRules, rule]);
+    setReviewed(false);
+    setError('');
+    setNotice('Rule added to this review. Save your changes to keep it.');
   }
   async function analyse(source: File | string) {
     if (pendingRead.current || !canRead || !configured) return;
@@ -817,6 +846,18 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
               </p>
             ))}
           </div>
+          {bestOfSuggestions.map((suggestion) => (
+            <fieldset disabled={busy} key={suggestion.key}>
+              <SyllabusBestOfSuggestion
+                suggestion={suggestion}
+                names={suggestion.assessmentIds.map(
+                  (id) => ruleAssessments.find((a) => a.id === id)?.name || '',
+                )}
+                onApply={() => applyBestOf(suggestion)}
+                onDismiss={() => setDismissedSuggestions((d) => [...d, suggestion.key])}
+              />
+            </fieldset>
+          ))}
           {categories.map((category, index) => (
             <fieldset disabled={busy} key={`${category.name}:${index}`}>
               <SyllabusCategoryWeights
