@@ -6,7 +6,14 @@ test('auth controls fit a narrow dark layout', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/auth/sign-up');
   await page.getByRole('button', { name: 'Passer en français' }).click();
+  await expect(page.getByRole('heading', { name: 'Votre espace pour étudier' })).toBeVisible();
+  await expect(
+    page.getByText('Réunissez vos cours, notes et projets dans votre espace privé.'),
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'Afficher le mot de passe' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Créer un compte' })).toBeVisible();
+  await expect(page.getByText('Vos cours. Vos projets. Un peu plus de clarté.')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Politiques' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

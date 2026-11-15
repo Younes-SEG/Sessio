@@ -1232,8 +1232,34 @@ export const french: Record<string, string> = {
   'Resend verification email': 'Renvoyer le courriel de vérification',
   'Send reset link': 'Envoyer le lien de réinitialisation',
   'Could not sign out. Please try again.': 'Déconnexion impossible. Veuillez réessayer.',
+  'Choose a longer password.': 'Choisissez un mot de passe plus long.',
+  'Choose a shorter password.': 'Choisissez un mot de passe plus court.',
   'The sign-in service could not accept that password. Try a password between 8 and 128 characters.':
     'Le service de connexion a refusé ce mot de passe. Essayez un mot de passe de 8 à 128 caractères.',
+  'Unable to sign in. Check your email and password, or reset your password.':
+    'Connexion impossible. Vérifiez votre adresse courriel et votre mot de passe, ou réinitialisez ce dernier.',
+  'Unable to create this account. Try signing in or resetting your password if you already have an account.':
+    'Impossible de créer ce compte. Essayez de vous connecter ou de réinitialiser votre mot de passe si vous avez déjà un compte.',
+  'Check your inbox for a verification link, then sign in. Your workspace will start empty.':
+    'Consultez votre boîte de réception pour trouver le lien de vérification, puis connectez-vous. Votre espace de travail sera vide au départ.',
+  'This reset link is incomplete. Request a new one.':
+    'Ce lien de réinitialisation est incomplet. Demandez-en un nouveau.',
+  'This reset link is invalid or expired. Request a new one.':
+    'Ce lien de réinitialisation est invalide ou expiré. Demandez-en un nouveau.',
+  'Password updated. You can now sign in with your new password.':
+    'Mot de passe mis à jour. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
+  'Email is temporarily unavailable. Please try again later.':
+    'Le service de courriel est temporairement indisponible. Veuillez réessayer plus tard.',
+  'If your account needs verification, a new link is on its way. Check your inbox and spam folder.':
+    'Si votre compte doit être vérifié, un nouveau lien est en route. Vérifiez votre boîte de réception et votre dossier de pourriels.',
+  'If an account uses that email, you will receive a password-reset link. Check your inbox and spam folder.':
+    'Si un compte utilise cette adresse courriel, vous recevrez un lien de réinitialisation du mot de passe. Vérifiez votre boîte de réception et votre dossier de pourriels.',
+  'Please try again later.': 'Veuillez réessayer plus tard.',
+  'Sign-in is being set up': 'La connexion est en cours de configuration',
+  'Command is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.':
+    'Command est en ligne, mais l’accès aux comptes n’est pas encore prêt. Revenez sous peu. Vous n’avez rien à installer.',
+  'Your courses. Your plans. A little more clarity.':
+    'Vos cours. Vos projets. Un peu plus de clarté.',
   'Not Started': 'Non commencé',
   'In Progress': 'En cours',
   'Final Exam': 'Examen final',

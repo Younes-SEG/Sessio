@@ -148,6 +148,45 @@ export function AccessDeniedPanel({
   );
 }
 
+export function AuthPageFooter() {
+  const t = useT();
+  return (
+    <>
+      <p className="muted mt-6 text-center text-xs">
+        {t('Your courses. Your plans. A little more clarity.')}
+      </p>
+      <nav aria-label={t('Policies')} className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
+        <Link href="/legal/privacy" className="policy-link">
+          {t('Privacy')}
+        </Link>
+        <Link href="/legal/terms" className="policy-link">
+          {t('Terms')}
+        </Link>
+        <Link href="/legal/accessibility" className="policy-link">
+          {t('Accessibility')}
+        </Link>
+      </nav>
+    </>
+  );
+}
+
+export function AuthUnavailablePanel() {
+  const t = useT();
+  return (
+    <>
+      <div className="mb-5 flex justify-end">
+        <LanguageSwitch />
+      </div>
+      <h1 className="text-2xl font-semibold">{t('Sign-in is being set up')}</h1>
+      <p className="muted mt-4 leading-relaxed">
+        {t(
+          'Command is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.',
+        )}
+      </p>
+    </>
+  );
+}
+
 function PasswordField({
   signIn,
   reset,
