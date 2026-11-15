@@ -28,8 +28,10 @@ services:
         generateValue: true
       - key: COMMAND_READER_SIGNING_SECRET
         sync: false
+      # Owner on/off switch, set in the Render dashboard (start with false). Not a
+      # fixed value here: Blueprint syncs on every main merge would reset it.
       - key: SYLLABUS_ENABLED
-        value: 'false'
+        sync: false
       - key: SYLLABUS_NETWORK_DAILY
         value: '20'
       - key: SYLLABUS_GLOBAL_DAILY
