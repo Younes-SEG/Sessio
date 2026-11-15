@@ -4,6 +4,7 @@ import {
   blockAccount,
   eraseBlockedAccount,
   confirmProviderDeletion,
+  pruneDeletedAccountMarker,
 } from '../src/lib/server/account-lifecycle';
 
 // Deliberate operator CLI; credentials stay in the private process environment.
@@ -46,6 +47,11 @@ try {
       process.env.COMMAND_PROVIDER_DELETION_VERIFIED === 'true'
     )
       await confirmProviderDeletion(target);
+    else if (
+      command === 'account-prune-marker' &&
+      process.env.COMMAND_NO_BACKUP_CONTAINS_ACCOUNT === 'true'
+    )
+      await pruneDeletedAccountMarker(target);
     else throw new Error('Unknown or unconfirmed account operation.');
   } else
     throw new Error('Invalid command or missing explicit confirmation. See docs/p0-operations.md.');

@@ -61,3 +61,19 @@ export async function confirmProviderDeletion(workspaceId: string) {
   });
   if (!result.count) throw new Error('Erase application records first.');
 }
+
+/** Neon point-in-time restore history (privacy policy: 6 hours). Raise it if the project setting grows. */
+export const RESTORE_HISTORY_MS = 6 * 60 * 60 * 1000;
+
+/** Removes the last marker of a fully deleted account once no restore could bring its data back.
+ * The operator confirms that no manual backup holds the account; the restore window is enforced here. */
+export async function pruneDeletedAccountMarker(workspaceId: string, now = new Date()) {
+  accountId(workspaceId);
+  const state = await db.accountLifecycle.findUnique({ where: { workspaceId } });
+  if (!state || state.status !== 'DELETED' || !state.erasedAt || !state.authDeletedAt)
+    throw new Error('Only fully deleted accounts can have their marker removed.');
+  if (now.getTime() - state.authDeletedAt.getTime() < RESTORE_HISTORY_MS)
+    throw new Error('The restore history may still contain this account. Try again later.');
+  const removed = await db.accountLifecycle.deleteMany({ where: { workspaceId, status: 'DELETED' } });
+  if (!removed.count) throw new Error('The account deletion state changed.');
+}
