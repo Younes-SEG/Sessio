@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Terminal } from 'lucide-react';
-import { AccessDeniedPanel, AuthPanel } from '@/components/auth-panel';
-import { T } from '@/components/language-provider';
+import {
+  AccessDeniedPanel,
+  AuthPageFooter,
+  AuthPanel,
+  AuthUnavailablePanel,
+} from '@/components/auth-panel';
 import { isAuthConfigured } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
 import { publicOperator } from '@/lib/server/operator';
@@ -53,29 +57,10 @@ export default async function AuthPage({
           ) : isAuthConfigured() ? (
             <AuthPanel mode={path} token={typeof token === 'string' ? token : undefined} />
           ) : (
-            <>
-              <h1 className="text-2xl font-semibold">Sign-in is being set up</h1>
-              <p className="muted mt-4 leading-relaxed">
-                Command is online, but account access is not ready yet. Please check back shortly.
-                There is nothing for you to install.
-              </p>
-            </>
+            <AuthUnavailablePanel />
           )}
         </section>
-        <p className="muted mt-6 text-center text-xs">
-          Your courses. Your plans. A little more clarity.
-        </p>
-        <nav aria-label="Policies" className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
-          <Link href="/legal/privacy" className="policy-link">
-            <T text="Privacy" />
-          </Link>
-          <Link href="/legal/terms" className="policy-link">
-            <T text="Terms" />
-          </Link>
-          <Link href="/legal/accessibility" className="policy-link">
-            <T text="Accessibility" />
-          </Link>
-        </nav>
+        <AuthPageFooter />
       </div>
     </main>
   );
