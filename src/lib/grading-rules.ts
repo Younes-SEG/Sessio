@@ -115,7 +115,7 @@ export function interpretGradingNote(
   if (/\b(not|never|except|unless|pas|jamais|sauf)\b/.test(text)) return null;
   const matches = [
     ...text.matchAll(
-      /(?:best|highest|top)\s+(\d+)\s*(?:out\s+of|of|\/)\s*(\d+)|(?:les\s+)?(\d+)\s+meilleur\w*\s+(?:\w+\s+)?(?:sur|de)\s+(\d+)/g,
+      /(?:best|highest|top)\s+(\d+)\s*(?:out\s+of|of|\/)\s*(\d+)|(?:les\s+)?(\d+)\s+meilleur\w*\s+(?:[\w'-]+\s+){0,4}?(?:sur|de)\s+(\d+)/g,
     ),
   ];
   if (matches.length !== 1) return null;
