@@ -31,7 +31,8 @@ const server = createSyllabusServer({
   requireBudget: !localReader,
   trustedProxyHops: hops,
   ready: () =>
-    process.env.SYLLABUS_ENABLED === 'true' &&
+    // Trimmed: a pasted trailing space or newline must not silently keep reads off.
+    process.env.SYLLABUS_ENABLED?.trim() === 'true' &&
     isSyllabusAiConfigured() &&
     (localReader || (process.env.COMMAND_READER_SIGNING_SECRET?.length || 0) >= 32),
 });
