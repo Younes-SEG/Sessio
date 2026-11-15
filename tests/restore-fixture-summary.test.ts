@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { types as pgTypes } from 'pg';
 import { buildRestoreFixtureSummary } from '../scripts/restore-fixture-summary-data';
+import { restoreUtcTypes } from '../scripts/restore-pg-types';
 import { RESTORE_TARGET_ERROR, restoreSelection } from '../scripts/restore-target';
 
 describe('restore fixture selection guard', () => {
@@ -56,4 +58,23 @@ it('prints only the fixed count and timestamp summary shape', () => {
     },
   });
   expect(JSON.stringify(summary)).not.toMatch(/workspace|id|name|content/i);
+});
+
+it('parses restored UTC timestamps correctly on a non-UTC machine without a global override', () => {
+  const originalTimeZone = process.env.TZ;
+  process.env.TZ = 'America/Toronto';
+  try {
+    const storedUtc = '2026-11-14 21:44:00';
+    const globalParser = pgTypes.getTypeParser(1114, 'text');
+    expect((globalParser(storedUtc) as Date).toISOString()).toBe('2026-11-15T02:44:00.000Z');
+
+    const scopedTypes = restoreUtcTypes();
+    expect((scopedTypes.getTypeParser(1114, 'text')(storedUtc) as Date).toISOString()).toBe(
+      '2026-11-14T21:44:00.000Z',
+    );
+    expect(pgTypes.getTypeParser(1114, 'text')).toBe(globalParser);
+  } finally {
+    if (originalTimeZone === undefined) delete process.env.TZ;
+    else process.env.TZ = originalTimeZone;
+  }
 });
