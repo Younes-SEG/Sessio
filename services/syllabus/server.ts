@@ -87,6 +87,12 @@ export function createSyllabusServer(options: {
   const server = createServer(
     { maxHeaderSize: 8192, requestTimeout: 30_000, headersTimeout: 15_000 },
     async (req, res) => {
+      // Host liveness only: the process is up. It must pass while reads are switched off,
+      // or the host never finishes a deploy. Planner availability stays on /health.
+      if (req.url === '/live' && req.method === 'GET') {
+        reply(res, 200, { live: true });
+        return;
+      }
       if (req.url === '/health' && req.method === 'GET') {
         reply(res, options.ready() ? 200 : 503, { available: options.ready() });
         return;
