@@ -229,7 +229,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setStep(index);
     if (!steps[index].navigation) router.push(steps[index].path, { scroll: false });
   }
-  async function finish() {
+  async function finish(destination = '/') {
     if (busy) return;
     setBusy(true);
     setError('');
@@ -237,7 +237,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       if (!data.settings.onboardingCompleted)
         await save('settings', { onboardingCompleted: true }, 'preferences');
       setPhase(null);
-      router.push('/');
+      router.push(destination);
       requestAnimationFrame(() => document.getElementById('main-content')?.focus());
     } catch {
       setError('Could not save your tour preference. Please try again.');
@@ -282,7 +282,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       ) : phase === 'school' ? (
         <SchoolStep onChoose={finishSchool} busy={busy} error={error} />
       ) : phase === 'setup' ? (
-        <SetupStep onContinue={leaveSetup} busy={busy} error={error} />
+        <SetupStep
+          onContinue={leaveSetup}
+          onSyllabus={() => void finish('/syllabus')}
+          busy={busy}
+          error={error}
+        />
       ) : (
         <>
           <div
@@ -417,10 +422,12 @@ function WelcomeTopbar() {
 
 function SetupStep({
   onContinue,
+  onSyllabus,
   busy,
   error,
 }: {
   onContinue: () => void;
+  onSyllabus: () => void;
   busy: boolean;
   error: string;
 }) {
@@ -454,6 +461,10 @@ function SetupStep({
               {busy ? t('Saving…') : t('Skip for now')}
             </Button>
           )}
+          {/* Calendar deadlines arrive at 0% weight; a syllabus supplies the weights. */}
+          <Button variant="ghost" onClick={onSyllabus} disabled={busy}>
+            {connected ? t('Add grade weights from a syllabus') : t('Import a syllabus instead')}
+          </Button>
         </div>
         {error && (
           <p role="alert" className="text-destructive mt-4 text-sm">

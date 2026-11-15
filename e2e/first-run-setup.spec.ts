@@ -80,3 +80,14 @@ test('first run setup can be skipped on the way to the tour', async ({ page }) =
   await expect(dialog).toHaveAttribute('data-ready', 'true');
   expect(saved).toEqual([]);
 });
+
+test('first run can go straight to syllabus import instead of the calendar', async ({ page }) => {
+  const saved = await firstRun(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: /explore on my own/ }).click();
+  await page.getByRole('button', { name: 'Skip', exact: true }).click();
+  await page.getByRole('button', { name: 'Import a syllabus instead' }).click();
+  await expect(page).toHaveURL(/\/syllabus$/);
+  await expect(page.getByRole('heading', { name: 'Import syllabus' })).toBeVisible();
+  expect(saved).toContainEqual(expect.objectContaining({ onboardingCompleted: true }));
+});
