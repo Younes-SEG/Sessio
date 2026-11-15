@@ -3,6 +3,9 @@ import {
   blockAccount,
   eraseBlockedAccount,
   assertAccountActive,
+  confirmProviderDeletion,
+  pruneDeletedAccountMarker,
+  RESTORE_HISTORY_MS,
 } from '../src/lib/server/account-lifecycle';
 import 'dotenv/config';
 import { randomBytes } from 'node:crypto';
@@ -2841,6 +2844,17 @@ it('blocks stale writes at the database and erases only the selected account', a
     db.task.create({ data: { workspaceId: ownerId, title: 'stale recreation' } }),
   ).rejects.toThrow();
   await eraseBlockedAccount(ownerId, true); // Retry is safe.
+
+  // The marker stays until the account is fully deleted and the restore window has passed.
+  await expect(pruneDeletedAccountMarker(ownerId)).rejects.toThrow('fully deleted');
+  await confirmProviderDeletion(ownerId);
+  await expect(pruneDeletedAccountMarker(ownerId)).rejects.toThrow('restore history');
+  await expect(pruneDeletedAccountMarker('user:deletion-other')).rejects.toThrow('fully deleted');
+  const later = new Date(Date.now() + RESTORE_HISTORY_MS + 60_000);
+  await pruneDeletedAccountMarker(ownerId, later);
+  expect(await db.accountLifecycle.findUnique({ where: { workspaceId: ownerId } })).toBeNull();
+  expect(await db.course.findUnique({ where: { id: other.course.id } })).not.toBeNull();
+  await expect(pruneDeletedAccountMarker(ownerId, later)).rejects.toThrow('fully deleted');
 });
 
 it('erases linked course tasks and calendar events without touching another account', async () => {
