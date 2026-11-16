@@ -150,6 +150,8 @@ export const french: Record<string, string> = {
     'Déjà dans Notes. Vous pouvez y modifier chaque résultat. Les résultats récents reçus par courriel sont affichés ci-dessous.',
   'Email check finished. Clear grades and deadline changes are saved automatically.':
     'Vérification terminée. Les notes et les changements d’échéance clairs sont enregistrés automatiquement.',
+  'Mark all as read': 'Tout marquer comme lu',
+  'All course notifications marked as read.': 'Tous les avis de cours sont marqués comme lus.',
   'Deadline updated automatically from this email':
     'Échéance mise à jour automatiquement à partir de ce courriel',
   'If this is wrong, open the assessment and change its date. Command will not apply this email again.':

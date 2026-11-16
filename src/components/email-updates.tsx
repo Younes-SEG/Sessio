@@ -201,6 +201,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
           'Email check finished. Clear grades and deadline changes are saved automatically.',
         );
       if (body.action === 'settings') setNotice('Email preferences saved.');
+      if (body.action === 'read-all') setNotice('All course notifications marked as read.');
       if (body.action === 'apply') setNotice('Grade saved from your email review.');
       if (body.action === 'apply-deadline')
         setNotice(
@@ -488,11 +489,24 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
             {t(announcements ? 'Course notifications' : 'Grades to review')} · {updates.length}
           </h2>
           {announcements && (
-            <p className="muted text-sm">
-              {t(
-                'Notifications are marked as read after two seconds in view. Read messages stay here; assessment changes still need your confirmation.',
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="muted text-sm">
+                {t(
+                  'Notifications are marked as read after two seconds in view. Read messages stay here; assessment changes still need your confirmation.',
+                )}
+              </p>
+              {updates.some((update) => !update.read) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => void action({ action: 'read-all' })}
+                >
+                  <Check aria-hidden />
+                  {t('Mark all as read')}
+                </Button>
               )}
-            </p>
+            </div>
           )}
           {updates.length === 0 ? (
             <div className="card p-4 text-sm muted">
