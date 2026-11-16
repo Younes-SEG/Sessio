@@ -11,6 +11,7 @@ export const metadata = { title: 'User guide' };
 const topics = [
   ['assistant', 'Ask Command'],
   ['start', 'Get started'],
+  ['midsemester', 'Starting mid-semester'],
   ['calendar', 'Connect and sync a calendar'],
   ['syllabus', 'Import a syllabus'],
   ['assignments', 'Complete assignments'],
@@ -104,6 +105,33 @@ export default function GuidePage() {
             term to rename it, edit its dates, or make it active. Deleting a term also permanently
             deletes all its courses and their linked work after confirmation. Move courses you want
             to keep into another term first.
+          </p>
+        </section>
+        <section id="midsemester" className="card scroll-mt-6 space-y-4 p-4">
+          <h2 className="text-lg font-semibold">Starting mid-semester</h2>
+          <p className="leading-relaxed">
+            You can start using Command at any point in the term. Your past work and grades come in
+            two quick steps:
+          </p>
+          <ol className="list-decimal space-y-3 pl-5 leading-relaxed">
+            <li>
+              <Link href="/syllabus" className="underline">
+                Import your syllabus
+              </Link>{' '}
+              for each course. Assessments whose date has already passed are marked as already done
+              by default, so they do not show as overdue. Untick any you still need to submit.
+            </li>
+            <li>
+              Open the course, go to its Grades tab and choose Paste grades from Brightspace. In
+              Brightspace, open the course&apos;s Grades page, select the whole table, copy it and
+              paste it into Command, then select Read grades. Review the matches and save.
+            </li>
+          </ol>
+          <p className="muted leading-relaxed">
+            Only scores are read; instructor comments are not saved. New grades are selected
+            automatically. If Command already has a different grade for an assessment, it is left
+            unchanged unless you tick it. Rows with no matching assessment can be assigned by hand,
+            or import the syllabus first.
           </p>
         </section>
         <section id="calendar" className="card scroll-mt-6 space-y-4 p-4">

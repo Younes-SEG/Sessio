@@ -46,7 +46,12 @@ type Row = SyllabusSuggestion & {
   existingId: string;
   weightText: string;
   chosenSession?: SessionDateChoice | null;
+  alreadyDone?: boolean;
 };
+// Past-dated rows default to "already done" so a mid-semester import is not full of overdue work.
+const isPastDue = (row: { date: string; time: string }, now = new Date()) =>
+  Boolean(row.date) && new Date(`${row.date}T${row.time || '23:59'}:00`).getTime() < now.getTime();
+const markedDone = (row: Row) => isPastDue(row) && row.alreadyDone !== false;
 const types: AssessmentType[] = [
   'ASSIGNMENT',
   'LAB',
@@ -411,6 +416,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
               : null,
             weight: row.weightText === '' ? null : Number(row.weightText),
             source: sourceNotes(row),
+            alreadyDone: markedDone(row),
           })),
         }),
       });
@@ -1042,6 +1048,21 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                     />
                   </label>
                 </div>
+                {isPastDue(row) && (
+                  <div className="space-y-1 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={markedDone(row)}
+                        onChange={(e) => update(row.id, { alreadyDone: e.target.checked })}
+                      />
+                      <T text="This date has passed. Mark it as already done" />
+                    </label>
+                    <p className="muted text-xs">
+                      <T text="Unticked past work shows as overdue. Add your grade later, or paste your Brightspace grades on the course's Grades tab." />
+                    </p>
+                  </div>
+                )}
                 {gradingRule && (
                   <p className="text-sm text-primary">
                     {gradingRule.name}:{' '}

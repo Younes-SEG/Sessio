@@ -46,6 +46,7 @@ const steps: TourStep[] = [
     target: 'course-import',
     title: 'Start from a syllabus',
     body: 'Import a syllabus to suggest a course, assessments, dates and grade weights. You review the suggestions before saving anything.',
+    hint: 'Starting mid-semester? Past work is marked done, and you can paste your Brightspace grades on each course’s Grades tab.',
   },
   {
     path: '/courses',
