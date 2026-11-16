@@ -2986,3 +2986,53 @@ it('keeps account records and revocation material when Google revocation fails',
     vi.unstubAllGlobals();
   }
 });
+
+it('saves past syllabus work the student marks as done as submitted, never downgrading grades', async () => {
+  identity.current = 'user:syllabus-past';
+  try {
+    const term = await saveEntity('semesters', {
+      name: 'Past work term',
+      startDate: '2090-09-01',
+      endDate: '2090-12-31',
+    });
+    const base = {
+      existingId: null,
+      type: 'QUIZ',
+      dueDate: '2090-09-10T23:59:00.000Z',
+      weight: 5,
+      source: '',
+    };
+    const first = await importSyllabus({
+      newCourse: { semesterId: term.id, code: 'PAST101', name: 'Past work' },
+      reviewed: true,
+      items: [
+        { ...base, name: 'Quiz 1', alreadyDone: true },
+        { ...base, name: 'Quiz 2' },
+        { ...base, name: 'Quiz 3', alreadyDone: true },
+      ],
+    });
+    const status = async (name: string) =>
+      (await db.assessment.findFirstOrThrow({ where: { courseId: first.courseId, name } })).status;
+    expect(await status('Quiz 1')).toBe('SUBMITTED');
+    expect(await status('Quiz 2')).toBe('NOT_STARTED');
+    const quiz3 = await db.assessment.findFirstOrThrow({
+      where: { courseId: first.courseId, name: 'Quiz 3' },
+    });
+    await saveEntity('assessments', { score: 8, maxScore: 10, status: 'GRADED' }, quiz3.id);
+    await importSyllabus({
+      courseId: first.courseId,
+      reviewed: true,
+      items: [
+        { ...base, name: 'Quiz 2', alreadyDone: true },
+        { ...base, name: 'Quiz 3', alreadyDone: true },
+      ],
+    });
+    expect(await status('Quiz 2')).toBe('SUBMITTED');
+    expect(await db.assessment.findUniqueOrThrow({ where: { id: quiz3.id } })).toMatchObject({
+      status: 'GRADED',
+      score: 8,
+    });
+  } finally {
+    identity.current = 'local';
+  }
+});

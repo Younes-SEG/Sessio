@@ -26,6 +26,8 @@ const schema = z
           dueDate: z.string().datetime({ offset: true }).nullable(),
           weight: z.number().finite().min(0).max(100).nullable(),
           source: z.string().max(2000),
+          // Past-dated work the student says is already done; never downgrades a grade.
+          alreadyDone: z.boolean().optional(),
         }),
       )
       .max(100),
@@ -146,6 +148,10 @@ export async function importSyllabus(body: unknown) {
         type: existing?.type ?? item.type,
         weight,
         dueDate,
+        ...(item.alreadyDone &&
+        (!existing || ['NOT_STARTED', 'IN_PROGRESS'].includes(existing.status))
+          ? { status: 'SUBMITTED' }
+          : {}),
         notes:
           existing?.notes ??
           (item.source
@@ -182,7 +188,7 @@ export async function importSyllabus(body: unknown) {
       if (existing)
         await tx.assessment.update({
           where: { id: existing.id },
-          data: { dueDate: data.dueDate, weight: data.weight },
+          data: { dueDate: data.dueDate, weight: data.weight, status: data.status },
         });
       else await tx.assessment.create({ data: { ...data, id } });
     }

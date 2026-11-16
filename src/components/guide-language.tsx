@@ -65,6 +65,34 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           conservés.
         </p>
       </section>
+      <section id="midsemester" className="card scroll-mt-6 space-y-3 p-4">
+        <h2 className="section-title">Commencer en milieu de session</h2>
+        <p>
+          Vous pouvez commencer à utiliser Command à tout moment de la session. Vos travaux passés
+          et vos notes s’ajoutent en deux étapes :
+        </p>
+        <ol className="list-decimal space-y-2 pl-5">
+          <li>
+            <Link href="/syllabus" className="underline">
+              Importez votre plan de cours
+            </Link>{' '}
+            pour chaque cours. Les évaluations dont la date est passée sont marquées comme déjà
+            faites par défaut, pour ne pas apparaître en retard. Décochez celles qu’il vous reste à
+            remettre.
+          </li>
+          <li>
+            Ouvrez le cours, allez à l’onglet Notes et choisissez Coller les notes de Brightspace.
+            Dans Brightspace, ouvrez la page Notes du cours, sélectionnez tout le tableau, copiez-le
+            et collez-le dans Command, puis choisissez Lire les notes. Vérifiez les correspondances
+            et enregistrez.
+          </li>
+        </ol>
+        <p className="muted">
+          Seuls les résultats sont lus; les commentaires de l’enseignant ne sont pas enregistrés.
+          Les nouvelles notes sont cochées automatiquement. Si Command a déjà une note différente,
+          elle reste inchangée sauf si vous la cochez.
+        </p>
+      </section>
       <section className="card space-y-3 p-4">
         <h2 className="section-title">2. Connecter Brightspace</h2>
         <p>
