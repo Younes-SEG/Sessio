@@ -1,6 +1,6 @@
 import type { LegalDocument, LegalText } from './legal';
 
-export const policyUpdatedFr = '15 novembre 2026';
+export const policyUpdatedFr = '16 novembre 2026';
 
 // Same documents, sections and paragraph counts as legal.ts, in the same order.
 export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
@@ -85,6 +85,7 @@ export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
         title: 'Suivi, témoins et tiers',
         paragraphs: [
           'Command n’utilise ni publicité, ni outils d’analyse, ni enregistrement de session, ni trousses de développement marketing, ni témoins de suivi; il ne vend pas les données de l’espace de travail et n’envoie pas de courriels marketing. Les réactions du compagnon d’étude aux mouvements de la souris sont calculées dans la mémoire du navigateur; la position du pointeur n’est ni stockée ni envoyée.',
+          'Pour savoir si Command est utile, son exploitant compte de façon agrégée combien d’espaces de travail utilisent chaque fonction et y reviennent au fil du temps. Ces décomptes sont calculés à partir de renseignements déjà présents dans Command, y compris la date à laquelle chaque espace a été ouvert pour la première fois, que Command enregistre à cette fin. Ils ne nomment personne, ne contiennent aucun contenu de cours ou de message et ne sont pas partagés.',
           'Le code de l’application, les icônes, les images et les polices sont fournis par Command lui-même; aucun service tiers de polices ou de scripts n’est contacté. Les connexions de calendrier contactent leurs fournisseurs, et l’importation de plans de cours contacte le lecteur de Command et Google Gemini lorsque vous la lancez. Vérifier la disponibilité du lecteur le contacte sans envoyer le contenu d’un plan de cours.',
         ],
       },

@@ -327,4 +327,7 @@ model Settings {
   onboardingCompleted Boolean @default(false)
   // Hosted AI (Gemini API terms): when the user confirmed they are 18 or older.
   aiAgeConfirmedAt DateTime?
+  // When this workspace was first opened (or last erased and restarted). Used only for
+  // aggregate beta retention counts (`npm run stats`); never shown per person.
+  createdAt DateTime @default(now())
 }

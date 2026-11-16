@@ -1,4 +1,4 @@
-export const policyUpdated = 'November 15, 2026';
+export const policyUpdated = 'November 16, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
 export type LegalText = {
@@ -91,6 +91,7 @@ export const legalDocuments = {
         title: 'Tracking, cookies and third parties',
         paragraphs: [
           'Command has no advertising, analytics, session replay, marketing SDKs or tracking cookies, and does not sell workspace data or send marketing email. The study buddy’s mouse reactions are calculated in browser memory; pointer positions are not stored or sent anywhere.',
+          'To understand whether Command is useful, its operator counts in aggregate how many workspaces use each feature and come back over time. The counts are computed from information already in Command, including the date each workspace was first opened, which Command records for this purpose. They name no one, contain no course or message content, and are not shared.',
           'Application code, icons, graphics and fonts are served by Command itself; no third-party font or script service is contacted. Calendar connections contact their providers, and syllabus imports contact Command’s reader and Google Gemini when you start them. Checking reader availability contacts the reader without sending syllabus content.',
         ],
       },
