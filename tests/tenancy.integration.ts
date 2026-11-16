@@ -3302,3 +3302,86 @@ it('counts beta activation and activity per workspace, excluding accounts being 
   for (const secret of ['user:stats', 'STA1000', 'Read chapter 1', 'Quiz'])
     expect(text).not.toContain(secret);
 });
+
+it('counts new workspaces, week-4 return and next-term return from workspace creation dates', async () => {
+  const stats = async () => {
+    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    await client.connect();
+    try {
+      return await readBetaStats(client);
+    } finally {
+      await client.end();
+    }
+  };
+  const before = await stats();
+  const day = 86_400_000;
+  const now = Date.now();
+  const workspace = (workspaceId: string, createdAt = new Date(now)) =>
+    db.settings.create({ data: { id: `ret-${workspaceId}`, workspaceId, createdAt } });
+  const task = (workspaceId: string, createdAt: Date) =>
+    db.task.create({ data: { workspaceId, title: 'Private title', createdAt } });
+  const term = async (workspaceId: string, start: string, end: string, code: string) => {
+    const semester = await db.semester.create({
+      data: { workspaceId, name: 'Term', startDate: new Date(start), endDate: new Date(end) },
+    });
+    await db.course.create({ data: { semesterId: semester.id, code, name: 'Course' } });
+  };
+  // 40 days old, active on day 25: counts as a week-4 return.
+  await workspace('user:ret-back', new Date(now - 40 * day));
+  await task('user:ret-back', new Date(now - 15 * day));
+  // 40 days old, active only on day 5: eligible but did not return in week 4.
+  await workspace('user:ret-gone', new Date(now - 40 * day));
+  await task('user:ret-gone', new Date(now - 35 * day));
+  // New this week with courses in two past terms, active after the later term began.
+  await workspace('user:ret-terms');
+  await term('user:ret-terms', '2025-09-01', '2025-12-31', 'RET1000');
+  await term('user:ret-terms', '2026-01-05', '2026-04-30', 'RET2000');
+  await task('user:ret-terms', new Date(now));
+  // New this week, nothing else yet.
+  await workspace('user:ret-new');
+  const after = await stats();
+  const delta = (pick: (s: BetaStats) => number) => pick(after) - pick(before);
+  expect(delta((s) => s.retention.new7)).toBe(2);
+  expect(delta((s) => s.retention.new30)).toBe(2);
+  expect(delta((s) => s.retention.week4Eligible)).toBe(2);
+  expect(delta((s) => s.retention.week4Returned)).toBe(1);
+  expect(delta((s) => s.retention.secondTerm)).toBe(1);
+  expect(delta((s) => s.retention.secondTermReturned)).toBe(1);
+  const text = formatBetaStats(after);
+  expect(text).toContain('Week-4 return');
+  for (const secret of ['user:ret', 'RET1000', 'Private title']) expect(text).not.toContain(secret);
+});
+
+it('backfills workspace creation dates from the earliest stored timestamp', async () => {
+  const sql = readFileSync(
+    'prisma/migrations/20261116000100_workspace_created_at/migration.sql',
+    'utf8',
+  );
+  expect(sql).toMatch(/ADD COLUMN "createdAt" TIMESTAMP\(3\) NOT NULL DEFAULT CURRENT_TIMESTAMP/);
+  // Only timestamps are read for the backfill, never titles or message content.
+  expect(sql).not.toMatch(/"title"|"content"|"message"|"subject"/);
+  // Re-run the backfill on fixtures: earliest stored timestamp wins; no signal keeps the date.
+  const update = sql.slice(sql.indexOf('UPDATE "Settings"'));
+  const now = Date.now();
+  const day = 86_400_000;
+  await db.settings.create({ data: { id: 'bf-a', workspaceId: 'user:backfill-a' } });
+  await db.settings.create({ data: { id: 'bf-b', workspaceId: 'user:backfill-b' } });
+  await db.task.create({
+    data: { workspaceId: 'user:backfill-a', title: 't', createdAt: new Date(now - 10 * day) },
+  });
+  await db.gmailConnection.create({
+    data: {
+      workspaceId: 'user:backfill-a',
+      email: 'a@example.test',
+      refreshToken: 'unused',
+      query: DEFAULT_GMAIL_QUERY,
+      connectedAt: new Date(now - 20 * day),
+    },
+  });
+  const untouched = (await db.settings.findUniqueOrThrow({ where: { id: 'bf-b' } })).createdAt;
+  await db.$executeRawUnsafe(update);
+  const a = await db.settings.findUniqueOrThrow({ where: { id: 'bf-a' } });
+  const b = await db.settings.findUniqueOrThrow({ where: { id: 'bf-b' } });
+  expect(Math.abs(a.createdAt.getTime() - (now - 20 * day))).toBeLessThan(1000);
+  expect(b.createdAt.getTime()).toBe(untouched.getTime());
+});

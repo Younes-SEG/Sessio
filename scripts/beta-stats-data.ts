@@ -11,6 +11,20 @@ export type BetaStats = {
   workspaces: number;
   funnel: Record<FunnelStep, number>;
   active: { days7: number; days30: number };
+  /**
+   * Cohorts from `Settings.createdAt` (first open; workspaces from before 2026-11-16 use their
+   * earliest stored timestamp). Activity uses the same signals as `active`, so it undercounts.
+   */
+  retention: {
+    new7: number;
+    new30: number;
+    /** Workspaces at least 28 days old, and those active in their days 22–28. */
+    week4Eligible: number;
+    week4Returned: number;
+    /** Workspaces with courses in 2+ terms, and those active after their later term began. */
+    secondTerm: number;
+    secondTermReturned: number;
+  };
   totals: Record<TotalKey, number>;
   /**
    * Last 30 days of AI (chat + syllabus), from content-free accounting. Includes accounts
@@ -63,11 +77,11 @@ type TotalKey = (typeof TOTAL_KEYS)[number];
 // wrote, or a Gmail/calendar check (both run only while Command is open).
 const SQL = `
 WITH ws AS (
-  SELECT s."workspaceId" AS id FROM "Settings" s
+  SELECT s."workspaceId" AS id, s."createdAt" FROM "Settings" s
   LEFT JOIN "AccountLifecycle" l ON l."workspaceId" = s."workspaceId"
   WHERE COALESCE(l."status", 'ACTIVE') = 'ACTIVE'
 ), course AS (
-  SELECT sem."workspaceId" AS ws, c."id", c."syllabusImportedAt"
+  SELECT sem."workspaceId" AS ws, c."id", c."syllabusImportedAt", sem."startDate"
   FROM "Course" c JOIN "Semester" sem ON sem."id" = c."semesterId"
   WHERE c."deletedAt" IS NULL AND sem."workspaceId" IN (SELECT id FROM ws)
 ), assess AS (
@@ -86,6 +100,9 @@ WITH ws AS (
     WHERE g."lastCheckedAt" IS NOT NULL AND g."workspaceId" IN (SELECT id FROM ws)
   UNION ALL SELECT cs."workspaceId", cs."lastSyncedAt" FROM "CalendarSubscription" cs
     WHERE cs."lastSyncedAt" IS NOT NULL AND cs."workspaceId" IN (SELECT id FROM ws)
+), later_term AS (
+  SELECT DISTINCT c.ws, c."startDate" FROM course c
+  WHERE c."startDate" > (SELECT MIN(c2."startDate") FROM course c2 WHERE c2.ws = c.ws)
 )
 SELECT
   (SELECT count(*) FROM ws) AS workspaces,
@@ -103,6 +120,15 @@ SELECT
   (SELECT count(DISTINCT ws) FROM chat) AS chat,
   (SELECT count(DISTINCT ws) FROM signal WHERE at >= $1::timestamptz - interval '7 days') AS days7,
   (SELECT count(DISTINCT ws) FROM signal WHERE at >= $1::timestamptz - interval '30 days') AS days30,
+  (SELECT count(*) FROM ws WHERE "createdAt" >= $1::timestamptz - interval '7 days') AS new7,
+  (SELECT count(*) FROM ws WHERE "createdAt" >= $1::timestamptz - interval '30 days') AS new30,
+  (SELECT count(*) FROM ws WHERE "createdAt" <= $1::timestamptz - interval '28 days') AS "week4Eligible",
+  (SELECT count(*) FROM ws WHERE "createdAt" <= $1::timestamptz - interval '28 days'
+    AND EXISTS (SELECT 1 FROM signal sg WHERE sg.ws = ws.id
+      AND sg.at > ws."createdAt" + interval '21 days' AND sg.at <= ws."createdAt" + interval '28 days')) AS "week4Returned",
+  (SELECT count(DISTINCT ws) FROM later_term) AS "secondTerm",
+  (SELECT count(DISTINCT lt.ws) FROM later_term lt
+    WHERE EXISTS (SELECT 1 FROM signal sg WHERE sg.ws = lt.ws AND sg.at >= lt."startDate")) AS "secondTermReturned",
   (SELECT count(*) FROM course) AS courses,
   (SELECT count(*) FROM assess) AS assessments,
   (SELECT count(*) FROM assess WHERE "score" IS NOT NULL) AS grades,
@@ -143,6 +169,14 @@ export async function readBetaStats(client: Client, now = new Date()): Promise<B
         FUNNEL_STEPS.map((step) => [step, n(step)]),
       ) as BetaStats['funnel'],
       active: { days7: n('days7'), days30: n('days30') },
+      retention: {
+        new7: n('new7'),
+        new30: n('new30'),
+        week4Eligible: n('week4Eligible'),
+        week4Returned: n('week4Returned'),
+        secondTerm: n('secondTerm'),
+        secondTermReturned: n('secondTermReturned'),
+      },
       totals: Object.fromEntries(TOTAL_KEYS.map((key) => [key, n(key)])) as BetaStats['totals'],
     };
   } catch (error) {
@@ -169,6 +203,12 @@ export function formatBetaStats(stats: BetaStats) {
     `Workspaces: ${stats.workspaces} (accounts being deleted are excluded)`,
     `Active in the last 7 days: ${stats.active.days7} - last 30 days: ${stats.active.days30}`,
     '  (active = wrote a task, used Ask Command, or had Gmail/calendar checked while the app was open)',
+    '',
+    `New workspaces: ${stats.retention.new7} in the last 7 days, ${stats.retention.new30} in the last 30 days`,
+    `Week-4 return: ${stats.retention.week4Returned} of ${stats.retention.week4Eligible} workspaces at least 28 days old ` +
+      `(${percent(stats.retention.week4Returned, stats.retention.week4Eligible)}) were active in days 22-28`,
+    `Next-term return: ${stats.retention.secondTermReturned} of ${stats.retention.secondTerm} workspaces with courses in 2+ terms ` +
+      `(${percent(stats.retention.secondTermReturned, stats.retention.secondTerm)}) were active after their later term began`,
     '',
     'Setup reached (workspaces, % of all):',
     ...FUNNEL_STEPS.map((step) => line(FUNNEL_LABELS[step], stats.funnel[step])),
