@@ -24,6 +24,7 @@ export default defineConfig({
     'first-run-setup.spec.ts',
     'syllabus-best-of.spec.ts',
     'paste-grades.spec.ts',
+    'calendar-settings-text.spec.ts',
   ],
   workers: 1,
   timeout: 90_000,

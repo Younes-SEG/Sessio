@@ -127,6 +127,33 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
     ).values(),
   ];
 
+  const setup = Boolean(onConnected);
+  const fullNotice = (
+    <p id={setup ? undefined : 'calendar-preview-notice'} className="muted text-xs leading-relaxed">
+      <T text="Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Command is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access." />{' '}
+      {data.hosted &&
+        t(
+          'Your private link is stored in your online workspace and fetched by the hosted server. ',
+        )}
+      <Link className="underline" href="/legal/privacy">
+        <T text="Calendar privacy details" />
+      </Link>
+      .
+    </p>
+  );
+  const syncNotice = (
+    <p className="muted text-xs leading-relaxed">
+      {data.hosted
+        ? t(
+            'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ',
+          )
+        : t(
+            'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ',
+          )}
+      <T text="Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection." />
+    </p>
+  );
+
   return (
     <section className="card overflow-hidden" id="calendar-connections">
       <div className="flex items-center gap-3 border-b border-[var(--border)] p-4 sm:px-5">
@@ -167,17 +194,19 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
               <p id="calendar-link-help" className="muted text-xs leading-relaxed">
                 <T text="In Brightspace: Calendar → Settings → Enable Calendar Feeds, then Subscribe → copy the link. Choose all calendars to include all your courses." />
               </p>
-              <p id="calendar-preview-notice" className="muted text-xs leading-relaxed">
-                <T text="Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Command is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access." />{' '}
-                {data.hosted &&
-                  t(
-                    'Your private link is stored in your online workspace and fetched by the hosted server. ',
-                  )}
-                <Link className="underline" href="/legal/privacy">
-                  <T text="Calendar privacy details" />
-                </Link>
-                .
-              </p>
+              {setup ? (
+                // First-run setup keeps one short notice visible; the full text sits in
+                // "How this works" below, and Settings → Calendar still shows everything.
+                <p id="calendar-preview-notice" className="muted text-xs leading-relaxed">
+                  <T text="Command keeps this private link to refresh your deadlines. Use only a link you are authorized to access." />{' '}
+                  <Link className="underline" href="/legal/privacy">
+                    <T text="Calendar privacy details" />
+                  </Link>
+                  .
+                </p>
+              ) : (
+                fullNotice
+              )}
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button
                   type="submit"
@@ -205,9 +234,21 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
                   <T text="Preview calendar" />
                 </Button>
               </div>
-              <p className="muted text-xs">
-                <T text="Calendar changes save here separately from your preferences." />
-              </p>
+              {setup ? (
+                <details className="text-xs" data-testid="calendar-how-it-works">
+                  <summary className="text-primary cursor-pointer underline underline-offset-4">
+                    <T text="How this works" />
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    {fullNotice}
+                    {syncNotice}
+                  </div>
+                </details>
+              ) : (
+                <p className="muted text-xs">
+                  <T text="Calendar changes save here separately from your preferences." />
+                </p>
+              )}
             </div>
             <details className="rounded-sm border border-[var(--border)] p-3">
               <summary className="cursor-pointer text-sm">
@@ -426,16 +467,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
             </div>
           </div>
         ))}
-        <p className="muted text-xs leading-relaxed">
-          {data.hosted
-            ? t(
-                'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ',
-              )
-            : t(
-                'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ',
-              )}
-          <T text="Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection." />
-        </p>
+        {!setup && syncNotice}
       </div>
     </section>
   );
