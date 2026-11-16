@@ -172,8 +172,9 @@ export default function GuidePage() {
           </p>
           <p className="muted leading-relaxed">
             Disconnect pauses syncing and retains the saved link. Forget link removes the connection
-            and its mapping while keeping imported entries; importing again after forgetting may
-            create duplicates.
+            and its mapping while keeping imported entries. Importing again reconnects entries it
+            can match by their Brightspace link, or by exactly the same name and time; anything else
+            may be added as a duplicate.
           </p>
         </section>
         <section id="syllabus" className="card scroll-mt-6 space-y-4 p-4">
