@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const body = await mutationBody(request);
     switch (body.action) {
       case 'sync':
-        return NextResponse.json(await syncEmail(body.automatic === true));
+        return NextResponse.json(await syncEmail(body.automatic === true, body.timeZone));
       case 'settings':
         await configureEmail(body);
         break;

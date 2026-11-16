@@ -89,11 +89,15 @@ export function classifySchoolEmail(
   return 'IGNORE';
 }
 
-/** Only explicit, unambiguous calendar dates are suggested; never infer "next Friday" or a year. */
-export function emailDeadline(text: string): { date: string; time: string | null } | null {
-  const content = normalize(currentEmailText(text));
-  if (!changeWords.test(content)) return null;
-  if (/\b(cancelled|canceled|annule|annulee)\b/.test(content)) return null;
+/** A deadline change (not a cancellation) is described in this normalized text. */
+export function describesDeadlineChange(text: string) {
+  const content = normalize(text);
+  return changeWords.test(content) && !/\b(cancelled|canceled|annule|annulee)\b/.test(content);
+}
+
+/** Explicit calendar dates with a year on one line; never "next Friday" or an inferred year. */
+export function explicitDates(line: string): string[] {
+  const text = normalize(line);
   const months: Record<string, number> = {
     january: 1,
     janvier: 1,
@@ -132,32 +136,43 @@ export function emailDeadline(text: string): { date: string; time: string | null
     )
       candidates.push(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
   };
-  // Ignore message headers/footers: date must appear on a deadline-related line.
-  const lines = content.split(/[\r\n]+/).filter((line) => changeWords.test(line));
-  for (const line of lines) {
-    for (const match of line.matchAll(/\b(20\d{2}|21\d{2}|2200)-(\d{2})-(\d{2})\b/g))
-      add(+match[1], +match[2], +match[3]);
-    for (const match of line.matchAll(
-      /\b([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(20\d{2}|21\d{2}|2200)\b/g,
-    )) {
-      if (months[match[1]]) add(+match[3], months[match[1]], +match[2]);
-    }
-    for (const match of line.matchAll(
-      /\b(\d{1,2})(?:er)?\s+([a-z]+)[,]?\s+(20\d{2}|21\d{2}|2200)\b/g,
-    )) {
-      if (months[match[2]]) add(+match[3], months[match[2]], +match[1]);
-    }
+  for (const match of text.matchAll(/\b(20\d{2}|21\d{2}|2200)-(\d{2})-(\d{2})\b/g))
+    add(+match[1], +match[2], +match[3]);
+  for (const match of text.matchAll(
+    /\b([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(20\d{2}|21\d{2}|2200)\b/g,
+  )) {
+    if (months[match[1]]) add(+match[3], months[match[1]], +match[2]);
   }
-  const dates = [...new Set(candidates)];
-  if (dates.length !== 1) return null;
+  for (const match of text.matchAll(
+    /\b(\d{1,2})(?:er)?\s+([a-z]+)[,]?\s+(20\d{2}|21\d{2}|2200)\b/g,
+  )) {
+    if (months[match[2]]) add(+match[3], months[match[2]], +match[1]);
+  }
+  return [...new Set(candidates)];
+}
+
+/** Explicit clock times (14:00, 11:59 pm, 23h59). */
+export function explicitTimes(text: string): string[] {
   const times = new Set<string>();
-  for (const match of lines.join('\n').matchAll(/\b(\d{1,2})[:h](\d{2})\s*(am|pm)?\b/g)) {
+  for (const match of normalize(text).matchAll(/\b(\d{1,2})[:h](\d{2})\s*(am|pm)?\b/g)) {
     let hour = +match[1];
     if (+match[2] > 59 || hour > 23 || (match[3] && (hour < 1 || hour > 12))) continue;
     if (match[3]) hour = (hour % 12) + (match[3] === 'pm' ? 12 : 0);
     times.add(`${String(hour).padStart(2, '0')}:${match[2]}`);
   }
-  return { date: dates[0], time: times.size === 1 ? [...times][0] : null };
+  return [...times];
+}
+
+/** Only explicit, unambiguous calendar dates are suggested; never infer "next Friday" or a year. */
+export function emailDeadline(text: string): { date: string; time: string | null } | null {
+  const content = normalize(currentEmailText(text));
+  if (!describesDeadlineChange(content)) return null;
+  // Ignore message headers/footers: date must appear on a deadline-related line.
+  const lines = content.split(/[\r\n]+/).filter((line) => changeWords.test(line));
+  const dates = [...new Set(lines.flatMap(explicitDates))];
+  if (dates.length !== 1) return null;
+  const times = explicitTimes(lines.join('\n'));
+  return { date: dates[0], time: times.length === 1 ? times[0] : null };
 }
 
 /** Keep the readable message, not a keyword-selected summary. Limits are applied by gmailContent. */

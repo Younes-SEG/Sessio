@@ -27,6 +27,13 @@ import { EMAIL_CONTENT_VERSION } from '../email-content';
 import { schoolNotificationGroups } from '../email-duplicates';
 import { applyPendingEmailGrades } from './automatic-email-grades';
 import {
+  AUTO_DEADLINE,
+  AUTO_DEADLINE_READ,
+  applyPendingEmailDeadlines,
+  safeTimeZone,
+} from './automatic-email-deadlines';
+import { emailDeadlineChanges } from '../email-deadlines';
+import {
   currentEmailText,
   classifySchoolEmail,
   emailDeadline,
@@ -106,7 +113,18 @@ export async function emailOverview() {
       lastError: true,
       pageToken: true,
       messages: {
-        where: { status: { in: ['PENDING', 'READ', 'AUTO_APPLIED', 'AUTO_MATCHED'] } },
+        where: {
+          status: {
+            in: [
+              'PENDING',
+              'READ',
+              'AUTO_APPLIED',
+              'AUTO_MATCHED',
+              AUTO_DEADLINE,
+              AUTO_DEADLINE_READ,
+            ],
+          },
+        },
         orderBy: { receivedAt: 'desc' },
         select: {
           id: true,
@@ -148,9 +166,18 @@ export async function emailOverview() {
                   m.receivedAt,
                 )
               : m.suggestedAssessmentId,
-          read: m.status === 'READ',
+          read: m.status === 'READ' || m.status === AUTO_DEADLINE_READ,
           kind,
           proposedDeadline: kind === 'ASSESSMENT_CHANGE' ? emailDeadline(m.excerpt) : null,
+          // Deadlines this email already changed automatically (shown instead of the review form).
+          appliedDeadlines:
+            m.status === AUTO_DEADLINE || m.status === AUTO_DEADLINE_READ
+              ? emailDeadlineChanges(
+                  { subject: m.subject, text: m.excerpt, receivedAt: m.receivedAt },
+                  courses,
+                  assessments,
+                ).map((change) => change.assessmentId)
+              : [],
           receivedAt: m.receivedAt.toISOString(),
           gmailUrl: `https://mail.google.com/mail/u/?authuser=${encodeURIComponent(connection.email)}#all/${encodeURIComponent(m.messageId)}`,
         },
@@ -198,7 +225,8 @@ export async function emailOverview() {
   };
 }
 
-export async function syncEmail(automatic = false) {
+export async function syncEmail(automatic = false, requestedTimeZone?: unknown) {
+  const timeZone = safeTimeZone(requestedTimeZone);
   const workspaceId = await requireWorkspaceId();
   assertGmailAllowed(workspaceId);
   const connection = await db.gmailConnection.findUnique({ where: { workspaceId } });
@@ -235,8 +263,10 @@ export async function syncEmail(automatic = false) {
   if (!claimed.count) return { checked: 0 };
   try {
     // Retry existing clear matches even if Gmail is temporarily offline.
-    let applied = await transaction((tx) =>
-      applyPendingEmailGrades(tx, workspaceId, connection.id),
+    let applied = await transaction(
+      async (tx) =>
+        (await applyPendingEmailGrades(tx, workspaceId, connection.id)) +
+        (await applyPendingEmailDeadlines(tx, workspaceId, connection.id, timeZone)),
     );
     const tokens = await gmailTokens({
       grant_type: 'refresh_token',
@@ -426,7 +456,10 @@ export async function syncEmail(automatic = false) {
           reviewedAt: { lt: new Date(now.getTime() - 90 * 86400000) },
         },
       });
-      return applyPendingEmailGrades(tx, workspaceId, connection.id);
+      return (
+        (await applyPendingEmailGrades(tx, workspaceId, connection.id)) +
+        (await applyPendingEmailDeadlines(tx, workspaceId, connection.id, timeZone))
+      );
     });
     return { checked: listed.messages?.length || 0, applied };
   } catch (error) {
@@ -518,6 +551,13 @@ export async function reviewEmail(input: unknown) {
     if (data.action === 'read') {
       // Reading a notification is independent of approving its proposed change.
       // Idempotent across tabs, and never clears the source or edits an assessment.
+      if (message.status === AUTO_DEADLINE) {
+        await tx.emailUpdate.updateMany({
+          where: { id: message.id, connection: { workspaceId }, status: AUTO_DEADLINE },
+          data: { status: AUTO_DEADLINE_READ },
+        });
+        return;
+      }
       if (message.status !== 'PENDING' && message.status !== 'READ') return;
       const courses = await tx.course.findMany({
         where: { semester: { workspaceId }, archived: false, deletedAt: null },
@@ -558,7 +598,11 @@ export async function reviewEmail(input: unknown) {
       });
       return;
     }
-    if (message.status !== 'PENDING' && message.status !== 'READ')
+    const autoApplied = message.status === AUTO_DEADLINE || message.status === AUTO_DEADLINE_READ;
+    if (
+      (message.status !== 'PENDING' && message.status !== 'READ' && !autoApplied) ||
+      (autoApplied && data.action !== 'dismiss')
+    )
       throw new ApiError(409, 'This email update was already reviewed.');
     if (data.action !== 'dismiss') {
       const courses = await tx.course.findMany({

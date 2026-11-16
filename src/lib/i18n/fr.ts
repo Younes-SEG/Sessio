@@ -148,8 +148,12 @@ export const french: Record<string, string> = {
   'View grades': 'Voir les notes',
   'Already in Grades. You can edit any result there. Recent email results are shown below.':
     'Déjà dans Notes. Vous pouvez y modifier chaque résultat. Les résultats récents reçus par courriel sont affichés ci-dessous.',
-  'Email check finished. Clear grade matches are saved automatically.':
-    'Vérification terminée. Les notes clairement associées à une évaluation sont enregistrées automatiquement.',
+  'Email check finished. Clear grades and deadline changes are saved automatically.':
+    'Vérification terminée. Les notes et les changements d’échéance clairs sont enregistrés automatiquement.',
+  'Deadline updated automatically from this email':
+    'Échéance mise à jour automatiquement à partir de ce courriel',
+  'If this is wrong, open the assessment and change its date. Command will not apply this email again.':
+    'Si c’est une erreur, ouvrez l’évaluation et changez sa date. Command n’appliquera plus ce courriel.',
   'Allow Command to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.':
     'Autoriser Command à lire les courriels pertinents toutes les cinq minutes pendant que l’application est ouverte. Les résultats clairement associés à une évaluation sont enregistrés automatiquement; les cas incertains restent à vérifier.',
   'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Command is closed.':
@@ -179,8 +183,8 @@ export const french: Record<string, string> = {
   'Assessment change': 'Modification d’évaluation',
   Announcement: 'Annonce',
   'Review an assessment deadline': 'Vérifier une échéance d’évaluation',
-  'Command can suggest explicit dates. Confirm the assessment, new date and time before saving. Cancellations, relative dates and other changes need your review; no assessment is changed automatically.':
-    'Command peut proposer des dates explicites. Confirmez l’évaluation, la date et l’heure avant d’enregistrer. Les annulations, dates relatives et autres changements nécessitent votre vérification; aucune évaluation ne change automatiquement.',
+  'Command could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.':
+    'Command n’a pas pu associer ce changement à une seule évaluation et une seule date, donc rien n’a changé. Confirmez l’évaluation, la date et l’heure avant d’enregistrer.',
   'Current deadline:': 'Échéance actuelle :',
   'Not set': 'Non définie',
   'New due date': 'Nouvelle date limite',

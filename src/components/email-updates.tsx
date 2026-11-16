@@ -21,6 +21,9 @@ import { emailMessageText } from '@/lib/email-display';
 import { useVisibleRead } from './use-visible-read';
 
 async function requestEmail(body?: Record<string, unknown>, endpoint = '/api/email') {
+  // Email deadline changes keep the assessment's local due time, so the server needs the zone.
+  if (body?.action === 'sync')
+    body = { ...body, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
   const response = await fetch(
     endpoint,
     body
@@ -194,7 +197,9 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
       await refresh();
       window.dispatchEvent(new Event('command-email-updated'));
       if (body.action === 'sync')
-        setNotice('Email check finished. Clear grade matches are saved automatically.');
+        setNotice(
+          'Email check finished. Clear grades and deadline changes are saved automatically.',
+        );
       if (body.action === 'settings') setNotice('Email preferences saved.');
       if (body.action === 'apply') setNotice('Grade saved from your email review.');
       if (body.action === 'apply-deadline')
@@ -659,14 +664,45 @@ function SchoolAnnouncement({
           )}
         </p>
       )}
-      {change && (
+      {!!update.appliedDeadlines?.length && (
+        <div
+          role="status"
+          className="space-y-2 rounded-sm border border-[var(--border)] p-3 text-sm"
+        >
+          <p className="font-medium">{t('Deadline updated automatically from this email')}</p>
+          <ul className="space-y-1">
+            {update.appliedDeadlines.map((id) => {
+              const assessment = assessments.find((a) => a.id === id);
+              return (
+                assessment && (
+                  <li key={id}>
+                    {assessment.course} · {assessment.name}:{' '}
+                    {assessment.dueDate
+                      ? new Date(assessment.dueDate).toLocaleString(t.locale, {
+                          dateStyle: 'full',
+                          timeStyle: 'short',
+                        })
+                      : t('Not set')}
+                  </li>
+                )
+              );
+            })}
+          </ul>
+          <p className="muted text-xs">
+            {t(
+              'If this is wrong, open the assessment and change its date. Command will not apply this email again.',
+            )}
+          </p>
+        </div>
+      )}
+      {change && !update.appliedDeadlines?.length && (
         <details className="space-y-4">
           <summary className="cursor-pointer font-medium text-primary">
             {t('Review an assessment deadline')}
           </summary>
           <p className="muted text-sm">
             {t(
-              'Command can suggest explicit dates. Confirm the assessment, new date and time before saving. Cancellations, relative dates and other changes need your review; no assessment is changed automatically.',
+              'Command could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.',
             )}
           </p>
           <label className="block space-y-2 text-sm">

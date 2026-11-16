@@ -30,6 +30,7 @@ vi.mock('../src/lib/server/auth', () => ({ requireWorkspaceId: async () => ident
 import { db } from '../src/lib/server/db';
 import { saveEntity, deleteEntity, restoreCourse, transaction } from '../src/lib/server/mutations';
 import { applyPendingEmailGrades } from '../src/lib/server/automatic-email-grades';
+import { applyPendingEmailDeadlines } from '../src/lib/server/automatic-email-deadlines';
 import { getWorkspace } from '../src/lib/server/workspace';
 import { eraseWorkspace, exportWorkspace } from '../src/lib/server/privacy';
 import { importSyllabus } from '../src/lib/server/syllabus-import';
@@ -1341,9 +1342,49 @@ it('separates school updates, filters legacy noise, and reviews deadline changes
       where: { connectionId_messageId: { connectionId: connection.id, messageId: 'noise' } },
     });
     expect(ignored).toMatchObject({ status: 'IGNORED', subject: '', sender: '', excerpt: '' });
+    // A clear change ("Lab 1 ... now due November 2, 2090 at 23:59") is applied automatically,
+    // in the default Toronto time zone, without touching the grade or weight.
+    const automatic = updates.find((row) => row.kind === 'ASSESSMENT_CHANGE')!;
+    expect(automatic.appliedDeadlines).toEqual([assessment.id]);
+    expect(await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } })).toMatchObject({
+      dueDate: new Date('2090-11-03T03:59:00Z'),
+      score: 18,
+      maxScore: 20,
+      weight: 10,
+      status: 'GRADED',
+    });
+    await expect(
+      reviewEmail({
+        action: 'apply-deadline',
+        id: automatic.id,
+        assessmentId: assessment.id,
+        dueDate: '2090-11-09T04:59:00Z',
+        expectedRevision: deadlineRevision({ dueDate: new Date('2090-11-03T03:59:00Z') }),
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    // An unclear change (no assessment on the date lines) stays for manual review.
+    await db.assessment.update({
+      where: { id: assessment.id },
+      data: { dueDate: new Date('2090-11-01T20:00:00Z') },
+    });
+    await db.emailUpdate.create({
+      data: {
+        connectionId: connection.id,
+        messageId: 'unclear',
+        contentVersion: 1,
+        subject: 'SEG3102 Lab 1 rescheduled',
+        sender: 'Brightspace <school@example.test>',
+        excerpt:
+          'SEG3102 Lab 1 rescheduled\nThe lab is rescheduled by section.\nSection A: November 2, 2090 at 23:59.\nSection B: November 3, 2090 at 23:59.',
+        receivedAt: new Date(),
+      },
+    });
+    await syncEmail();
     const before = await db.assessment.findUniqueOrThrow({ where: { id: assessment.id } });
     expect(before.dueDate?.toISOString()).toBe('2090-11-01T20:00:00.000Z');
-    const change = updates.find((row) => row.kind === 'ASSESSMENT_CHANGE')!;
+    const change = (await emailOverview()).updates.find(
+      (row) => row.kind === 'ASSESSMENT_CHANGE' && !row.appliedDeadlines?.length,
+    )!;
     identity.current = 'another-workspace';
     await expect(reviewEmail({ action: 'read', id: change.id })).rejects.toMatchObject({
       status: 404,
@@ -1367,8 +1408,6 @@ it('separates school updates, filters legacy noise, and reviews deadline changes
       maxScore: 20,
       weight: 10,
     });
-    expect(change.proposedDeadline).toEqual({ date: '2090-11-02', time: '23:59' });
-    expect(change.suggestedAssessmentId).toBe(assessment.id);
     const apply = {
       action: 'apply-deadline',
       id: change.id,
@@ -3032,6 +3071,79 @@ it('saves past syllabus work the student marks as done as submitted, never downg
       status: 'GRADED',
       score: 8,
     });
+  } finally {
+    identity.current = 'local';
+  }
+});
+
+it('applies clear email deadline changes once, in the student time zone', async () => {
+  identity.current = 'email-deadlines';
+  try {
+    const term = await saveEntity('semesters', {
+      name: 'Deadline mail term',
+      startDate: '2026-09-01',
+      endDate: '2026-12-31',
+      isActive: true,
+    });
+    const course = await saveEntity('courses', {
+      code: 'SEG3101',
+      name: 'Requirements',
+      semesterId: term.id,
+    });
+    const assignment = await saveEntity('assessments', {
+      courseId: course.id,
+      name: 'Assignment 2',
+      type: 'ASSIGNMENT',
+      weight: 10,
+      dueDate: '2026-11-16T04:59:00.000Z', // Nov 15, 23:59 in Toronto
+    });
+    const deliverable = await saveEntity('assessments', {
+      courseId: course.id,
+      name: 'Deliverable 2',
+      type: 'PROJECT',
+      weight: 10,
+    });
+    const connection = await db.gmailConnection.create({
+      data: {
+        workspaceId: identity.current,
+        email: 'test@example.test',
+        refreshToken: 'unused',
+        query: DEFAULT_GMAIL_QUERY,
+      },
+    });
+    const subject =
+      'SEG3101 - Announcements: Deadline extension for Assignment 2 and Project Deliverable 2';
+    const message = await db.emailUpdate.create({
+      data: {
+        connectionId: connection.id,
+        messageId: 'extension',
+        sender: 'Notifications@uottawa.brightspace.com',
+        subject,
+        receivedAt: new Date('2026-11-15T22:58:00Z'),
+        contentVersion: 1,
+        excerpt: `${subject}\nPosted Sunday, November 15, 2026 5:58 PM EST\nI've extended two deadlines:\nAssignment 2 is now due Tuesday, November 17, 2026.\nProject Deliverable 2 is now due Tuesday, November 17, 2026.`,
+      },
+    });
+    const run = () =>
+      db.$transaction((tx) =>
+        applyPendingEmailDeadlines(tx, identity.current, connection.id, 'America/Toronto'),
+      );
+    expect(await run()).toBe(2);
+    const due = async (id: string) =>
+      (await db.assessment.findUniqueOrThrow({ where: { id } })).dueDate?.toISOString();
+    expect(await due(assignment.id)).toBe('2026-11-18T04:59:00.000Z'); // Nov 17, 23:59 kept
+    expect(await due(deliverable.id)).toBe('2026-11-18T04:59:00.000Z'); // default 23:59
+    expect((await db.emailUpdate.findUniqueOrThrow({ where: { id: message.id } })).status).toBe(
+      'AUTO_DEADLINE',
+    );
+    const overview = await emailOverview();
+    expect(overview.updates.find((u) => u.id === message.id)?.appliedDeadlines?.sort()).toEqual(
+      [assignment.id, deliverable.id].sort(),
+    );
+    // A later manual edit is never overwritten by the same email.
+    await saveEntity('assessments', { dueDate: '2026-11-20T04:59:00.000Z' }, assignment.id);
+    expect(await run()).toBe(0);
+    expect(await due(assignment.id)).toBe('2026-11-20T04:59:00.000Z');
   } finally {
     identity.current = 'local';
   }

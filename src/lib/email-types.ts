@@ -25,6 +25,8 @@ export interface EmailReviewUpdate {
   kind: 'GRADE' | 'ANNOUNCEMENT' | 'ASSESSMENT_CHANGE';
   read: boolean;
   proposedDeadline: { date: string; time: string | null } | null;
+  /** Assessments whose deadline this email already changed automatically. */
+  appliedDeadlines?: string[];
 }
 export interface EmailOverview {
   releaseAvailable?: boolean;
