@@ -244,7 +244,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
         <header className="topbar">
           <div className="topbar-location flex min-w-0 items-center gap-3">
             <Button
-              className="min-[761px]:hidden"
+              className="shrink-0 min-[761px]:hidden"
               variant="ghost"
               size="icon"
               onClick={() => setMobileOpen(true)}
