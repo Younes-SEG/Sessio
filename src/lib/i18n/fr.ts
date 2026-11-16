@@ -655,10 +655,13 @@ export const french: Record<string, string> = {
   for: 'pour',
   'Add task': 'Ajouter une tâche',
   'View all tasks ?': 'Voir toutes les tâches ?',
-  Assessments: 'évaluations',
+  Assessments: 'Évaluations',
+  'Your course workspace': 'Votre espace de cours',
+  '1 open task for': '1 tâche ouverte pour',
+  '{count} open tasks for': '{count} tâches ouvertes pour',
   'Every deadline and deliverable, in one place.':
     'Toutes les échéances et les remises au même endroit.',
-  'Add assessment': 'Ajouter une Évaluation',
+  'Add assessment': 'Ajouter une évaluation',
   'Your course starts here': 'Votre cours commence ici',
   'Weighted average of graded assessments only.':
     'Moyenne pondérée des évaluations notées seulement.',
@@ -929,7 +932,8 @@ export const french: Record<string, string> = {
   Other: 'Autre',
   Overview: 'Aperçu',
   Schedule: 'Horaire',
-  Notes: 'Notes',
+  // "Notes" already means Grades in French; personal notes need a distinct word.
+  Notes: 'Remarques',
   Light: 'Clair',
   Dark: 'Sombre',
   System: 'Système',
