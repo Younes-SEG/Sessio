@@ -23,6 +23,7 @@ export default defineConfig({
     'privacy-accessibility.spec.ts',
     'first-run-setup.spec.ts',
     'syllabus-best-of.spec.ts',
+    'paste-grades.spec.ts',
   ],
   workers: 1,
   timeout: 90_000,
