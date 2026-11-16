@@ -58,6 +58,8 @@ import {
   DEFAULT_GMAIL_QUERY,
 } from '../src/lib/email-grades';
 
+import { formatBetaStats, readBetaStats, type BetaStats } from '../scripts/beta-stats-data';
+
 const original = process.env.DATABASE_URL;
 
 it('saves private chat history and context without replaying grade changes on reopen', async () => {
@@ -3208,4 +3210,61 @@ it('marks all course notifications read without touching grade reviews or other 
   } finally {
     identity.current = 'local';
   }
+});
+
+it('counts beta activation and activity per workspace, excluding accounts being deleted', async () => {
+  const stats = async () => {
+    const client = new Client({ connectionString: process.env.DATABASE_URL });
+    await client.connect();
+    try {
+      return await readBetaStats(client);
+    } finally {
+      await client.end();
+    }
+  };
+  const before = await stats();
+  const setUp = async (workspaceId: string, graded: boolean) => {
+    identity.current = workspaceId;
+    await db.settings.create({
+      data: { id: `stats-${workspaceId}`, workspaceId, onboardingCompleted: true },
+    });
+    const term = await saveEntity('semesters', {
+      name: 'Stats term',
+      startDate: '2090-09-01',
+      endDate: '2090-12-31',
+    });
+    const course = await saveEntity('courses', {
+      code: 'STA1000',
+      name: 'Stats',
+      semesterId: term.id,
+    });
+    await saveEntity('assessments', {
+      courseId: course.id,
+      name: 'Quiz',
+      weight: 10,
+      ...(graded ? { score: 8, maxScore: 10, status: 'GRADED' } : {}),
+    });
+    await saveEntity('tasks', { title: 'Read chapter 1' });
+  };
+  try {
+    await setUp('user:stats-graded', true);
+    await setUp('user:stats-ungraded', false);
+    await setUp('user:stats-deleting', true);
+    await blockAccount('user:stats-deleting');
+  } finally {
+    identity.current = 'local';
+  }
+  const after = await stats();
+  const delta = (pick: (s: BetaStats) => number) => pick(after) - pick(before);
+  expect(delta((s) => s.workspaces)).toBe(2);
+  expect(delta((s) => s.funnel.course)).toBe(2);
+  expect(delta((s) => s.funnel.weights)).toBe(2);
+  expect(delta((s) => s.funnel.grade)).toBe(1);
+  expect(delta((s) => s.funnel.ownTask)).toBe(2);
+  expect(delta((s) => s.active.days7)).toBe(2);
+  expect(delta((s) => s.totals.grades)).toBe(1);
+  // Output is aggregate text: no workspace ids, course codes or titles.
+  const text = formatBetaStats(after);
+  for (const secret of ['user:stats', 'STA1000', 'Read chapter 1', 'Quiz'])
+    expect(text).not.toContain(secret);
 });
