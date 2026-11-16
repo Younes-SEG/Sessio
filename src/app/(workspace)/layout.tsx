@@ -3,6 +3,8 @@ import { WorkspaceProvider } from '@/components/workspace-provider';
 import { AppShell } from '@/components/app-shell';
 import { LocalTimeContent } from '@/components/local-time-content';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { french as frenchCopy } from '@/lib/i18n/fr';
 import { ApiError } from '@/lib/server/errors';
 import { isHosted } from '@/lib/server/hosting';
 import { accessDeniedDestination } from '@/lib/access-denial';
@@ -27,6 +29,9 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
     }
     /* The setup screen gives a recoverable path when PostgreSQL is offline. */
   }
+  // Same functional language cookie the root layout reads; only fixed app copy is translated.
+  const french = (await cookies()).get('command-language')?.value === 'fr';
+  const t = (text: string) => (french ? (frenchCopy[text] ?? text) : text);
   return (
     <>
       {data ? (
@@ -40,30 +45,38 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
       ) : (
         <main className="min-h-screen grid place-items-center p-4">
           <div className="card p-9 max-w-lg">
-            <div className="eyebrow mb-4">Command · Personal workspace</div>
+            <div className="eyebrow mb-4">{t('Command · Personal workspace')}</div>
             <h1 className="text-2xl font-semibold tracking-tight mb-3">
-              Let&apos;s get your workspace ready.
+              {t('Let’s get your workspace ready.')}
             </h1>
             <p className="muted leading-relaxed mb-6">
               {isHosted()
-                ? 'Your workspace is temporarily unavailable. Please try again shortly.'
-                : 'Command could not connect to your database. Start your local database, then return here to pick up where you left off.'}
+                ? t('Your workspace is temporarily unavailable. Please try again shortly.')
+                : t(
+                    'Command could not connect to your database. Start your local database, then return here to pick up where you left off.',
+                  )}
             </p>
             {!isHosted() && (
-              <div className="bg-muted rounded-sm p-4 text-xs font-mono space-y-2">
-                <p>npm run db:local</p>
-                <p>npm run setup</p>
-              </div>
-            )}
-            {!isHosted() && (
-              <p className="muted text-xs my-5">
-                For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in
-                your database.
-              </p>
+              <>
+                {/* Not `npm run setup`: it seeds demo records into an existing workspace. */}
+                <div className="bg-muted rounded-sm p-4 text-xs font-mono">
+                  <p>npm run db:local</p>
+                </div>
+                <p className="muted text-xs mt-3">
+                  {t(
+                    'Keep it running in its own terminal. Your app server is already running, so you do not need to run setup again.',
+                  )}
+                </p>
+                <p className="muted text-xs my-5">
+                  {t(
+                    'For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in your database.',
+                  )}
+                </p>
+              </>
             )}
             <form action="/" method="get">
               <button className="button button-primary inline-flex px-4 py-2 text-sm">
-                Try again
+                {t('Try again')}
               </button>
             </form>
           </div>

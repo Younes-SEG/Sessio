@@ -1476,4 +1476,18 @@ export const french: Record<string, string> = {
   'Apply best-of rule': 'Appliquer la règle des meilleurs résultats',
   'Category totals found. Choose a grading rule below.':
     'Totaux par catégorie trouvés. Choisissez une règle de pondération ci-dessous.',
+  'Something interrupted your workspace.': 'Un problème a interrompu votre espace.',
+  'Your saved data is safe. Please try loading this page again.':
+    'Vos données enregistrées sont en sécurité. Essayez de recharger cette page.',
+  'Loading workspace': 'Chargement de l’espace',
+  'Command · Personal workspace': 'Command · Espace personnel',
+  'Let’s get your workspace ready.': 'Préparons votre espace.',
+  'Your workspace is temporarily unavailable. Please try again shortly.':
+    'Votre espace est temporairement indisponible. Réessayez dans un instant.',
+  'Command could not connect to your database. Start your local database, then return here to pick up where you left off.':
+    'Command n’a pas pu se connecter à votre base de données. Démarrez votre base de données locale, puis revenez ici pour reprendre là où vous en étiez.',
+  'Keep it running in its own terminal. Your app server is already running, so you do not need to run setup again.':
+    'Laissez-la ouverte dans son propre terminal. Le serveur de l’application fonctionne déjà, donc inutile de relancer l’installation.',
+  'For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in your database.':
+    'Pour un serveur PostgreSQL existant, vérifiez DATABASE_URL dans .env. Vos données restent dans votre base de données.',
 };
