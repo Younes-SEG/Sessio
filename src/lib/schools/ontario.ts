@@ -3,8 +3,9 @@ import type { SchoolProfile } from './types';
 /**
  * Ontario school profiles verified on 2026-11-14 by reading each official policy directly.
  * Only facts read from the source are filled in: default credits and the course platform stay
- * null unless confirmed. Partially verified schools (Brock, Hearst, Centennial, Confederation,
- * Niagara, Northern, Sault) are deliberately absent; see docs/research/README.md.
+ * null unless confirmed. Brock, Confederation and Northern were added on 2026-11-16 after reading
+ * their current official documents. Partially verified schools (Hearst, Centennial, Niagara,
+ * Sault) are deliberately absent; see docs/research/README.md.
  */
 type Row = readonly [letter: string, min: number, points?: number];
 const scale = (...rows: readonly Row[]) =>
@@ -335,6 +336,30 @@ export const ontarioSchools = [
   },
   {
     ...university,
+    id: 'brock-university',
+    name: 'Brock University',
+    letterScale: scale(['A+', 90], ['A', 80], ['B', 70], ['C', 60], ['D', 50], ['F', 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    // "A value of 45 percent is used for all F grades of 45 or lower"; 46-49 keep their value.
+    averageFloor: 45,
+    repeatPolicy: 'latest',
+    credits: { unitLabel: 'credits', unitLabelFr: 'crédits', defaultPerCourse: 0.5 },
+    sources: [
+      {
+        url: 'https://calendar.brocku.ca/content.php?catoid=23&navoid=638',
+        title:
+          '2026-2027 Undergraduate Calendar - Academic Regulations (VI.A Grades, VI.B Calculation of Averages)',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'Percentage grades; Brock writes A+ as "+A". Averages are credit-weighted over Brock courses only; a repeated course counts its second grade, higher or lower. A 60% overall average is needed to continue and to graduate. Teacher Education uses P1/P2/P3/F (below 60 fails).',
+  },
+  {
+    ...university,
     id: 'algoma-university',
     name: 'Algoma University',
     letterScale: scale(['A', 80], ['B', 70], ['C', 60], ['D', 50], ['F', 0]),
@@ -569,6 +594,54 @@ export const ontarioSchools = [
       'myOTR - Grading Systems',
     ),
     notes: 'Some programs require 60% in specific courses.',
+  },
+  {
+    ...college,
+    id: 'confederation-college',
+    name: 'Confederation College',
+    letterScale: scale(['A', 80, 4], ['B', 70, 3], ['C', 60, 2], ['D', 50, 1], ['F', 0, 0]),
+    // "the percentage is rounded to the nearest whole number value" before the letter is set.
+    roundPercentBeforeLetter: true,
+    failLabel: 'F',
+    gpa: { max: 4, label: 'GPA' },
+    passPercent: 50,
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: [
+      {
+        url: 'https://cdn.sanity.io/files/ci2ld4sd/production/16d8c597d353329c95f12310872286c3210bfb8a.pdf',
+        title: 'Ch5-s1-01 Course Evaluation and Grading Policy (effective 2026-05-15)',
+        checked: '2026-11-16',
+      },
+      {
+        url: 'https://www.confederationcollege.ca/policies/academic-policies/',
+        title: 'Academic Policies & Procedures (links the policy above)',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'GPA is weighted by course hours. Good standing and graduation need a 2.00 GPA; first class 3.50. Some courses require more than 50% (stated on the course outline); apprenticeship levels need no grade below 60.',
+  },
+  {
+    ...college,
+    id: 'northern-college',
+    name: 'Northern College',
+    letterScale: scale(['A', 80, 4], ['B', 70, 3], ['C', 60, 2], ['D', 50, 1], ['F', 0, 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: { max: 4, label: 'GPA' },
+    passPercent: 50,
+    credits: null,
+    sources: [
+      {
+        url: 'https://www.northerncollege.ca/documents/students/policies/A26_Assessment-Evalulation-of-Student-Learning.pdf',
+        title:
+          'Academic Policy A-26 Assessment and Evaluation of Student Learning (issued 2021-10-25)',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'D (50-59) is the minimum acceptable level, but some departments do not accept C or D as a pass; check the course outline. GPA is credit-weighted; most programs need a 2.0 GPA to graduate. The repeat rule is in procedure A-26-PR-1 (not yet read).',
   },
   {
     ...college,
