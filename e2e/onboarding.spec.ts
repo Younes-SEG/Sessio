@@ -193,9 +193,10 @@ for (const config of [
               opacity: Number(getComputedStyle(panel).opacity),
             };
           });
+          // The old instruction hides before its text, route or position changes. The main UI
+          // has no opacity fade since the calm-motion pass (2026-11-06), so it may already be 0.
           expect(fading.step).toBe('1');
           expect(fading.title).toBe(previousTitle);
-          expect(fading.opacity).toBeGreaterThan(0);
           expect(fading.opacity).toBeLessThan(1);
         } else await next.click();
       }
