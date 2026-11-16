@@ -1468,12 +1468,12 @@ export const french: Record<string, string> = {
     'Les répartitions égales sont ajustées à chaque ajout. Les groupes des meilleures notes retiennent les résultats les plus élevés. Gérez les règles dans l’onglet Notes du cours.',
   'This weight is managed by an automatic equal split. Manual weight changes are ignored while it is active. Manage the category total in the course Grades tab.':
     'Cette pondération est gérée par une répartition égale automatique. Les modifications manuelles sont ignorées tant qu’elle est active. Gérez le total dans l’onglet Notes du cours.',
-  'Starting mid-semester? Past work is marked done, and you can paste your Brightspace grades on each course’s Grades tab.':
-    'Vous commencez en milieu de session? Les travaux passés sont marqués comme faits, et vous pouvez coller vos notes Brightspace dans l’onglet Notes de chaque cours.',
+  'Starting mid-semester? Older past work is marked done, and you can paste your Brightspace grades on each course’s Grades tab.':
+    'Vous commencez en milieu de session? Les travaux passés depuis plus d’une semaine sont marqués comme faits, et vous pouvez coller vos notes Brightspace dans l’onglet Notes de chaque cours.',
   'This date has passed. Mark it as already done':
     'Cette date est passée. La marquer comme déjà faite',
-  "Unticked past work shows as overdue. Add your grade later, or paste your Brightspace grades on the course's Grades tab.":
-    'Un travail passé non coché apparaît en retard. Ajoutez votre note plus tard, ou collez vos notes Brightspace dans l’onglet Notes du cours.',
+  'Work due in the last week is left open in case you are still submitting it. Unticked past work shows as overdue; ticked work waits for its grade.':
+    'Un travail dû dans la dernière semaine reste ouvert au cas où vous le remettez encore. Un travail passé non coché apparaît en retard; un travail coché attend sa note.',
   'Starting mid-semester': 'Commencer en milieu de session',
   'Paste grades from Brightspace': 'Coller les notes de Brightspace',
   'Paste grades': 'Coller les notes',

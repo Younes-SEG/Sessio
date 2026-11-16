@@ -76,9 +76,10 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
             <Link href="/syllabus" className="underline">
               Importez votre plan de cours
             </Link>{' '}
-            pour chaque cours. Les évaluations dont la date est passée sont marquées comme déjà
-            faites par défaut, pour ne pas apparaître en retard. Décochez celles qu’il vous reste à
-            remettre.
+            pour chaque cours. Les évaluations passées depuis plus d’une semaine sont marquées comme
+            déjà faites par défaut, pour ne pas apparaître en retard. Celles dues dans la dernière
+            semaine restent ouvertes au cas où vous les remettez encore; cochez ou décochez chacune
+            au besoin.
           </li>
           <li>
             Ouvrez le cours, allez à l’onglet Notes et choisissez Coller les notes de Brightspace.
