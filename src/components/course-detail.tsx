@@ -184,7 +184,7 @@ export function CourseDetail({ id }: { id: string }) {
         {tab === 'Overview' && (
           <>
             <GradeSummary assessments={assessments} rules={course.gradingRules} />
-            <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.35fr_1fr]">
               <section className="card p-4 sm:p-5">
                 <div className="mb-5 flex items-center justify-between gap-3">
                   <h2 className="section-title">
@@ -387,7 +387,7 @@ function GradeSummary({
   const t = useT();
   const grades = calculateGrades(assessments, rules);
   return (
-    <div className="course-summary-strip grid sm:grid-cols-3">
+    <div className="course-summary-strip grid grid-cols-1 sm:grid-cols-3">
       <div className="card p-4 sm:p-5">
         <p className="muted text-sm">
           <T text="Current grade" />
@@ -637,7 +637,7 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
         assessments={assessments}
       />
       <PasteGrades course={course} assessments={assessments} />
-      <section className="card grid gap-6 p-4 sm:p-5 md:grid-cols-2 md:gap-10">
+      <section className="card grid grid-cols-1 gap-6 p-4 sm:p-5 md:grid-cols-2 md:gap-10">
         <div>
           <div className="mb-3 flex items-center gap-2">
             <GraduationCap size={20} className="text-[var(--primary)]" />
@@ -780,7 +780,7 @@ function SchedulePanel({
         </Button>
       </div>
       {entries.length ? (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {entries.map((entry) => (
             <button
               key={entry.id}
