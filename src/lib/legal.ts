@@ -1,4 +1,4 @@
-export const policyUpdated = 'November 14, 2026';
+export const policyUpdated = 'November 15, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
 export type LegalText = {
@@ -28,7 +28,7 @@ export const legalDocuments = {
         paragraphs: [
           'Account: your email address, an optional name and sign-in records, so you can sign in and keep your workspace private.',
           'Workspace: the courses, assessments, grades, tasks, notes, calendar entries, terms and preferences you enter or import, so Command can organize your studies.',
-          'Optional connections: a private calendar link you choose to connect, a syllabus you choose to read, chat messages you send to Ask Command and, in the local edition only, school email notices from a Gmail account you connect. Each is used only for the feature you started.',
+          'Optional connections: a private calendar link you choose to connect, a syllabus you choose to read, chat messages you send to Ask Command and school email notices from a Gmail account you connect (in the hosted edition, only for invited testers). Each is used only for the feature you started.',
           'Service records: content-free AI usage records, deletion records and short security logs, so we can enforce fair-use limits, honour deletions and protect the service.',
           'We collect only what each feature needs. We do not sell personal information, show ads, build marketing profiles or use your information to train AI models.',
         ],
@@ -74,7 +74,7 @@ export const legalDocuments = {
       {
         title: 'Optional Gmail connection',
         paragraphs: [
-          'Gmail connection is available only in the local edition; it is switched off in the hosted edition. Command’s use and transfer of information received from Google APIs follows the Google API Services User Data Policy, including its Limited Use requirements. Gmail data is not used to train general AI models, target ads or build profiles for sale.',
+          'In the local edition, anyone running Command can connect Gmail. In the hosted edition, Gmail connection is open only to invited testers listed with Google while Google has not verified Command; Google shows an unverified-app warning and asks you to reconnect about every seven days. Command’s use and transfer of information received from Google APIs follows the Google API Services User Data Policy, including its Limited Use requirements. Gmail data is not used to train general AI models, target ads or build profiles for sale.',
           'Connecting Gmail grants read-only mailbox access through Google OAuth. Command uses your chosen search filter to retrieve matching school notifications and their text. It does not send mail, change Gmail, fetch attachments or linked pages, or send email to an AI service.',
           'The database stores your Gmail address, an encrypted refresh token, search preferences, consent date and version, sync status, and review records with message IDs, sender, subject, date, readable text (up to 100,000 characters) and proposed grade matches. Raw email HTML is processed in memory only. Google receives API requests and may keep its own logs.',
           'Automatic checks run about every five minutes while a Command page is open and visible. Clear grade matches are saved automatically; uncertain results stay for your review, and deadline changes always need your approval. Read notices, reviewed metadata and ignored-message identifiers are deleted after 90 days. Disconnecting deletes the connection and reviews, keeps saved grades and attempts to revoke Google access. Neither action deletes emails in Gmail.',
@@ -214,7 +214,7 @@ export const legalDocuments = {
           'Academic data and preferences are stored in the database for your edition. Hosted authentication uses secure, HTTP-only session cookies and signed session-cache cookies, with SameSite protections. The authentication library may use browser storage and tab messages to coordinate session changes. These support sign-in rather than advertising. Temporary workspace state, previews and mouse positions live in browser memory.',
           'Command also stores your chosen interface language in a first-party command-language cookie for up to one year. It contains only en or fr, works without an account, and is not used for tracking. You can change it with the language switch or clear it in your browser.',
           'A first-party command-theme cookie remembers LIGHT, DARK or SYSTEM for up to one year so pages can display your theme before the app loads. It contains no account or academic data and is not used for tracking. Change your theme in Command or clear the cookie in your browser.',
-          'In the local edition, choosing Connect Gmail creates a temporary HTTP-only command-gmail-state cookie lasting at most ten minutes. It ties Google’s response to the browser that started the connection and is removed afterwards. It is not an advertising or analytics cookie.',
+          'Choosing Connect Gmail creates a temporary HTTP-only command-gmail-state cookie lasting at most ten minutes. It ties Google’s response to the browser that started the connection and is removed afterwards. It is not an advertising or analytics cookie.',
           'Your browser may cache application files as part of ordinary browsing. Workspace responses are marked private and no-store.',
         ],
       },
