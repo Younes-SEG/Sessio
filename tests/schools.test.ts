@@ -3,8 +3,8 @@ import { schools, type SchoolProfile } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
-    // 37 Ontario schools verified on 2026-11-14 (see src/lib/schools/ontario.ts).
-    expect(schools).toHaveLength(37);
+    // 40 Ontario schools: 37 verified on 2026-11-14; Brock, Confederation and Northern on 2026-11-16.
+    expect(schools).toHaveLength(40);
     expect(schools.map((school) => school.id)).toEqual(
       expect.arrayContaining(['university-of-ottawa', 'university-of-toronto', 'college-la-cite']),
     );
@@ -139,5 +139,17 @@ describe('school catalogue integrity', () => {
     expect(pointsOf('college-boreal', 'A')).toBe(3.5);
     expect(byId('college-boreal')?.failLabel).toBe('EC');
     expect(byId('humber-polytechnic')?.letterScale).toBeNull();
+    // Brock, read directly from the 2026-2027 calendar on 2026-11-16.
+    expect(byId('brock-university')?.letterScale?.map((g) => [g.letter, g.min])).toEqual([
+      ['A+', 90],
+      ['A', 80],
+      ['B', 70],
+      ['C', 60],
+      ['D', 50],
+      ['F', 0],
+    ]);
+    expect(byId('brock-university')?.averageFloor).toBe(45);
+    expect(byId('brock-university')?.repeatPolicy).toBe('latest');
+    expect(byId('brock-university')?.passPercent).toBe(50);
   });
 });
