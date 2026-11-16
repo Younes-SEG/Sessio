@@ -1468,6 +1468,34 @@ export const french: Record<string, string> = {
     'Les répartitions égales sont ajustées à chaque ajout. Les groupes des meilleures notes retiennent les résultats les plus élevés. Gérez les règles dans l’onglet Notes du cours.',
   'This weight is managed by an automatic equal split. Manual weight changes are ignored while it is active. Manage the category total in the course Grades tab.':
     'Cette pondération est gérée par une répartition égale automatique. Les modifications manuelles sont ignorées tant qu’elle est active. Gérez le total dans l’onglet Notes du cours.',
+  'Paste grades from Brightspace': 'Coller les notes de Brightspace',
+  'Paste grades': 'Coller les notes',
+  "Open the course's Grades page in Brightspace, select the whole table, copy it and paste it here. Only scores are read; comments and feedback are not saved.":
+    'Ouvrez la page Notes du cours dans Brightspace, sélectionnez tout le tableau, copiez-le et collez-le ici. Seuls les résultats sont lus; les commentaires et la rétroaction ne sont pas enregistrés.',
+  'Grades table': 'Tableau des notes',
+  'Read grades': 'Lire les notes',
+  'No grades found. Copy the whole grades table, including the Points column.':
+    'Aucune note trouvée. Copiez tout le tableau des notes, y compris la colonne Points.',
+  'Review grades': 'Vérifier les notes',
+  Import: 'Importer',
+  'In Command:': 'Dans Command :',
+  'Dropped in Brightspace. Command applies your best-of rule itself.':
+    'Retirée dans Brightspace. Command applique lui-même votre règle des meilleurs résultats.',
+  'Save to': 'Enregistrer dans',
+  'Not imported': 'Non importée',
+  'Save selected grades': 'Enregistrer les notes sélectionnées',
+  'Grades saved:': 'Notes enregistrées :',
+  'Some grades could not be saved. Check them and try again.':
+    'Certaines notes n’ont pas pu être enregistrées. Vérifiez-les et réessayez.',
+  'Choose a different assessment for each grade.':
+    'Choisissez une évaluation différente pour chaque note.',
+  'No grade in Command yet.': 'Aucune note dans Command pour l’instant.',
+  'Already saved in Command.': 'Déjà enregistrée dans Command.',
+  'Command already has a different grade. Tick Import to replace it.':
+    'Command a déjà une note différente. Cochez Importer pour la remplacer.',
+  'No matching assessment. Choose one, or import your syllabus first.':
+    'Aucune évaluation correspondante. Choisissez-en une, ou importez d’abord votre plan de cours.',
+  'Another row already uses this assessment.': 'Une autre ligne utilise déjà cette évaluation.',
   'Suggested grading rule': 'Règle de notation suggérée',
   Counted: 'Comptés',
   'Combined course weight': 'Pondération totale du groupe',

@@ -26,6 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useWorkspace } from '@/components/workspace-provider';
 import { calculateGrades, calculateTarget, ruleContributions } from '@/lib/grades';
 import { CourseGradingRules } from './course-grading-rules';
+import { PasteGrades } from './paste-grades';
 import { CourseSyllabusStatus } from './course-syllabus-status';
 import { GradeLetter, SchoolGradeNotes } from './school-grade';
 import type { GradingRule } from '@/lib/grading-rules';
@@ -630,6 +631,7 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
         course={course}
         assessments={assessments}
       />
+      <PasteGrades course={course} assessments={assessments} />
       <section className="card grid gap-6 p-4 sm:p-5 md:grid-cols-2 md:gap-10">
         <div>
           <div className="mb-3 flex items-center gap-2">
