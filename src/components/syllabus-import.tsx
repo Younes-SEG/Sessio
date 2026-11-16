@@ -48,10 +48,14 @@ type Row = SyllabusSuggestion & {
   chosenSession?: SessionDateChoice | null;
   alreadyDone?: boolean;
 };
-// Past-dated rows default to "already done" so a mid-semester import is not full of overdue work.
-const isPastDue = (row: { date: string; time: string }, now = new Date()) =>
-  Boolean(row.date) && new Date(`${row.date}T${row.time || '23:59'}:00`).getTime() < now.getTime();
-const markedDone = (row: Row) => isPastDue(row) && row.alreadyDone !== false;
+// Work more than a week past defaults to "already done" so a mid-semester import is not full of
+// overdue items; anything more recent stays open in case the student is still submitting late.
+const RECENT_MS = 7 * 24 * 60 * 60 * 1000;
+const dueTime = (row: { date: string; time: string }) =>
+  row.date ? new Date(`${row.date}T${row.time || '23:59'}:00`).getTime() : NaN;
+const isPastDue = (row: { date: string; time: string }) => dueTime(row) < Date.now();
+const markedDone = (row: Row) =>
+  isPastDue(row) && (row.alreadyDone ?? Date.now() - dueTime(row) > RECENT_MS);
 const types: AssessmentType[] = [
   'ASSIGNMENT',
   'LAB',
@@ -1059,7 +1063,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                       <T text="This date has passed. Mark it as already done" />
                     </label>
                     <p className="muted text-xs">
-                      <T text="Unticked past work shows as overdue. Add your grade later, or paste your Brightspace grades on the course's Grades tab." />
+                      <T text="Work due in the last week is left open in case you are still submitting it. Unticked past work shows as overdue; ticked work waits for its grade." />
                     </p>
                   </div>
                 )}

@@ -118,8 +118,9 @@ export default function GuidePage() {
               <Link href="/syllabus" className="underline">
                 Import your syllabus
               </Link>{' '}
-              for each course. Assessments whose date has already passed are marked as already done
-              by default, so they do not show as overdue. Untick any you still need to submit.
+              for each course. Assessments more than a week past are marked as already done by
+              default, so they do not show as overdue. Work due in the last week stays open in case
+              you are still submitting it; tick or untick each one as needed.
             </li>
             <li>
               Open the course, go to its Grades tab and choose Paste grades from Brightspace. In
