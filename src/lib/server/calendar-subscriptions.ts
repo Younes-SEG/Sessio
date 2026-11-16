@@ -109,6 +109,11 @@ async function semesterForImport(
 }
 
 /** Only source-owned fields are updated; grades, progress, weights and notes stay local. */
+function sameTitle(a: string, b: string) {
+  const normalize = (value: string) => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en-CA');
+  return normalize(a) === normalize(b);
+}
+
 export async function applyCalendarFeed(
   tx: Prisma.TransactionClient,
   subscriptionId: string,
@@ -260,6 +265,17 @@ export async function applyCalendarFeed(
           409,
           'This calendar has duplicate assessments with conflicting grades or weights. Review those entries before syncing.',
         );
+      // Without a Brightspace link (other providers, or notes the student edited), re-adopt a
+      // forgotten import only on an exact match: one unlinked assessment in this course with
+      // the same name and the same due time. Anything less certain creates a new entry.
+      if (!candidates.length) {
+        const orphans = (
+          await tx.assessment.findMany({
+            where: { courseId, dueDate: new Date(item.startAt), calendarImport: { none: {} } },
+          })
+        ).filter((a) => sameTitle(a.name, item.title));
+        if (orphans.length === 1) candidates.push(orphans[0]);
+      }
       const assessment =
         candidates[0] ??
         (await tx.assessment.create({
@@ -290,7 +306,17 @@ export async function applyCalendarFeed(
               brightspaceEventIdentity(e.description) === identity &&
               e.startAt.toISOString() === item.startAt,
           )
-        : [];
+        : // Same exact-match rule as assessments: one unlinked event, same title and start.
+          (
+            await tx.calendarEvent.findMany({
+              where: {
+                workspaceId,
+                courseId,
+                startAt: new Date(item.startAt),
+                calendarImport: { none: {} },
+              },
+            })
+          ).filter((e) => sameTitle(e.title, item.title));
       const event =
         matches.length === 1
           ? await tx.calendarEvent.update({

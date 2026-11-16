@@ -127,8 +127,9 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         </p>
         <p>
           Déconnecter suspend la synchronisation et conserve le lien. Oublier le lien supprime le
-          lien et ses références, tout en conservant les entrées. Une reconnexion peut créer des
-          doublons si le fournisseur n’offre plus d’identifiant reconnaissable.
+          lien et ses références, tout en conservant les entrées. Une reconnexion rattache les
+          entrées reconnues par leur lien Brightspace, ou par le même nom et la même heure
+          exactement; les autres peuvent être ajoutées en double.
         </p>
       </section>
       <section className="card space-y-3 p-4">

@@ -2241,6 +2241,67 @@ END:VCALENDAR`,
   expect(await db.task.count({ where: { workspaceId } })).toBe(0);
 });
 
+it('re-adopts forgotten imports without a Brightspace link only on an exact name and time match', async () => {
+  const workspaceId = 'relink-calendar';
+  const options = {
+    fromDate: '2026-09-01',
+    throughDate: '2026-12-31',
+    timeZone: 'America/Toronto',
+  };
+  const url = 'https://calendar.example.org/feed.ics';
+  const subscribe = () =>
+    db.calendarSubscription.create({
+      data: {
+        workspaceId,
+        url,
+        name: 'Other provider',
+        timeZone: options.timeZone,
+        fromDate: new Date(options.fromDate),
+        throughDate: new Date(options.throughDate),
+      },
+    });
+  const preview = parseCalendarFeed(
+    `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:lab-1
+SUMMARY:Lab 1 - Due
+LOCATION:TST1234 A00 Test 20269
+DTSTART:20261002T120000Z
+END:VEVENT
+BEGIN:VEVENT
+UID:study-group
+SUMMARY:Study group
+DTSTART:20261003T150000Z
+DTEND:20261003T160000Z
+END:VEVENT
+END:VCALENDAR`,
+    options,
+  );
+  const first = await subscribe();
+  await db.$transaction((tx) => applyCalendarFeed(tx, first.id, preview, options, workspaceId));
+  const scope = { course: { semester: { workspaceId } } };
+  const [lab] = await db.assessment.findMany({ where: scope });
+  await db.assessment.update({
+    where: { id: lab.id },
+    data: { score: 18, maxScore: 20, status: 'GRADED' },
+  });
+  // A same-named assessment on another date is a different item and must stay separate.
+  await db.assessment.create({
+    data: { courseId: lab.courseId, name: lab.name, dueDate: new Date('2026-10-09T12:00:00Z') },
+  });
+  // "Forget link": the subscription and its mapping go; imported entries stay.
+  await db.calendarSubscription.delete({ where: { id: first.id } });
+  const second = await subscribe();
+  await db.$transaction((tx) => applyCalendarFeed(tx, second.id, preview, options, workspaceId));
+  const assessments = await db.assessment.findMany({ where: scope, orderBy: { dueDate: 'asc' } });
+  expect(assessments).toHaveLength(2);
+  expect(assessments[0].id).toBe(lab.id);
+  expect(assessments[0].score).toBe(18);
+  expect(await db.calendarEvent.count({ where: { workspaceId } })).toBe(1);
+  expect(await db.importedCalendarItem.count({ where: { subscriptionId: second.id } })).toBe(2);
+});
+
 it('persists best-of rules atomically, isolates members, and protects them through edits and deletions', async () => {
   identity.current = 'user:best-of';
   const term = await saveEntity('semesters', {
