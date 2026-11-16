@@ -17,8 +17,9 @@ interface WorkspaceContextValue {
   data: Workspace;
   now: Date;
   editor: EditorState | null;
-  save: (kind: EntityKind, input: Record<string, unknown>, id?: string) => Promise<void>;
-  remove: (kind: EntityKind, id: string) => Promise<void>;
+  /** Resolves with the saved record as the API returned it (e.g. a new course's id). */
+  save: (kind: EntityKind, input: Record<string, unknown>, id?: string) => Promise<unknown>;
+  remove: (kind: EntityKind, id: string) => Promise<unknown>;
   refresh: () => Promise<void>;
   openEditor: (kind: EditorKind, id?: string, defaults?: Record<string, unknown>) => void;
   closeEditor: () => void;
@@ -109,6 +110,7 @@ export function WorkspaceProvider({
         return;
       }
       setNotice(method === 'DELETE' ? 'Deleted from your workspace' : 'Saved to your workspace');
+      return result as unknown;
     },
     [refresh],
   );

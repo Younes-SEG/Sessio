@@ -327,6 +327,14 @@ export const french: Record<string, string> = {
     'Vous pourrez le connecter ou le modifier plus tard dans Paramètres → Calendrier.',
   'A little tour': 'Petite visite',
   'Skip tour': 'Passer la visite',
+  'Skip to {page}': 'Passer à : {page}',
+  '{code} is ready': '{code} est prêt',
+  'Your course': 'Votre cours',
+  'Next, bring in its assessments: import the syllabus to fill in dates and weights, or add them yourself.':
+    'Ajoutez maintenant ses évaluations : importez le plan de cours pour remplir les dates et les pondérations, ou ajoutez-les vous-même.',
+  'Import its syllabus': 'Importer son plan de cours',
+  'Open course': 'Ouvrir le cours',
+  Later: 'Plus tard',
   'Previous step': 'Étape précédente',
   'Ready to begin': 'Prêt à commencer',
   'Could not save your tour preference. Please try again.':

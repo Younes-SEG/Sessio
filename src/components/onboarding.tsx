@@ -497,6 +497,11 @@ function SpotlightTour({
   const t = useT();
   const path = usePathname();
   const current = steps[step];
+  // "Skip to <next page>" jumps past the rest of this page's steps to the next page's
+  // first spotlight (the step after its sidebar instruction), so nothing is hidden for good.
+  const nextPage = current.navigation
+    ? -1
+    : steps.findIndex((item, index) => index > step && Boolean(item.navigation));
   const [panel, setPanel] = useState<HTMLDivElement | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const [leaving, setLeaving] = useState(false);
@@ -744,6 +749,18 @@ function SpotlightTour({
               <p role="alert" className="text-destructive text-sm mb-3">
                 {t(error)}
               </p>
+            )}
+            {nextPage > 0 && steps[nextPage + 1] && (
+              <button
+                type="button"
+                className="tour-skip-page"
+                data-testid="tour-skip-page"
+                disabled={busy || leaving || !ready}
+                onClick={() => move(nextPage + 1)}
+              >
+                {t('Skip to {page}').replace('{page}', t(steps[nextPage].navigation ?? ''))}
+                <ArrowRight aria-hidden size={14} />
+              </button>
             )}
             <div className="tour-controls">
               <Button variant="ghost" size="sm" disabled={busy || leaving} onClick={finish}>
