@@ -1,4 +1,4 @@
-﻿import { test, expect } from '@playwright/test';
+﻿import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const targets = [
@@ -28,6 +28,25 @@ const targets = [
   'nav-home',
   'focus',
 ];
+
+/** Open the tour from the guide: a fresh workspace first passes the school and calendar steps. */
+async function startTour(page: Page, french = false) {
+  await page.goto('/guide');
+  const welcome = page.getByRole('button', {
+    name: french ? 'Me faire découvrir' : 'Show me around',
+    exact: true,
+  });
+  const replay = page.getByRole('button', {
+    name: french ? 'Faire la visite guidée' : 'Take the guided tour',
+  });
+  await expect(welcome.or(replay)).toBeVisible();
+  if (await replay.isVisible()) return replay.click();
+  await welcome.click();
+  await page.getByRole('button', { name: french ? 'Passer' : 'Skip', exact: true }).click();
+  await page
+    .getByRole('button', { name: french ? 'Passer pour l’instant' : 'Skip for now', exact: true })
+    .click();
+}
 
 for (const config of [
   { name: 'desktop', width: 1920, height: 1080, french: false },
@@ -61,18 +80,7 @@ for (const config of [
       await new Promise((resolve) => setTimeout(resolve, 250));
       await route.continue();
     });
-    await page.goto('/guide');
-    const start = page.getByRole('button', {
-      name: config.french ? 'Me faire découvrir' : 'Show me around',
-      exact: true,
-    });
-    if (await start.isVisible()) await start.click();
-    else
-      await page
-        .getByRole('button', {
-          name: config.french ? 'Faire la visite guidée' : 'Take the guided tour',
-        })
-        .click();
+    await startTour(page, config.french);
     const dialog = page.getByRole('dialog');
     for (let step = 0; step < targets.length; step++) {
       await expect(dialog).toHaveAttribute('data-step', String(step));
@@ -195,20 +203,56 @@ for (const config of [
     await expect(dialog).not.toBeVisible();
     expect(errors).toEqual([]);
     // Replaying is always available; Escape exits without touching course records.
-    await page.goto('/guide');
-    const welcome = page.getByRole('button', {
-      name: config.french ? 'Me faire découvrir' : 'Show me around',
-      exact: true,
-    });
-    if (await welcome.isVisible()) await welcome.click();
-    else
-      await page
-        .getByRole('button', {
-          name: config.french ? 'Faire la visite guidée' : 'Take the guided tour',
-        })
-        .click();
+    await startTour(page, config.french);
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
   });
 }
+
+test('guided tour: skip to the next page from inside a page', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.setTimeout(60_000);
+  await context.addCookies([{ name: 'command-language', value: 'en', url: baseURL! }]);
+  await page.route('**/api/settings/preferences', async (route) => {
+    if (route.request().method() === 'PATCH') await route.fulfill({ json: { id: 'preferences' } });
+    else await route.continue();
+  });
+  await startTour(page);
+  const dialog = page.getByRole('dialog');
+  const skip = page.getByTestId('tour-skip-page');
+  // Sidebar instructions keep their single action; no skip there.
+  await expect(dialog).toHaveAttribute('data-step', '0');
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  await expect(skip).toHaveCount(0);
+  await page.locator('.tour-navigation-hit').click();
+  await expect(dialog).toHaveAttribute('data-step', '1');
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  const results = await new AxeBuilder({ page }).include('.tour-dialog').analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+  // From Courses, jump straight to the first Calendar spotlight.
+  await expect(skip).toHaveText('Skip to Calendar');
+  await skip.click();
+  await expect(dialog).toHaveAttribute('data-step', String(targets.indexOf('calendar-connect')));
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  await expect(page).toHaveURL(/\/calendar$/);
+  await expect(skip).toHaveText('Skip to Tasks');
+  await skip.click();
+  await expect(dialog).toHaveAttribute('data-step', String(targets.indexOf('task-add')));
+  await expect(page).toHaveURL(/\/tasks$/);
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  await skip.click();
+  await expect(dialog).toHaveAttribute('data-step', String(targets.indexOf('grades-add')));
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  await expect(skip).toHaveText('Skip to Home');
+  await skip.click();
+  // The last page has nowhere further to skip to.
+  await expect(dialog).toHaveAttribute('data-step', String(targets.indexOf('focus')));
+  await expect(dialog).toHaveAttribute('data-ready', 'true');
+  await expect(skip).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await expect(dialog).not.toBeVisible();
+});

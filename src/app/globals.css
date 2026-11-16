@@ -1538,6 +1538,30 @@ kbd {
   border-top: 1px solid var(--border);
   margin-bottom: 22px;
 }
+.tour-skip-page {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 12px;
+  padding: 4px 0;
+  min-height: 32px;
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.tour-skip-page:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tour-skip-page:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 .tour-controls {
   display: flex;
   align-items: center;

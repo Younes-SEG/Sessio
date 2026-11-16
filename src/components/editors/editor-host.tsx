@@ -2,7 +2,8 @@
 import { T, useT } from '@/components/language-provider';
 
 import { useState, type FormEvent } from 'react';
-import { ExternalLink, Loader2, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ExternalLink, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -128,10 +129,12 @@ function serialize(kind: EditorKind, form: FormData): Record<string, unknown> {
 
 function EntityDialog({ editor }: { editor: EditorState }) {
   const t = useT();
-  const { data, save, remove, closeEditor } = useWorkspace();
+  const { data, save, remove, closeEditor, openEditor } = useWorkspace();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [created, setCreated] = useState<{ id: string; code: string } | null>(null);
+  const router = useRouter();
   const record = editor.id ? data[editor.kind].find((item) => item.id === editor.id) : undefined;
   const initial = { ...editor.defaults, ...record };
   const linkedAssessment =
@@ -156,10 +159,20 @@ function EntityDialog({ editor }: { editor: EditorState }) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    // A student's first course is empty; point them at the next useful step instead of closing.
+    const firstCourse = editor.kind === 'courses' && !editor.id && data.courses.length === 0;
     setBusy(true);
     setError('');
     try {
-      await save(editor.kind, serialize(editor.kind, form), editor.id);
+      const saved = await save(editor.kind, serialize(editor.kind, form), editor.id);
+      const id =
+        saved && typeof saved === 'object' && 'id' in saved && typeof saved.id === 'string'
+          ? saved.id
+          : '';
+      if (firstCourse && id) {
+        setCreated({ id, code: String(form.get('code') ?? '').trim() });
+        return;
+      }
       closeEditor();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to save. Please try again.');
@@ -180,6 +193,54 @@ function EntityDialog({ editor }: { editor: EditorState }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (created) {
+    const go = (href: string) => {
+      closeEditor();
+      router.push(href);
+    };
+    return (
+      <Dialog open onOpenChange={(open) => !open && closeEditor()}>
+        <DialogContent className="sm:max-w-[480px]" data-testid="course-next-step">
+          <DialogHeader>
+            <DialogTitle>
+              {t('{code} is ready').replace('{code}', created.code || t('Your course'))}
+            </DialogTitle>
+            <DialogDescription>
+              {t(
+                'Next, bring in its assessments: import the syllabus to fill in dates and weights, or add them yourself.',
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button onClick={() => go(`/syllabus?course=${encodeURIComponent(created.id)}`)}>
+              <FileText aria-hidden />
+              {t('Import its syllabus')}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => openEditor('assessments', undefined, { courseId: created.id })}
+            >
+              <Plus aria-hidden />
+              {t('Add an assessment')}
+            </Button>
+          </div>
+          <DialogFooter className="mt-2 gap-2 border-t border-[var(--border)] pt-4 sm:flex-row">
+            <Button
+              variant="ghost"
+              className="sm:mr-auto"
+              onClick={() => go(`/courses/${encodeURIComponent(created.id)}`)}
+            >
+              {t('Open course')}
+            </Button>
+            <Button variant="ghost" onClick={closeEditor}>
+              {t('Later')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   return (
