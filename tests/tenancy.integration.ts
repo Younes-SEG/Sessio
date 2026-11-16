@@ -3148,3 +3148,64 @@ it('applies clear email deadline changes once, in the student time zone', async 
     identity.current = 'local';
   }
 });
+
+it('marks all course notifications read without touching grade reviews or other accounts', async () => {
+  identity.current = 'read-all';
+  try {
+    const term = await saveEntity('semesters', {
+      name: 'Read all term',
+      startDate: '2090-09-01',
+      endDate: '2090-12-31',
+    });
+    await saveEntity('courses', { code: 'SEG3102', name: 'Design', semesterId: term.id });
+    const make = (workspaceId: string, email: string) =>
+      db.gmailConnection.create({
+        data: { workspaceId, email, refreshToken: 'unused', query: DEFAULT_GMAIL_QUERY },
+      });
+    const mine = await make(identity.current, 'me@example.test');
+    const theirs = await make('read-all-other', 'other@example.test');
+    const base = {
+      sender: 'Notifications@uottawa.brightspace.com',
+      receivedAt: new Date('2090-11-05T15:00:00Z'),
+      contentVersion: 1,
+    };
+    const notice = (connectionId: string, messageId: string, subject: string, excerpt: string) =>
+      db.emailUpdate.create({ data: { ...base, connectionId, messageId, subject, excerpt } });
+    const a = await notice(
+      mine.id,
+      'a',
+      'SEG3102 - Announcements: Room change',
+      'Room change for Friday.',
+    );
+    const b = await notice(
+      mine.id,
+      'b',
+      'SEG3102 - Announcements: Office hours',
+      'New announcement: office hours moved.',
+    );
+    const grade = await notice(
+      mine.id,
+      'g',
+      'SEG3102 Lab 1 grade published',
+      'Your grade is available on Brightspace.',
+    );
+    const other = await notice(
+      theirs.id,
+      'o',
+      'SEG3102 - Announcements: Room change',
+      'Room change for Friday.',
+    );
+    await reviewEmail({ action: 'read-all' });
+    const status = async (id: string) =>
+      (await db.emailUpdate.findUniqueOrThrow({ where: { id } })).status;
+    expect(await status(a.id)).toBe('READ');
+    expect(await status(b.id)).toBe('READ');
+    expect(await status(grade.id)).toBe('PENDING');
+    expect(await status(other.id)).toBe('PENDING');
+    expect((await emailOverview()).updates.filter((u) => u.kind !== 'GRADE' && !u.read)).toEqual(
+      [],
+    );
+  } finally {
+    identity.current = 'local';
+  }
+});

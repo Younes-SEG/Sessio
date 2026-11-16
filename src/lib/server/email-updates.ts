@@ -521,6 +521,7 @@ export async function disconnectEmail() {
 
 const reviewSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('read'), id: z.string().min(1).max(200) }),
+  z.object({ action: z.literal('read-all') }),
   z.object({ action: z.literal('dismiss'), id: z.string().min(1).max(200) }),
   z.object({
     action: z.literal('apply-deadline'),
@@ -544,6 +545,38 @@ export async function reviewEmail(input: unknown) {
   const workspaceId = await requireWorkspaceId();
   const data = reviewSchema.parse(input);
   return transaction(async (tx) => {
+    if (data.action === 'read-all') {
+      // Marks course notifications read only; grade reviews and pending decisions are untouched.
+      const courses = await tx.course.findMany({
+        where: { semester: { workspaceId }, archived: false, deletedAt: null },
+        select: { code: true, archived: true },
+      });
+      const unread = await tx.emailUpdate.findMany({
+        where: { connection: { workspaceId }, status: { in: ['PENDING', AUTO_DEADLINE] } },
+        select: { id: true, status: true, subject: true, sender: true, excerpt: true },
+      });
+      const notices = unread.filter((m) => {
+        const kind = classifySchoolEmail(
+          { subject: m.subject, sender: m.sender, text: m.excerpt },
+          courses,
+        );
+        return kind === 'ANNOUNCEMENT' || kind === 'ASSESSMENT_CHANGE';
+      });
+      const ids = (status: string) => notices.filter((m) => m.status === status).map((m) => m.id);
+      await tx.emailUpdate.updateMany({
+        where: { id: { in: ids('PENDING') }, connection: { workspaceId }, status: 'PENDING' },
+        data: { status: 'READ', reviewedAt: new Date() },
+      });
+      await tx.emailUpdate.updateMany({
+        where: {
+          id: { in: ids(AUTO_DEADLINE) },
+          connection: { workspaceId },
+          status: AUTO_DEADLINE,
+        },
+        data: { status: AUTO_DEADLINE_READ },
+      });
+      return;
+    }
     const message = await tx.emailUpdate.findUnique({
       where: { id: data.id, connection: { workspaceId } },
     });
