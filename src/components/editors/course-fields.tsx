@@ -4,6 +4,7 @@ import { Field, NotesField, SelectField, TextField } from './fields';
 import { Input } from '@/components/ui/input';
 import type { Course, Semester } from '@/lib/types';
 import { schoolById } from '@/lib/schools';
+import { useWorkspace } from '@/components/workspace-provider';
 
 export function CourseFields({
   initial,
@@ -101,6 +102,27 @@ export function CourseFields({
 
 export function SemesterFields({ initial }: { initial: Partial<Semester> }) {
   const t = useT();
+  const { data } = useWorkspace();
+  // A first-time student usually means the term in progress; suggest it, editable as usual.
+  if (!initial.id && !initial.name && !initial.startDate && data.semesters.length === 0) {
+    // Same Jan/May/Sep terms as the calendar step's default import dates.
+    const now = new Date();
+    const year = now.getFullYear();
+    const index = Math.floor(now.getMonth() / 4);
+    const [season, start, end] = (
+      [
+        ['Winter', '01-01', '04-30'],
+        ['Summer', '05-01', '08-31'],
+        ['Fall', '09-01', '12-31'],
+      ] as const
+    )[index];
+    initial = {
+      ...initial,
+      name: `${t(season)} ${year}`,
+      startDate: `${year}-${start}`,
+      endDate: `${year}-${end}`,
+    };
+  }
   return (
     <div className="form-grid">
       <TextField

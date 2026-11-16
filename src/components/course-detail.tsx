@@ -2,7 +2,8 @@
 import { GradeGroups } from './grade-groups';
 import { GradeList } from './grade-list';
 import { DeleteCourse } from './delete-course';
-import { T, useT } from '@/components/language-provider';
+import { T, useLanguage, useT } from '@/components/language-provider';
+import { translateGradeWarning } from '@/lib/i18n/grade-warnings';
 
 import Link from 'next/link';
 import { useState, type KeyboardEvent } from 'react';
@@ -132,7 +133,7 @@ export function CourseDetail({ id }: { id: string }) {
               )}
             </div>
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{course.name}</h1>
-            <p className="muted mt-2 text-sm">{course.instructor || 'Your course workspace'}</p>
+            <p className="muted mt-2 text-sm">{course.instructor || t('Your course workspace')}</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -289,8 +290,11 @@ export function CourseDetail({ id }: { id: string }) {
                     <T text="On your to-do list" />
                   </h2>
                   <p className="muted mt-1 text-sm">
-                    {tasks.length} <T text="open" /> {tasks.length === 1 ? t('task') : t('tasks')}{' '}
-                    <T text="for" /> {course.code}
+                    {t(tasks.length === 1 ? '1 open task for' : '{count} open tasks for').replace(
+                      '{count}',
+                      String(tasks.length),
+                    )}{' '}
+                    {course.code}
                   </p>
                 </div>
                 <Button
@@ -594,13 +598,14 @@ function AssessmentTable({
 }
 
 function GradeWarnings({ warnings }: { warnings: string[] }) {
+  const { language } = useLanguage();
   return warnings.length ? (
     <div
       className="rounded-sm border border-[var(--warning)]/25 bg-[var(--warning)]/10 p-4 text-sm leading-relaxed"
       role="status"
     >
       {warnings.map((warning) => (
-        <p key={warning}>{warning}</p>
+        <p key={warning}>{translateGradeWarning(warning, language)}</p>
       ))}
     </div>
   ) : null;

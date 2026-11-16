@@ -286,7 +286,12 @@ export const french: Record<string, string> = {
   'Open Command at the address configured for Gmail before connecting.':
     'Ouvrez Command à l’adresse configurée pour Gmail avant de vous connecter.',
   'Syllabus imported': 'Plan de cours importé',
-  'No saved syllabus import': 'Aucune importation de plan de cours enregistrée',
+  Fall: 'Automne',
+  Winter: 'Hiver',
+  Summer: 'Été',
+  'No syllabus imported yet': 'Aucun plan de cours importé pour l’instant',
+  'Import one to fill in assessments, dates and weights':
+    'Importez-en un pour remplir les évaluations, les dates et les pondérations',
   'Last saved:': 'Dernier enregistrement :',
   'Earlier import detected; date not recorded.':
     'Importation antérieure détectée ; date non enregistrée.',
@@ -655,10 +660,13 @@ export const french: Record<string, string> = {
   for: 'pour',
   'Add task': 'Ajouter une tâche',
   'View all tasks ?': 'Voir toutes les tâches ?',
-  Assessments: 'évaluations',
+  Assessments: 'Évaluations',
+  'Your course workspace': 'Votre espace de cours',
+  '1 open task for': '1 tâche ouverte pour',
+  '{count} open tasks for': '{count} tâches ouvertes pour',
   'Every deadline and deliverable, in one place.':
     'Toutes les échéances et les remises au même endroit.',
-  'Add assessment': 'Ajouter une Évaluation',
+  'Add assessment': 'Ajouter une évaluation',
   'Your course starts here': 'Votre cours commence ici',
   'Weighted average of graded assessments only.':
     'Moyenne pondérée des évaluations notées seulement.',
@@ -929,7 +937,8 @@ export const french: Record<string, string> = {
   Other: 'Autre',
   Overview: 'Aperçu',
   Schedule: 'Horaire',
-  Notes: 'Notes',
+  // "Notes" already means Grades in French; personal notes need a distinct word.
+  Notes: 'Remarques',
   Light: 'Clair',
   Dark: 'Sombre',
   System: 'Système',

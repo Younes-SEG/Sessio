@@ -374,7 +374,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
             {t('Last completed check:')}{' '}
             {data.connection.lastCheckedAt
               ? new Date(data.connection.lastCheckedAt).toLocaleString(
-                  t.locale === 'fr' ? 'fr-CA' : 'en-CA',
+                  t.locale,
                 )
               : t('Not checked yet')}
           </p>
@@ -867,7 +867,7 @@ function EmailReview({
           <h3 className="font-semibold break-words">{update.subject}</h3>
           <p className="muted mt-1 break-all text-xs">
             {update.sender} ·{' '}
-            {new Date(update.receivedAt).toLocaleDateString(t.locale === 'fr' ? 'fr-CA' : 'en-CA')}
+            {new Date(update.receivedAt).toLocaleDateString(t.locale)}
           </p>
         </div>
         <Button asChild variant="outline" size="sm">
