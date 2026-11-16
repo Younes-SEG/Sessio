@@ -1,4 +1,5 @@
 import type { Client } from 'pg';
+import { estimateAttemptMicros } from './usage-dashboard-data';
 
 /**
  * Beta measurement, counts only. Every number is an aggregate computed in SQL; no row
@@ -11,6 +12,17 @@ export type BetaStats = {
   funnel: Record<FunnelStep, number>;
   active: { days7: number; days30: number };
   totals: Record<TotalKey, number>;
+  /**
+   * Last 30 days of AI (chat + syllabus), from content-free accounting. Includes accounts
+   * since erased, because their spend still happened. Estimated from each attempt's stored
+   * pricing snapshot, like `npm run usage`; not a provider invoice.
+   */
+  ai30: {
+    attempts: number;
+    estimatedMicros: number;
+    incomplete: number;
+    perActiveMicros: number | null;
+  };
 };
 
 export const FUNNEL_STEPS = [
@@ -102,10 +114,29 @@ export async function readBetaStats(client: Client, now = new Date()): Promise<B
   await client.query('BEGIN TRANSACTION READ ONLY');
   try {
     const { rows } = await client.query<Record<string, string>>(SQL, [now.toISOString()]);
+    const attempts = await client.query<{ usage: unknown }>(
+      `SELECT "usage" FROM "AiAttempt" WHERE "createdAt" >= $1::timestamptz - interval '30 days'`,
+      [now.toISOString()],
+    );
     await client.query('COMMIT');
     const row = rows[0];
     const n = (key: string) => Number(row[key] ?? 0);
+    let micros = BigInt(0);
+    let incomplete = 0;
+    for (const attempt of attempts.rows) {
+      const estimate = estimateAttemptMicros(attempt.usage);
+      micros += estimate.micros;
+      if (!estimate.complete) incomplete++;
+    }
+    const estimatedMicros = Number(micros);
+    const active30 = n('days30');
     return {
+      ai30: {
+        attempts: attempts.rows.length,
+        estimatedMicros,
+        incomplete,
+        perActiveMicros: active30 ? Math.round(estimatedMicros / active30) : null,
+      },
       generatedAt: now.toISOString(),
       workspaces: n('workspaces'),
       funnel: Object.fromEntries(
@@ -145,5 +176,16 @@ export function formatBetaStats(stats: BetaStats) {
     'Totals:',
     `  courses ${stats.totals.courses}, assessments ${stats.totals.assessments}, recorded grades ${stats.totals.grades}`,
     `  own tasks ${stats.totals.ownTasks}, Ask Command messages in the last 30 days ${stats.totals.chats30}`,
+    '',
+    'AI in the last 30 days (estimate from stored pricing, not an invoice):',
+    `  ${stats.ai30.attempts} requests, ${usd(stats.ai30.estimatedMicros)} total, ` +
+      `${stats.ai30.perActiveMicros === null ? 'no active users' : `${usd(stats.ai30.perActiveMicros)} per active user`}`,
+    ...(stats.ai30.incomplete
+      ? [`  ${stats.ai30.incomplete} request(s) lack complete usage data; the estimate is partial.`]
+      : []),
   ].join('\n');
+}
+
+function usd(micros: number) {
+  return `US$${(micros / 1_000_000).toFixed(micros && micros < 10_000 ? 4 : 2)}`;
 }

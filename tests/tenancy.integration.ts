@@ -3251,6 +3251,34 @@ it('counts beta activation and activity per workspace, excluding accounts being 
     await setUp('user:stats-ungraded', false);
     await setUp('user:stats-deleting', true);
     await blockAccount('user:stats-deleting');
+    // One priced chat attempt: 1M input tokens at US$2 per million = 2,000,000 micros.
+    await db.aiAttempt.create({
+      data: {
+        id: 'stats-ai-attempt',
+        subject: 'stats-subject',
+        feature: 'chat',
+        model: 'stats-model',
+        reservedMicros: BigInt(3_000_000),
+        status: 'FINISHED',
+        expiresAt: new Date(Date.now() + 86_400_000),
+        usage: {
+          pricing: {
+            'stats-model': {
+              inputMicrosPerMillion: 2_000_000,
+              outputMicrosPerMillion: 0,
+              pricingVersion: 'stats-v1',
+            },
+          },
+          observed: [
+            {
+              model: 'stats-model',
+              pricingVersion: 'stats-v1',
+              tokens: { input: 1_000_000, output: 0 },
+            },
+          ],
+        },
+      },
+    });
   } finally {
     identity.current = 'local';
   }
@@ -3263,6 +3291,12 @@ it('counts beta activation and activity per workspace, excluding accounts being 
   expect(delta((s) => s.funnel.ownTask)).toBe(2);
   expect(delta((s) => s.active.days7)).toBe(2);
   expect(delta((s) => s.totals.grades)).toBe(1);
+  expect(delta((s) => s.ai30.attempts)).toBe(1);
+  expect(delta((s) => s.ai30.estimatedMicros)).toBe(2_000_000);
+  expect(after.ai30.perActiveMicros).toBe(
+    Math.round(after.ai30.estimatedMicros / after.active.days30),
+  );
+  expect(formatBetaStats(after)).toContain('per active user');
   // Output is aggregate text: no workspace ids, course codes or titles.
   const text = formatBetaStats(after);
   for (const secret of ['user:stats', 'STA1000', 'Read chapter 1', 'Quiz'])
