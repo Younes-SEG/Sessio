@@ -54,6 +54,15 @@ test('first run brings in the Brightspace calendar before going Home', async ({ 
   await expect(
     page.getByRole('heading', { name: 'Bring in your courses and deadlines' }),
   ).toBeVisible();
+  // Setup shows one short privacy line; the full explanation is folded under "How this works".
+  await expect(page.getByText('Command keeps this private link to refresh')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Calendar privacy details' }).first()).toBeVisible();
+  const details = page.getByTestId('calendar-how-it-works');
+  await expect(details.getByText(/Save calendar stores this private link/)).toBeHidden();
+  await details.getByText('How this works').click();
+  await expect(details.getByText(/Save calendar stores this private link/)).toBeVisible();
+  await expect(details.getByText(/Grades and notes stay yours/)).toBeVisible();
+  await expect(page.getByText('Calendar changes save here separately')).toHaveCount(0);
   await page.getByLabel('Calendar subscription link').fill('https://calendar.example/first-run');
   await page.getByRole('button', { name: 'Save calendar', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Calendar connected' })).toBeVisible();

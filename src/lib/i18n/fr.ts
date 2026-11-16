@@ -575,6 +575,9 @@ export const french: Record<string, string> = {
     'Collez votre lien d’abonnement Brightspace. Les échéances deviennent des évaluations, sans doubler les entrées traduites.',
   'Calendar subscription link': 'Lien d’abonnement au calendrier',
   'Calendar privacy details': 'Confidentialité du calendrier',
+  'Command keeps this private link to refresh your deadlines. Use only a link you are authorized to access.':
+    'Command conserve ce lien privé pour actualiser vos échéances. Utilisez seulement un lien auquel vous avez le droit d’accéder.',
+  'How this works': 'Comment ça fonctionne',
   'Preview calendar': 'Aperçu du calendrier',
   'Calendar changes save here separately from your preferences.':
     'Le calendrier s’enregistre ici, séparément de vos préférences.',
