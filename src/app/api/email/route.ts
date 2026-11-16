@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         return NextResponse.json(await disconnectEmail());
       case 'apply':
       case 'read':
+      case 'read-all':
       case 'apply-deadline':
       case 'dismiss':
         await reviewEmail(body);
