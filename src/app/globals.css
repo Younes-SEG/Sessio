@@ -1113,7 +1113,7 @@ kbd {
     gap: 17px;
   }
   .course-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 @media (max-width: 950px) {
@@ -1121,7 +1121,8 @@ kbd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    /* minmax(0, …) lets long content wrap instead of widening the page (WCAG 1.4.10). */
+    grid-template-columns: minmax(0, 1fr);
   }
   .desktop-search-label {
     display: none;
@@ -1179,7 +1180,7 @@ kbd {
     padding: 23px;
   }
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .form-grid .col-span-2 {
     grid-column: auto;
@@ -1203,7 +1204,7 @@ kbd {
 }
 @media (max-width: 440px) {
   .course-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .focus-row {
     padding: 12px 14px;
@@ -1363,6 +1364,20 @@ kbd {
   }
   .topbar-actions {
     gap: 8px;
+  }
+  /* At phone width the language switch lives in the navigation menu, so the menu and
+     search buttons keep a full touch target (WCAG 2.5.8) instead of being squeezed. */
+  .topbar-actions .language-switch {
+    display: none;
+  }
+  .topbar-location > button,
+  .global-search {
+    flex-shrink: 0;
+  }
+  .global-search {
+    min-width: 32px;
+    min-height: 32px;
+    justify-content: center;
   }
 }
 
