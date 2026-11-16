@@ -1,6 +1,7 @@
 'use client';
 
 import { FileCheck2, FileText } from 'lucide-react';
+import Link from 'next/link';
 import { useT } from './language-provider';
 import type { Course } from '@/lib/types';
 
@@ -14,7 +15,7 @@ export function CourseSyllabusStatus({
   const t = useT();
   const imported = Boolean(course.syllabusImportedAt || course.syllabusImportDetected);
   const Icon = imported ? FileCheck2 : FileText;
-  const label = imported ? t('Syllabus imported') : t('No saved syllabus import');
+  const label = imported ? t('Syllabus imported') : t('No syllabus imported yet');
   return (
     <div
       className={
@@ -27,16 +28,24 @@ export function CourseSyllabusStatus({
         <Icon size={compact ? 14 : 17} aria-hidden />
         <span>{label}</span>
       </span>
+      {!compact && !imported && (
+        <Link
+          href={`/syllabus?course=${encodeURIComponent(course.id)}`}
+          className="text-xs text-primary underline underline-offset-4"
+        >
+          {t('Import one to fill in assessments, dates and weights')}
+        </Link>
+      )}
       {!compact && imported && (
         <span className="muted text-xs">
           {course.syllabusImportedAt ? (
             <>
               {t('Last saved:')}{' '}
               <time dateTime={course.syllabusImportedAt}>
-                {new Date(course.syllabusImportedAt).toLocaleString(
-                  t.locale === 'fr' ? 'fr-CA' : 'en-CA',
-                  { dateStyle: 'medium', timeStyle: 'short' },
-                )}
+                {new Date(course.syllabusImportedAt).toLocaleString(t.locale, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                })}
               </time>
             </>
           ) : (

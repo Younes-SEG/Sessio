@@ -286,7 +286,12 @@ export const french: Record<string, string> = {
   'Open Command at the address configured for Gmail before connecting.':
     'Ouvrez Command à l’adresse configurée pour Gmail avant de vous connecter.',
   'Syllabus imported': 'Plan de cours importé',
-  'No saved syllabus import': 'Aucune importation de plan de cours enregistrée',
+  Fall: 'Automne',
+  Winter: 'Hiver',
+  Summer: 'Été',
+  'No syllabus imported yet': 'Aucun plan de cours importé pour l’instant',
+  'Import one to fill in assessments, dates and weights':
+    'Importez-en un pour remplir les évaluations, les dates et les pondérations',
   'Last saved:': 'Dernier enregistrement :',
   'Earlier import detected; date not recorded.':
     'Importation antérieure détectée ; date non enregistrée.',
