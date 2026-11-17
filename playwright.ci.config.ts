@@ -26,6 +26,7 @@ export default defineConfig({
     'paste-grades.spec.ts',
     'calendar-settings-text.spec.ts',
     'onboarding.spec.ts',
+    'install-app.spec.ts',
     // Last: it seeds extra data into the disposable workspace.
     'reflow-touch.spec.ts',
   ],

@@ -1551,4 +1551,12 @@ export const french: Record<string, string> = {
     'Laissez-la ouverte dans son propre terminal. Le serveur de l’application fonctionne déjà, donc inutile de relancer l’installation.',
   'For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in your database.':
     'Pour un serveur PostgreSQL existant, vérifiez DATABASE_URL dans .env. Vos données restent dans votre base de données.',
+  'Add Command to your home screen': 'Ajoutez Command à votre écran d’accueil',
+  'Open it like an app, without the browser bars.':
+    'Ouvrez-le comme une application, sans les barres du navigateur.',
+  'Tap Share, then Add to Home Screen.': 'Touchez Partager, puis « Sur l’écran d’accueil ».',
+  'Open your browser menu, then choose Add to Home Screen or Install app.':
+    'Ouvrez le menu du navigateur, puis choisissez « Ajouter à l’écran d’accueil » ou « Installer l’application ».',
+  Install: 'Installer',
+  'Dismiss home screen tip': 'Masquer le conseil sur l’écran d’accueil',
 };

@@ -44,5 +44,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Public, openly licensed static files stay outside the gate: signed-out pages (sign-in,
   // legal) still need the fonts, and redirecting them served HTML in place of a font file.
-  matcher: ['/((?!_next/static|_next/image|icon.svg|third-party-notices.txt|licenses/|fonts/).*)'],
+  // The install files (manifest, app icons, service worker, static offline page) are the same
+  // for everyone, and browsers fetch the manifest without cookies, so they stay public too.
+  matcher: [
+    '/((?!_next/static|_next/image|icon.svg|third-party-notices.txt|licenses/|fonts/|icons/|manifest.webmanifest|sw.js|offline.html).*)',
+  ],
 };
