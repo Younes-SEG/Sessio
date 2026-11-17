@@ -1,0 +1,12 @@
+Copyright (c) 2026 Younes Chaouni Benabdallah, operating as YC Studio.
+All rights reserved.
+
+This software and its source code, documentation, graphics and other files in
+this repository are proprietary. No permission is granted to copy, modify,
+merge, publish, distribute, sublicense, sell or otherwise use them, in whole or
+in part, without prior written permission from the copyright holder.
+
+Third-party components included in or used by this software remain under their
+own licenses. Their notices are kept in public/third-party-notices.txt and
+public/licenses/, and in each package under node_modules. Nothing in this file
+changes or replaces those licenses.
