@@ -3,8 +3,9 @@ import { schools, type SchoolProfile } from '../src/lib/schools';
 
 describe('school catalogue integrity', () => {
   it('keeps stable unique slugs and complete source evidence', () => {
-    // 40 Ontario schools: 37 verified on 2026-11-14; Brock, Confederation and Northern on 2026-11-16.
-    expect(schools).toHaveLength(40);
+    // 43 Ontario schools: 37 verified on 2026-11-14; Brock, Confederation, Northern, Nipissing,
+    // St. Lawrence and Fleming on 2026-11-16.
+    expect(schools).toHaveLength(43);
     expect(schools.map((school) => school.id)).toEqual(
       expect.arrayContaining(['university-of-ottawa', 'university-of-toronto', 'college-la-cite']),
     );

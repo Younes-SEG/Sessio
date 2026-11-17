@@ -21,6 +21,9 @@ const ALIASES: Record<string, readonly string[]> = {
   'college-la-cite': ['la cite', 'cite'],
   'george-brown-polytechnic': ['gbc', 'george brown college'],
   'st-clair-college': ['saint clair', 'st clair'],
+  'st-lawrence-college': ['saint lawrence', 'st lawrence', 'slc'],
+  'fleming-college': ['sir sandford fleming'],
+  'nipissing-university': ['nipissingu'],
 };
 
 export const normalizeSearch = (value: string) =>
