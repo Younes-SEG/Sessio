@@ -9,6 +9,7 @@ export default defineConfig([
     '.next-ci/**',
     'src/generated/**',
     'public/licenses/**',
+    'vendor/**',
     '.postgres/**',
     'artifacts/**',
     '.syllabus-service/**',
