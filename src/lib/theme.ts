@@ -1,5 +1,7 @@
 export type ThemePreference = 'LIGHT' | 'DARK' | 'SYSTEM';
 export const THEME_COOKIE = 'command-theme';
+/** Matches --background in globals.css; used for the installed app's status bar and splash. */
+export const APP_BACKGROUND = { light: '#faf9f6', dark: '#1b1b1d' } as const;
 
 export function themePreference(value: unknown): ThemePreference {
   return value === 'DARK' || value === 'LIGHT' ? value : 'SYSTEM';

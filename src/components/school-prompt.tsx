@@ -17,6 +17,14 @@ export function dismissSchoolPrompt() {
   }
 }
 
+export function schoolPromptDismissed() {
+  try {
+    return localStorage.getItem(DISMISSED) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export function SchoolPrompt() {
   const t = useT();
   const { data, save } = useWorkspace();

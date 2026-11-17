@@ -38,6 +38,7 @@ import { AccountMenu } from './account-menu';
 import { useAccount } from './account-provider';
 import { SchoolUpdatesBadge } from './email-updates';
 import { SchoolPrompt } from './school-prompt';
+import { InstallTip } from './install-tip';
 import { addDays, isOverdue, toDate } from '@/lib/dates';
 const navigation = [
   { href: '/', label: 'Home', icon: Home },
@@ -299,6 +300,7 @@ function WorkspaceShell({ children }: { children: ReactNode }) {
           </p>
         )}
         {!onboarding && <SchoolPrompt />}
+        {!onboarding && <InstallTip />}
         <main ref={contentRef} id="main-content" tabIndex={-1} className="page-content">
           {children}
         </main>

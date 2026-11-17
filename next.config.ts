@@ -26,6 +26,11 @@ const config: NextConfig = {
           },
         ],
       },
+      {
+        // Browsers check for a new service worker on every visit; never serve a stale one.
+        source: '/sw.js',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+      },
     ];
   },
 };
