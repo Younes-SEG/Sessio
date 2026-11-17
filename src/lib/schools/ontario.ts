@@ -3,9 +3,9 @@ import type { SchoolProfile } from './types';
 /**
  * Ontario school profiles verified on 2026-11-14 by reading each official policy directly.
  * Only facts read from the source are filled in: default credits and the course platform stay
- * null unless confirmed. Brock, Confederation and Northern were added on 2026-11-16 after reading
- * their current official documents. Partially verified schools (Hearst, Centennial, Niagara,
- * Sault) are deliberately absent; see docs/research/README.md.
+ * null unless confirmed. Brock, Confederation, Northern, Nipissing, St. Lawrence and Fleming were
+ * added on 2026-11-16 after reading their current official documents. Partially verified schools
+ * (Hearst, Centennial, Niagara, Sault) are deliberately absent; see docs/research/README.md.
  */
 type Row = readonly [letter: string, min: number, points?: number];
 const scale = (...rows: readonly Row[]) =>
@@ -360,6 +360,34 @@ export const ontarioSchools = [
   },
   {
     ...university,
+    id: 'nipissing-university',
+    name: 'Nipissing University',
+    letterScale: scale(['A', 80], ['B', 70], ['C', 60], ['D', 50], ['F', 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: null,
+    passPercent: 50,
+    // "Final grades below 40% will be included in average calculations as 40%."
+    averageFloor: 40,
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: [
+      {
+        url: 'https://academiccalendar.nipissingu.ca/2025/Page4347.html',
+        title: 'Academic Calendar 2025-2026 - Evaluation and Grading System',
+        checked: '2026-11-16',
+      },
+      {
+        url: 'https://academiccalendar.nipissingu.ca/2025/Page4421.html',
+        title: 'Academic Calendar 2025-2026 - Academic Standing and Progression',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'Percentage averages, rounded up from .5 for progression. Two attempts per course; the higher grade counts. Good standing and graduation need a 60% cumulative and program average; Honours needs a 70% program average. Education requires 70% with no mark below 60.',
+  },
+  {
+    ...university,
     id: 'algoma-university',
     name: 'Algoma University',
     letterScale: scale(['A', 80], ['B', 70], ['C', 60], ['D', 50], ['F', 0]),
@@ -642,6 +670,49 @@ export const ontarioSchools = [
     ],
     notes:
       'D (50-59) is the minimum acceptable level, but some departments do not accept C or D as a pass; check the course outline. GPA is credit-weighted; most programs need a 2.0 GPA to graduate. The repeat rule is in procedure A-26-PR-1 (not yet read).',
+  },
+  {
+    ...college,
+    id: 'st-lawrence-college',
+    name: 'St. Lawrence College',
+    letterScale: refined([4, 3.9, 3.7, 3.3, 3, 2.7, 2.3, 2, 1.7, 1.3, 1, 0.7, 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: { max: 4, label: 'GPA' },
+    passPercent: 50,
+    // "Only the highest grade achieved in a repeated course is included in the program GPA".
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: [
+      {
+        url: 'https://364599a3-cdn.agilitycms.cloud/Attachments/6-about/reports-policies/AC106%20Grading%20and%20Student%20Achievement%20Sept%202025.pdf',
+        title: 'AC106 Grading and Student Achievement (effective September 2025)',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'GPA is credit-weighted. A repeated course counts its highest grade in the program/degree GPA, but every attempt counts in the term GPA. Graduation with distinction needs a 3.50 GPA.',
+  },
+  {
+    ...college,
+    id: 'fleming-college',
+    name: 'Fleming College',
+    letterScale: refined([4, 3.8, 3.6, 3.3, 3, 2.7, 2.3, 2, 1.7, 1.4, 1.2, 1, 0]),
+    roundPercentBeforeLetter: false,
+    failLabel: 'F',
+    gpa: { max: 4, label: 'GPA' },
+    passPercent: 50,
+    repeatPolicy: 'highest',
+    credits: null,
+    sources: [
+      {
+        url: 'https://department.flemingcollege.ca/policies-procedures/attachment/1162/view',
+        title: 'Operating Procedure OP 2-203A Grading Administration (linked to policy 2-203)',
+        checked: '2026-11-16',
+      },
+    ],
+    notes:
+      'GPA is weighted by instructional hours. Some courses require more than 50% or mandatory components (stated on the course outline). Pass/fail courses are left out of the GPA. Real Estate Council programs follow OP 2-203C instead.',
   },
   {
     ...college,
