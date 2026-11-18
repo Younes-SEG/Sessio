@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { french } from '@/lib/i18n/fr';
+import { formatPercent, isSingular } from '@/lib/i18n/format';
 export type Language = 'en' | 'fr';
 const Context = createContext<{ language: Language; setLanguage: (value: Language) => void }>({
   language: 'en',
@@ -29,8 +30,12 @@ export function translate(text: string, language: Language): string {
 }
 export function useT() {
   const { language } = useLanguage();
+  const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
   return Object.assign((text: string) => translate(text, language), {
-    locale: language === 'fr' ? 'fr-CA' : 'en-CA',
+    locale,
+    /** Use the singular form for this count (French: 0 and 1). */
+    one: (count: number) => isSingular(count, locale),
+    percent: (value: number, digits = 1) => formatPercent(value, locale, digits),
   });
 }
 /** Only application copy belongs here, never stored course names or academic records. */

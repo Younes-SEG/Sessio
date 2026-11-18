@@ -338,9 +338,10 @@ export default function GuidePage() {
           </p>
           <p>
             Grades only shows grade results and release notices. Open Updates in the sidebar for
-            course announcements and assessment changes. For a deadline change, open Review an
-            assessment deadline, confirm the matching assessment, date and time, then save. This
-            updates the existing assessment and its calendar date without creating a duplicate or
+            course announcements and assessment changes. A clear deadline change that names one
+            assessment and one date is applied automatically. Otherwise, open Review an assessment
+            deadline, confirm the matching assessment, date and time, then save. Either way, the
+            existing assessment and its calendar date are updated without creating a duplicate or
             changing its grade. Other changes stay as notices for you to review in Gmail.
           </p>
           <BrightspaceNotificationGuide />

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useWorkspace } from './workspace-provider';
+import { useT } from './language-provider';
 import { BuddyCharacter, buddyCharacters } from './buddy-character';
 import {
   buddyBounds,
@@ -19,6 +20,7 @@ function sidebarWidth() {
 }
 
 export function StudyBuddy() {
+  const t = useT();
   const { data } = useWorkspace();
   const character = data.settings.studyBuddy;
   const motion = data.settings.buddyMotion;
@@ -157,13 +159,13 @@ export function StudyBuddy() {
   }, [pathname]);
 
   if (character === 'NONE') return null;
-  const name = buddyCharacters.find((option) => option.value === character)?.name || 'Your';
+  const name = buddyCharacters.find((option) => option.value === character)?.name;
   return (
     <div
       ref={root}
       className="study-buddy"
       role="img"
-      aria-label={`${name} study buddy`}
+      aria-label={name ? t('{name} study buddy').replace('{name}', name) : t('Study buddy')}
       data-quiet={!motion}
     >
       <div ref={art} className="study-buddy-art">

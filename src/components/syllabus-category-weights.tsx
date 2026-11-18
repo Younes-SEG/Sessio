@@ -29,7 +29,7 @@ export function SyllabusCategoryWeights({
       aria-label={`${t('Category weight')}: ${category.name}`}
     >
       <h3 className="section-title">
-        {category.name} · {category.weight}% <T text="combined" />
+        {category.name} · {t.percent(category.weight, 2)} <T text="combined" />
       </h3>
       <p className="text-sm">
         <T text="Keep this category total fixed and share it equally across all current and future assessments of this type in this course." />
@@ -39,7 +39,7 @@ export function SyllabusCategoryWeights({
         {members.length > 0 && (
           <>
             {' '}
-            · {Number((category.weight / members.length).toFixed(4))}% <T text="each for now" />
+            · {t.percent(category.weight / members.length, 2)} <T text="each for now" />
           </>
         )}
       </p>

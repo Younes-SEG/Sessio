@@ -30,7 +30,7 @@ export function EventFields({
         name="title"
         label={t('Event title')}
         value={initial.title}
-        placeholder="e.g. Study session at the library"
+        placeholder={t('e.g. Study session at the library')}
         required
         wide
       />
@@ -110,7 +110,7 @@ export function ScheduleFields({
         name="title"
         label={t('Session name')}
         value={initial.title}
-        placeholder="e.g. Lecture, tutorial, or lab"
+        placeholder={t('e.g. Lecture, tutorial, or lab')}
         required
         wide
       />
@@ -147,7 +147,7 @@ export function ScheduleFields({
         name="location"
         label={t('Location (optional)')}
         value={initial.location}
-        placeholder="e.g. SITE 0102"
+        placeholder={t('e.g. SITE 0102')}
         maxLength={300}
         wide
       />

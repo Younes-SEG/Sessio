@@ -22,10 +22,7 @@ function fill(template: string, values: Record<string, string>) {
 
 function usePercent() {
   const t = useT();
-  return (value: number) => {
-    const number = value.toLocaleString(t.locale, { maximumFractionDigits: 1 });
-    return t.locale === 'fr-CA' ? `${number} %` : `${number}%`;
-  };
+  return (value: number) => t.percent(value);
 }
 
 /** The school's letter for a percentage, as a small muted suffix; nothing without a scale. */
@@ -89,7 +86,7 @@ export function SemesterStandingCard() {
   const letter = letterFor(standing.average, school);
   const unit = t.locale === 'fr-CA' ? school?.credits?.unitLabelFr : school?.credits?.unitLabel;
   const courses = fill(
-    t(standing.graded === 1 ? '{count} course with grades' : '{count} courses with grades'),
+    t(t.one(standing.graded) ? '{count} course with grades' : '{count} courses with grades'),
     {
       count: String(standing.graded),
     },

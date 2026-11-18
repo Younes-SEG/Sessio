@@ -138,7 +138,7 @@ export function TasksView() {
           </h1>
           <p className="muted mt-2 text-sm">
             <T text="A clear head starts with a clear list." /> {openCount}{' '}
-            {openCount === 1 ? t('task') : t('tasks')} <T text="to go." />
+            {t.one(openCount) ? t('task') : t('tasks')} <T text="to go." />
           </p>
         </div>
         <Button data-tour="task-add" onClick={() => openEditor('tasks')}>
@@ -334,9 +334,9 @@ export function TasksView() {
           {hasFilters && (
             <div className="flex items-center justify-between gap-3 text-xs">
               <p className="muted">
-                {tasks.length} {tasks.length === 1 ? t('match') : t('matches')}
+                {tasks.length} {t.one(tasks.length) ? t('match') : t('matches')}
                 {filterCount > 0
-                  ? ` · ${filterCount} active ${filterCount === 1 ? 'filter' : 'filters'}`
+                  ? ` · ${t(t.one(filterCount) ? '{count} active filter' : '{count} active filters').replace('{count}', String(filterCount))}`
                   : ''}
               </p>
               <button
@@ -422,7 +422,7 @@ export function TasksView() {
         )}
         {tasks.length > 0 && (
           <div className="muted border-t border-[var(--border)] px-5 py-3 text-xs">
-            {tasks.length} {tasks.length === 1 ? t('task') : t('tasks')}{' '}
+            {tasks.length} {t.one(tasks.length) ? t('task') : t('tasks')}{' '}
             <T text="· Select a title to edit the details." />
           </div>
         )}

@@ -29,7 +29,7 @@ export function CourseFields({
         name="code"
         label={t('Course code')}
         value={initial.code}
-        placeholder="e.g. SEG3101"
+        placeholder={t('e.g. SEG3101')}
         maxLength={30}
         required
       />
@@ -46,7 +46,7 @@ export function CourseFields({
         name="name"
         label={t('Course name')}
         value={initial.name}
-        placeholder="e.g. Software Requirements Analysis"
+        placeholder={t('e.g. Software Requirements Analysis')}
         required
         wide
       />

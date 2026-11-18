@@ -214,7 +214,7 @@ export function CalendarView() {
                 {title}
               </h2>
               <p className="muted mt-0.5 text-xs">
-                {count} {count === 1 ? t('item') : t('items')}{' '}
+                {count} {t.one(count) ? t('item') : t('items')}{' '}
                 {t(mode === 'week' ? 'this week' : 'this month')}
               </p>
             </div>

@@ -100,6 +100,7 @@ export function NotesField({
   value?: string;
   placeholder?: string;
 }) {
+  const t = useT();
   return (
     <Field name={name} label={label} wide>
       <Textarea
@@ -108,7 +109,7 @@ export function NotesField({
         defaultValue={value}
         rows={4}
         maxLength={20000}
-        placeholder={placeholder ?? 'Anything you’d like to remember…'}
+        placeholder={placeholder ?? t('Anything you’d like to remember…')}
       />
     </Field>
   );

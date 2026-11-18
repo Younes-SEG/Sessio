@@ -184,7 +184,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
                 required
                 aria-describedby="calendar-link-help calendar-preview-notice"
                 value={url}
-                placeholder="https://… or webcal://…"
+                placeholder={t('https://… or webcal://…')}
                 onChange={(e) => {
                   setUrl(e.target.value);
                   setPreview(null);
@@ -331,7 +331,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
                         <span className="min-w-0 break-words">
                           {item.title}
                           <span className="muted ml-2 text-xs">
-                            {item.course?.code || 'Calendar event'}
+                            {item.course?.code || t('Calendar event')}
                           </span>
                         </span>
                         <span className="muted text-xs">

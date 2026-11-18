@@ -8,7 +8,7 @@ it('keeps Grades and personal Notes distinct in French', () => {
 });
 
 it('translates the course page copy found in the first-run review', () => {
-  for (const text of ['Your course workspace', '1 open task for', '{count} open tasks for'])
+  for (const text of ['Your course workspace', '{count} open task for', '{count} open tasks for'])
     expect(french[text], text).toBeTruthy();
   expect(french['Add assessment']).toBe('Ajouter une évaluation');
 });

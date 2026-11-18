@@ -104,7 +104,7 @@ export function CoursesView() {
       {courses.length ? (
         <>
           <div className="eyebrow mb-4">
-            {courses.length} {courses.length === 1 ? t('course') : t('courses')}{' '}
+            {courses.length} {t.one(courses.length) ? t('course') : t('courses')}{' '}
             <T text="in your workspace" />
           </div>
           <div data-tour="course-list" className="course-grid">

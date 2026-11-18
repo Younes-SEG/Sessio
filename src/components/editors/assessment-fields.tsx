@@ -47,7 +47,7 @@ export function AssessmentFields({
         name="name"
         label={t('Assessment name')}
         value={initial.name}
-        placeholder="e.g. Assignment 1 · Requirements document"
+        placeholder={t('e.g. Assignment 1 · Requirements document')}
         required
         wide
       />

@@ -1,5 +1,6 @@
 'use client';
 import { T, useT } from '@/components/language-provider';
+import { formatNumber } from '@/lib/i18n/format';
 import { useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { scopeWorkspace } from '@/lib/workspace-scope';
@@ -259,7 +260,7 @@ export function Dashboard() {
           number={dueToday}
           foot={
             overdue.length
-              ? `${overdue.length} ${t('overdue')} ${t(overdue.length === 1 ? 'task needs' : 'tasks need')} ${t('attention')}`
+              ? `${overdue.length} ${t('overdue')} ${t(t.one(overdue.length) ? 'task needs' : 'tasks need')} ${t('attention')}`
               : 'Unfinished tasks and assessments'
           }
           icon={<CheckSquare2 size={14} />}
@@ -273,7 +274,15 @@ export function Dashboard() {
         />
         <Stat
           label={t('Planned focus time')}
-          number={effort >= 60 ? `${(effort / 60).toFixed(1)}h` : `${effort}m`}
+          number={
+            t.locale === 'fr-CA'
+              ? effort >= 60
+                ? `${formatNumber(effort / 60, t.locale)} h`
+                : `${effort} min`
+              : effort >= 60
+                ? `${formatNumber(effort / 60, t.locale)}h`
+                : `${effort}m`
+          }
           foot={`${todayTasks.filter((t) => t.estimatedMinutes).length} ${t('tasks with time estimates today')}`}
           icon={<Clock3 size={14} />}
         />
@@ -369,7 +378,7 @@ export function Dashboard() {
                 <T text="Today's schedule" />
               </h2>
               <span className="badge">
-                {schedule.length} {schedule.length === 1 ? t('event') : t('events')}
+                {schedule.length} {t.one(schedule.length) ? t('event') : t('events')}
               </span>
             </div>
             {schedule.length ? (
