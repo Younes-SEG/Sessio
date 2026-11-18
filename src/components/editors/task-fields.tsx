@@ -84,7 +84,7 @@ export function TaskFields({
         min={1}
         max={10080}
         step={1}
-        placeholder="e.g. 45"
+        placeholder={t('e.g. 45')}
       />
       <SelectField
         name="priority"

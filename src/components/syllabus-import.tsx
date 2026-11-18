@@ -1,6 +1,7 @@
 'use client';
 import { SYLLABUS_MIME, syllabusKindFromName } from '@/lib/syllabus-files';
 import { T, useT } from '@/components/language-provider';
+import { formatPercent } from '@/lib/i18n/format';
 
 import Link from 'next/link';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -432,7 +433,10 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
       setSelectedFile(null);
       setSavedCourseId(result.courseId || courseId);
       setNotice(
-        `${result.courseCreated ? 'Course created. ' : ''}Saved: ${result.created} new assessments and ${result.updated} updated assessments.`,
+        (result.courseCreated ? t('Course created.') + ' ' : '') +
+          t('Saved: {created} new assessments and {updated} updated assessments.')
+            .replace('{created}', String(result.created))
+            .replace('{updated}', String(result.updated)),
       );
       try {
         await refresh();
@@ -726,9 +730,9 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
               maxLength={100000}
               disabled={busy}
               value={text}
-              placeholder={
-                'Paste your syllabus, for example:\nMidterm 1 — October 20, 2026 at 14:00 — 25%\nAssignment 1 — November 2, 2026 at 23:59 — 10%'
-              }
+              placeholder={t(
+                'Paste your syllabus, for example:\nMidterm 1 — October 20, 2026 at 14:00 — 25%\nAssignment 1 — November 2, 2026 at 23:59 — 10%',
+              )}
               onChange={(e) => {
                 setText(e.target.value);
                 setSelectedFile(null);
@@ -1046,7 +1050,11 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                       min="0"
                       max="100"
                       step="any"
-                      placeholder={match ? `Keep ${match.weight}%` : 'Not found'}
+                      placeholder={
+                        match
+                          ? t('Keep {weight}').replace('{weight}', t.percent(match.weight, 2))
+                          : t('Not found')
+                      }
                       value={row.weightText}
                       onChange={(e) => update(row.id, { weightText: e.target.value })}
                     />
@@ -1073,7 +1081,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                     {gradingRule.mode === 'equal'
                       ? t('Automatic equal split')
                       : `${t('Best')} ${gradingRule.keep}/${gradingRule.assessmentIds.length}`}{' '}
-                    · {gradingRule.weight}%.{' '}
+                    · {t.percent(gradingRule.weight, 2)}.{' '}
                     <T text="This group replaces the individual weight above." />
                   </p>
                 )}
@@ -1138,7 +1146,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
             </h2>
             <p className="text-sm">
               {selected.length} <T text="selected · Course weight after import:" />{' '}
-              {Number.isFinite(total) ? total.toFixed(2) : '—'}%
+              {Number.isFinite(total) ? formatPercent(total, t.locale, 2, 2) : '—'}
             </p>
             {ruleError && (
               <p role="alert" className="text-sm text-[var(--danger)]">

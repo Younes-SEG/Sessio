@@ -48,8 +48,8 @@ function GradeItem({ assessment, rule }: { assessment: Assessment; rule?: Gradin
   const graded = assessment.score !== null && assessment.status === 'GRADED';
   const weight =
     rule && rule.mode !== 'equal'
-      ? `${number(rule.weight, t.locale)}% ${t('group weight')}`
-      : `${number(assessment.weight, t.locale)}% ${t('weight')}`;
+      ? `${t.percent(rule.weight, 2)} ${t('group weight')}`
+      : `${t.percent(assessment.weight, 2)} ${t('weight')}`;
   return (
     <div data-grade-item={assessment.id} className="flex items-center gap-3 px-5 py-4 sm:gap-6">
       <div className="min-w-0 flex-1">
@@ -59,7 +59,7 @@ function GradeItem({ assessment, rule }: { assessment: Assessment; rule?: Gradin
       <div className="shrink-0 text-right tabular-nums">
         <p className={graded ? 'text-lg font-semibold' : 'muted text-sm'}>
           {graded
-            ? `${number((assessment.score! / assessment.maxScore) * 100, t.locale)}%`
+            ? `${t.percent((assessment.score! / assessment.maxScore) * 100, 2)}`
             : t('Not graded')}
         </p>
         {graded && (
@@ -183,7 +183,7 @@ function GradeEditor({
           {rule ? (
             <div className="rounded-sm bg-muted p-3 text-sm">
               <p className="font-medium">
-                {rule.name} · {number(rule.weight, t.locale)}% {t('group weight')}
+                {rule.name} · {t.percent(rule.weight, 2)} {t('group weight')}
               </p>
               <p className="muted mt-1 text-xs">
                 {t('This weight is managed by the course grading rule.')}

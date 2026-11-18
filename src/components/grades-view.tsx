@@ -91,7 +91,7 @@ export function GradesView() {
       >
         <div>
           <h2 className="section-title">
-            {awaiting} {awaiting === 1 ? t('assessment awaiting') : t('assessments awaiting')}{' '}
+            {awaiting} {t.one(awaiting) ? t('assessment awaiting') : t('assessments awaiting')}{' '}
             <T text="a grade" />
           </h2>
         </div>
@@ -158,7 +158,7 @@ export function GradesView() {
                       <T text="· Current weighted grade:" />{' '}
                       {summary.currentGrade === null
                         ? t('Not available yet')
-                        : `${summary.currentGrade.toFixed(1)}%`}
+                        : t.percent(summary.currentGrade)}
                       <GradeLetter percent={summary.currentGrade} />
                     </p>
                   </div>
@@ -187,7 +187,7 @@ export function GradesView() {
                                 {r.mode === 'equal'
                                   ? t('Automatic equal split')
                                   : `${t('Best')} ${r.keep}/${r.assessmentIds.length}`}{' '}
-                                · {r.weight}%
+                                · {t.percent(r.weight, 2)}
                               </p>
                             ))}
                           </div>

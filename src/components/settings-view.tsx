@@ -600,7 +600,7 @@ function TermsSection() {
                   <p className="muted mt-1.5 text-xs leading-relaxed">
                     {date(semester.startDate)} – {date(semester.endDate)}
                     <span className="ml-2">
-                      · {count} {count === 1 ? t('course') : t('courses')}
+                      · {count} {t.one(count) ? t('course') : t('courses')}
                     </span>
                   </p>
                 </div>

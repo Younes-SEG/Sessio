@@ -21,6 +21,14 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
       </header>
       <TourReplay />
       <AssistantGuide french />
+      <section className="card space-y-3 p-4">
+        <h2 className="section-title">Votre routine quotidienne</h2>
+        <p className="muted leading-relaxed">
+          Consultez Accueil pour le travail à venir, cochez Terminé après avoir remis un travail,
+          puis ouvrez Notes quand les résultats arrivent. Les évaluations terminées restent dans
+          Notes attendues pour que vous les retrouviez des semaines plus tard.
+        </p>
+      </section>
       <section id="email" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">Avis de notes par courriel</h2>
         <p>
@@ -38,15 +46,17 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         </p>
         <p>
           Les résultats et avis de publication restent dans Notes. Ouvrez Actualités dans le menu
-          pour les annonces et modifications d’évaluations. Vérifiez l’évaluation, la date et
-          l’heure proposées avant d’enregistrer une nouvelle échéance. L’évaluation existante et son
-          calendrier sont mis à jour sans doublon ni changement de note. Les autres changements
-          restent des avis à consulter dans Gmail.
+          pour les annonces et modifications d’évaluations. Un changement d’échéance clair, qui
+          nomme une seule évaluation et une seule date, est appliqué automatiquement. Sinon,
+          choisissez Vérifier une échéance d’évaluation, confirmez l’évaluation, la date et l’heure,
+          puis enregistrez. Dans les deux cas, l’évaluation existante et son calendrier sont mis à
+          jour sans doublon ni changement de note. Les autres changements restent des avis à
+          consulter dans Gmail.
         </p>
         <BrightspaceNotificationGuide french />
         <GmailSetupGuide french />
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="start" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">1. Vos cours et sessions</h2>
         <p>
           Dans{' '}
@@ -94,7 +104,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           elle reste inchangée sauf si vous la cochez.
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="calendar" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">2. Connecter Brightspace</h2>
         <p>
           Dans Brightspace, ouvrez Calendrier → Paramètres, activez les flux et copiez le lien dans
@@ -122,7 +132,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           Le calendrier n’apporte ni résultats, ni pondérations, ni toutes les annonces. Les avis de
           disponibilité restent des événements. Utilisez les tâches pour étudier, préparer un
           rapport ou travailler sur un devoir. Cochez Terminé pour finir une tâche. La
-          synchronisation ne modifie pas vos tâches. Les entrées absentes du flux sont conservées ;
+          synchronisation ne modifie pas vos tâches. Les entrées absentes du flux sont conservées;
           les annulations explicites sont indiquées.
         </p>
         <p>
@@ -132,7 +142,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           exactement; les autres peuvent être ajoutées en double.
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="syllabus" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">3. Importer un plan de cours</h2>
         <p>
           Ouvrez{' '}
@@ -152,7 +162,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         <p>
           Associez une suggestion à une évaluation existante pour éviter les doublons. Cette mise à
           jour conserve les résultats, noms, notes et avancement. Un champ vide conserve la valeur
-          existante ; pour une nouvelle évaluation, une pondération vide vaut 0 % et une date vide
+          existante; pour une nouvelle évaluation, une pondération vide vaut 0 % et une date vide
           signifie aucune échéance. La pondération totale ne peut pas dépasser 100 %. Une date sans
           heure utilise 23 h 59 dans votre fuseau horaire.
         </p>
@@ -165,21 +175,21 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           Les autres consignes restent des notes sans modifier les calculs. Si le plan indique une
           semaine et une séance, confirmez votre section après la lecture. Command déduit les dates
           sans ambiguïté et signale les jours fériés. Vous pouvez corriger les dates ou les laisser
-          vides. Ces choix ne créent pas de cours récurrents. Une importation est un instantané ;
+          vides. Ces choix ne créent pas de cours récurrents. Une importation est un instantané;
           relisez les révisions ultérieures. La synchronisation du calendrier peut remplacer les
           dates d’évaluations liées.
         </p>
-        <p>
+        <p id="syllabus-privacy" className="scroll-mt-6">
           Le fichier, le cours et la session sont envoyés au lecteur de Command et à son fournisseur
           d’IA (Google Gemini ou OpenAI), sans vos autres dossiers ni liens privés. Aucun compte
-          d’IA n’est requis pour l’utilisateur. Command ne conserve pas le fichier original ; les
+          d’IA n’est requis pour l’utilisateur. Command ne conserve pas le fichier original; les
           règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut
           utiliser les documents pour améliorer ses produits, avec possibilité de révision humaine.
           Utilisez uniquement des plans non sensibles. En cas d’indisponibilité, réessayez plus tard
           ou ajoutez les évaluations manuellement.
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="grades" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">4. Terminer le travail et saisir les notes</h2>
         <p>
           Ouvrez une évaluation et cochez Terminé, puis enregistrez. Elle prend l’état Remis et
@@ -196,14 +206,14 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           pas été marqué terminé. Modifier les détails permet d’ajouter la pondération ou des notes.
         </p>
         <p>
-          Un résultat vide signifie non évalué ; zéro est une vraie note. Les moyennes utilisent
+          Un résultat vide signifie non évalué; zéro est une vraie note. Les moyennes utilisent
           seulement les évaluations notées et leurs pondérations. Les importations de calendrier
           commencent à 0 % de pondération. Les estimations ne remplacent pas les résultats
           officiels. La liste Notes attendues ne consulte ni votre courriel ni le carnet de notes de
           votre établissement.
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="planning" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">5. Tâches, séances et calendrier</h2>
         <p>
           Dans Tâches, ajoutez des priorités, durées et sous-tâches. Utilisez l’onglet Horaire d’un
@@ -212,11 +222,18 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           jour est inclus.
         </p>
         <p>
+          Les quiz, examens de mi-session et examens finaux datés reçoivent une tâche d’étude
+          lorsqu’ils sont à moins de 10 jours. Vous la trouverez dans Vos priorités → Préparer les
+          évaluations et dans Tâches. Terminer ou supprimer une tâche d’étude empêche sa recréation.
+          Son nom et sa date suivent l’évaluation; modifier son titre, sa date ou l’évaluation liée
+          en fait une tâche personnelle.
+        </p>
+        <p>
           Ctrl+K (ou Cmd+K sur Mac) ouvre la recherche et l’ajout rapide. Tab passe d’un contrôle à
-          l’autre ; Échap ferme une fenêtre.
+          l’autre; Échap ferme une fenêtre.
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="data" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">6. Apparence, langue et données</h2>
         <p>
           Dans Paramètres, choisissez un thème et un compagnon d’étude. Désactivez Mouvements doux
@@ -232,10 +249,14 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           Vos données permet de télécharger une copie JSON lisible ou d’effacer définitivement
           l’espace. La copie exclut les liens privés et ne permet pas une restauration automatique.
           L’effacement ne supprime pas les sauvegardes, fichiers déjà téléchargés ou données chez
-          votre établissement. Les textes des politiques détaillées restent actuellement en anglais.
+          votre établissement.{' '}
+          <Link href="/legal/privacy" className="underline">
+            Lire la politique de confidentialité
+          </Link>
+          .
         </p>
       </section>
-      <section className="card space-y-3 p-4">
+      <section id="troubleshooting" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">7. Dépannage</h2>
         <p>
           Pour un calendrier inaccessible, vérifiez que vous utilisez le lien HTTPS ou webcal

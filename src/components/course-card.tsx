@@ -50,7 +50,7 @@ export function CourseCard({ course }: { course: Course }) {
             <T text="Current grade" />
           </div>
           <span className="course-grade">
-            {grade.currentGrade === null ? '—' : `${grade.currentGrade.toFixed(1)}%`}
+            {grade.currentGrade === null ? '—' : t.percent(grade.currentGrade)}
             <GradeLetter percent={grade.currentGrade} className="text-sm" />
           </span>
         </div>

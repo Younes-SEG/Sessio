@@ -12,7 +12,7 @@ export const french: Record<string, string> = {
   'Signed in as': 'Connecté en tant que',
   'Local workspace': 'Espace de travail local',
   'Stored on this computer; no account needed.':
-    'Enregistré sur cet ordinateur ; aucun compte requis.',
+    'Enregistré sur cet ordinateur; aucun compte requis.',
   'Settings sections': 'Sections des paramètres',
   'Who is signed in.': 'Le compte connecté.',
   'Profile & school': 'Profil et établissement',
@@ -41,9 +41,9 @@ export const french: Record<string, string> = {
   '{courses}, using only work graded so far.':
     '{courses}, selon les travaux d\u00e9j\u00e0 corrig\u00e9s seulement.',
   'Courses count equally; no school is selected, so no letters or GPA are shown.':
-    'Les cours comptent \u00e9galement ; aucun \u00e9tablissement n\u2019est choisi, donc aucune lettre ni MPC n\u2019est affich\u00e9e.',
+    'Les cours comptent \u00e9galement; aucun \u00e9tablissement n\u2019est choisi, donc aucune lettre ni MPC n\u2019est affich\u00e9e.',
   'Courses count equally; {school} reports averages, not a GPA.':
-    'Les cours comptent \u00e9galement ; {school} publie des moyennes, pas une MPC.',
+    'Les cours comptent \u00e9galement; {school} publie des moyennes, pas une MPC.',
   'Courses count equally because {school} has no standard course weight.':
     'Les cours comptent \u00e9galement, car {school} n\u2019a pas de pond\u00e9ration de cours standard.',
   'Courses count equally. Add credits to every graded course to see your GPA.':
@@ -51,14 +51,14 @@ export const french: Record<string, string> = {
   'Courses count equally because {school} doesn\u2019t publish grade points for every letter.':
     'Les cours comptent \u00e9galement, car {school} ne publie pas de points pour chaque lettre.',
   'Grades below {floor} count as {floor} here, as {school} does; course grades don\u2019t change.':
-    'Ici, les notes inf\u00e9rieures \u00e0 {floor} comptent comme {floor}, comme le fait {school} ; les notes des cours ne changent pas.',
+    'Ici, les notes inf\u00e9rieures \u00e0 {floor} comptent comme {floor}, comme le fait {school}; les notes des cours ne changent pas.',
   'Letters are estimates; your instructor decides.':
-    'Les lettres sont des estimations ; votre enseignant ou enseignante d\u00e9cide.',
+    'Les lettres sont des estimations; votre enseignant ou enseignante d\u00e9cide.',
   'Choose your school': 'Choisir votre \u00e9tablissement',
   'Pass mark: {pass}.': 'Note de passage : {pass}.',
   'Usual pass mark: {pass}; some programs differ.':
-    'Note de passage habituelle : {pass} ; certains programmes diff\u00e8rent.',
-  'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous ?',
+    'Note de passage habituelle : {pass}; certains programmes diff\u00e8rent.',
+  'Which school do you attend?': 'Quel \u00e9tablissement fr\u00e9quentez-vous?',
   'Search for your school': 'Rechercher votre \u00e9tablissement',
   'School name or province': 'Nom de l\u2019\u00e9tablissement ou province',
   'School name or short form, e.g. uOttawa':
@@ -212,7 +212,7 @@ export const french: Record<string, string> = {
   'Back to grades': 'Retour aux notes',
   'Connect Gmail': 'Connecter Gmail',
   'Connected Gmail': 'Gmail connecté',
-  'Loading your workspace…': 'Chargement de ton espace…',
+  'Loading your workspace…': 'Chargement de votre espace…',
   'Loading email connection…': 'Chargement de la connexion aux courriels…',
   'Unable to load email updates.': 'Impossible de charger les mises à jour par courriel.',
   'Unable to connect Gmail.': 'Impossible de connecter Gmail.',
@@ -239,18 +239,18 @@ export const french: Record<string, string> = {
   'Email preferences': 'Préférences des courriels',
   'Gmail search filter': 'Filtre de recherche Gmail',
   'Use Gmail search words or a label such as label:School. This filter limits what Command reads; Google permission still covers your mailbox.':
-    'Utilisez des termes de recherche Gmail ou un libellé comme label:School. Ce filtre limite ce que Command lit ; l’autorisation Google couvre toujours votre boîte de réception.',
+    'Utilisez des termes de recherche Gmail ou un libellé comme label:School. Ce filtre limite ce que Command lit; l’autorisation Google couvre toujours votre boîte de réception.',
   'Check automatically while Command is open':
     'Vérifier automatiquement lorsque Command est ouvert',
   'Save email preferences': 'Enregistrer les préférences des courriels',
   'Disconnect Gmail': 'Déconnecter Gmail',
   'Disconnect Gmail and delete its saved email reviews? Grades you already saved will stay.':
-    'Déconnecter Gmail et supprimer les avis enregistrés ? Les notes déjà enregistrées seront conservées.',
+    'Déconnecter Gmail et supprimer les avis enregistrés? Les notes déjà enregistrées seront conservées.',
   'Disconnect and delete reviews': 'Déconnecter et supprimer les avis',
   'Email reviews': 'Vérification des courriels',
   'Ready to review': 'À vérifier',
   'No email updates to review yet. A notification may only say a grade is available; it cannot reveal a score that is not in the email.':
-    'Aucun avis à vérifier pour le moment. Un avis peut seulement annoncer la disponibilité d’une note ; il ne peut pas révéler un résultat absent du courriel.',
+    'Aucun avis à vérifier pour le moment. Un avis peut seulement annoncer la disponibilité d’une note; il ne peut pas révéler un résultat absent du courriel.',
   'Open in Gmail': 'Ouvrir dans Gmail',
   'Show email message': 'Afficher le message',
   'Only part of this message could be imported. Open in Gmail to read the complete email.':
@@ -294,7 +294,7 @@ export const french: Record<string, string> = {
     'Importez-en un pour remplir les évaluations, les dates et les pondérations',
   'Last saved:': 'Dernier enregistrement :',
   'Earlier import detected; date not recorded.':
-    'Importation antérieure détectée ; date non enregistrée.',
+    'Importation antérieure détectée; date non enregistrée.',
   'Reading your syllabus…': 'Lecture de votre plan de cours…',
   'Take the guided tour': 'Faire la visite guidée',
   'YOUR SPACE, AT YOUR PACE': 'VOTRE ESPACE, À VOTRE RYTHME',
@@ -369,9 +369,9 @@ export const french: Record<string, string> = {
   'Upload syllabus (PDF, DOCX, JPG, PNG or TXT, up to':
     'Importer un plan (PDF, DOCX, JPG, PNG ou TXT, jusqu’à',
   'PDFs up to 60 pages; Word (.docx) documents; JPG/PNG photos or screenshots; and TXT files. Choose one file, then click Read syllabus. Use clear images with the full page visible.':
-    'PDF jusqu’à 60 pages ; documents Word (.docx) ; photos ou captures JPG/PNG ; fichiers TXT. Choisissez un fichier, puis cliquez sur Lire le plan de cours. Utilisez une image nette montrant toute la page.',
+    'PDF jusqu’à 60 pages; documents Word (.docx); photos ou captures JPG/PNG; fichiers TXT. Choisissez un fichier, puis cliquez sur Lire le plan de cours. Utilisez une image nette montrant toute la page.',
   'Word text, tables and embedded JPG/PNG images were read. Page numbers and exact layout are unavailable; check complex layouts against the original or import a PDF.':
-    'Le texte, les tableaux et les images JPG/PNG du document Word ont été lus. Les numéros de page et la disposition exacte sont indisponibles ; vérifiez les mises en page complexes ou importez un PDF.',
+    'Le texte, les tableaux et les images JPG/PNG du document Word ont été lus. Les numéros de page et la disposition exacte sont indisponibles; vérifiez les mises en page complexes ou importez un PDF.',
   'Some embedded images use unsupported formats. Export this Word document to PDF to include them.':
     'Certaines images intégrées utilisent un format non pris en charge. Exportez ce document Word en PDF pour les inclure.',
 
@@ -390,7 +390,7 @@ export const french: Record<string, string> = {
   'Unable to save grading rules.': 'Impossible d’enregistrer les règles de notation.',
   'Instructor instructions and grading rules': 'Consignes du professeur et règles de notation',
   'Add something your instructor said that is missing from the syllabus. Best-of rules are interpreted on this device; your note is not sent to an AI service.':
-    'Ajoutez une consigne donnée en classe qui ne figure pas dans le plan de cours. Les règles des meilleurs résultats sont interprétées sur cet appareil ; votre note n’est pas envoyée à un service d’IA.',
+    'Ajoutez une consigne donnée en classe qui ne figure pas dans le plan de cours. Les règles des meilleurs résultats sont interprétées sur cet appareil; votre note n’est pas envoyée à un service d’IA.',
   'Extra instructor instructions': 'Consignes supplémentaires du professeur',
   'Example: Best 4 of 5 quizzes count. Quizzes are worth 20% combined.':
     'Exemple : Les 4 meilleurs quiz sur 5 comptent. Les quiz valent 20 % au total.',
@@ -423,7 +423,7 @@ export const french: Record<string, string> = {
   'Add a course to start tracking your grades.':
     'Ajoutez un cours pour commencer à suivre vos notes.',
   'Pick a course card to see its grades. Search by course name or code; other terms and archived courses are under Other courses.':
-    'Choisissez une carte de cours pour voir ses notes. Recherchez un nom ou un code ; les autres sessions et les cours archivés sont sous Autres cours.',
+    'Choisissez une carte de cours pour voir ses notes. Recherchez un nom ou un code; les autres sessions et les cours archivés sont sous Autres cours.',
   'so far': 'à ce jour',
   'Score needed on each remaining assessment': 'Note nécessaire à chaque évaluation restante',
   'Planning estimate: assumes the same percentage on all remaining work. Your best scores are kept automatically.':
@@ -450,9 +450,9 @@ export const french: Record<string, string> = {
   'This permanently removes this course and its assessments, grades, class schedule, linked tasks and calendar events. This cannot be undone.':
     'Cette action supprime définitivement ce cours ainsi que ses évaluations, notes, horaires, tâches liées et événements du calendrier. Elle est irréversible.',
   'A matching course already exists. Choose the existing course before saving; no new course was created.':
-    'Un cours correspondant existe déjà. Choisissez le cours existant avant d’enregistrer ; aucun nouveau cours n’a été créé.',
+    'Un cours correspondant existe déjà. Choisissez le cours existant avant d’enregistrer; aucun nouveau cours n’a été créé.',
   'Matched your existing course. Review the updates below; a second course will not be created.':
-    'Votre cours existant a été reconnu. Vérifiez les mises à jour ci-dessous ; aucun deuxième cours ne sera créé.',
+    'Votre cours existant a été reconnu. Vérifiez les mises à jour ci-dessous; aucun deuxième cours ne sera créé.',
   'A matching course already exists. Use it to avoid creating a duplicate.':
     'Un cours correspondant existe déjà. Utilisez-le pour éviter de créer un doublon.',
   'Use existing course': 'Utiliser le cours existant',
@@ -473,7 +473,7 @@ export const french: Record<string, string> = {
   'Combined course weight (%)': 'Pondération totale du groupe (%)',
   'Assessments in this group': 'Évaluations de ce groupe',
   'This rule averages the highest score percentages equally and gives the group its combined weight. It replaces the individual weights for these assessments. Ungraded scores stay unknown; enter 0 only for a confirmed zero.':
-    'Cette règle fait la moyenne à poids égaux des meilleurs pourcentages, puis applique la pondération totale du groupe. Elle remplace les pondérations individuelles. Les résultats non reçus restent inconnus ; entrez 0 seulement pour un zéro confirmé.',
+    'Cette règle fait la moyenne à poids égaux des meilleurs pourcentages, puis applique la pondération totale du groupe. Elle remplace les pondérations individuelles. Les résultats non reçus restent inconnus; entrez 0 seulement pour un zéro confirmé.',
   'Confirm and add rule': 'Confirmer et ajouter la règle',
   Best: 'Meilleurs résultats',
   'Remove rule': 'Retirer la règle',
@@ -561,8 +561,8 @@ export const french: Record<string, string> = {
   Terms: 'Conditions d’utilisation',
   and: 'et',
   'Privacy policy': 'Politique de confidentialité',
-  'Forgot your password?': 'Mot de passe oublié ?',
-  'New to Command?': 'Vous découvrez Command ?',
+  'Forgot your password?': 'Mot de passe oublié?',
+  'New to Command?': 'Vous découvrez Command?',
   'Create an account': 'Créer un compte',
   'Back to sign in': 'Retour à la connexion',
   'Sign in': 'Se connecter',
@@ -587,8 +587,8 @@ export const french: Record<string, string> = {
   Through: 'Au',
   'Starts with the current term so old courses stay out. Sync uses this range until you reconnect with different dates.':
     'La période commence par la session actuelle. La synchronisation utilise ces dates jusqu’à ce que vous les changiez en reconnectant le calendrier.',
-  'courses ?': 'cours ?',
-  'deadlines ?': 'échéances ?',
+  'courses?': 'cours?',
+  'deadlines?': 'échéances?',
   'other events in this date range': 'autres événements dans cette période',
   'No events in these dates. Expand the import dates and preview again.':
     'Aucun événement dans cette période. Élargissez les dates et réessayez.',
@@ -597,11 +597,11 @@ export const french: Record<string, string> = {
   'entries.': 'entrées.',
   'Connect and import': 'Connecter et importer',
   'View calendar': 'Voir le calendrier',
-  'imported entries ?': 'entrées importées ?',
+  'imported entries?': 'entrées importées?',
   'Sync now': 'Synchroniser',
   Disconnect: 'Déconnecter',
   'Forget link': 'Oublier le lien',
-  'Forget this calendar link?': 'Oublier ce lien de calendrier ?',
+  'Forget this calendar link?': 'Oublier ce lien de calendrier?',
   'The saved private URL and sync mapping for':
     'Le lien privé et les références de synchronisation de',
   'will be deleted. Imported courses and entries stay in your workspace. Reconnecting after this may create duplicates.':
@@ -645,7 +645,7 @@ export const french: Record<string, string> = {
   'Search, navigate, or add something to your workspace.':
     'Recherchez, naviguez ou ajoutez un élément à votre espace.',
   'Search commands': 'Rechercher une commande',
-  'What would you like to do?': 'Que souhaitez-vous faire ?',
+  'What would you like to do?': 'Que souhaitez-vous faire?',
   Commands: 'Commandes',
   'No matches. Try a course code or task name.':
     'Aucun résultat. Essayez un code de cours ou un nom de tâche.',
@@ -670,10 +670,10 @@ export const french: Record<string, string> = {
   open: 'À faire',
   for: 'pour',
   'Add task': 'Ajouter une tâche',
-  'View all tasks ?': 'Voir toutes les tâches ?',
+  'View all tasks?': 'Voir toutes les tâches?',
   Assessments: 'Évaluations',
   'Your course workspace': 'Votre espace de cours',
-  '1 open task for': '1 tâche ouverte pour',
+  '{count} open task for': '{count} tâche ouverte pour',
   '{count} open tasks for': '{count} tâches ouvertes pour',
   'Every deadline and deliverable, in one place.':
     'Toutes les échéances et les remises au même endroit.',
@@ -780,7 +780,7 @@ export const french: Record<string, string> = {
   'A blank score means ungraded, not zero. Imported assessments start at 0% weight; use Edit details to enter the course weight so they count toward your average.':
     'Un résultat vide signifie non évalué, et non zéro. Les évaluations importées ont une pondération de 0 %. Utilisez Modifier les détails pour les inclure dans votre moyenne.',
   'Grade-entry guide': 'Guide de saisie des notes',
-  '% of course ?': '% du cours ?',
+  '% of course?': '% du cours?',
   'Edit details': 'Modifier les détails',
   'Score received': 'Résultat obtenu',
   'e.g. 18': 'p. ex. 18',
@@ -803,7 +803,7 @@ export const french: Record<string, string> = {
   'Downloads a readable JSON copy of your academic records and preferences, excluding private calendar links. Keep it private. This is not an automatic restore backup.':
     'Télécharge une copie JSON lisible de vos dossiers et préférences, sans les liens privés de calendrier. Gardez-la privée. Ce fichier ne permet pas une restauration automatique.',
   'Erase workspace data': 'Effacer les données',
-  'Erase this workspace?': 'Effacer cet espace ?',
+  'Erase this workspace?': 'Effacer cet espace?',
   'This permanently deletes all courses, grades, notes, tasks, events, semesters, saved calendar links and preferences from the active application database. Calendar syncing stops. This cannot be undone here.':
     'Tous les cours, résultats, notes, tâches, événements, sessions, liens de calendrier et préférences seront définitivement supprimés de la base active. La synchronisation s’arrête. Cette action est irréversible.',
   'Type DELETE MY DATA to confirm': 'Tapez DELETE MY DATA pour confirmer',
@@ -826,7 +826,7 @@ export const french: Record<string, string> = {
   'Create a semester before adding your courses. Its dates also define when weekly classes appear.':
     'Créez une session avant d’ajouter vos cours. Ses dates définissent aussi la période des séances hebdomadaires.',
   'Create your first semester': 'Créer votre première session',
-  'What should we call you?': 'Comment vous appeler ?',
+  'What should we call you?': 'Comment vous appeler?',
   'Optional. A nickname or no name is fine.': 'Facultatif. Un surnom ou aucun nom convient.',
   'Your first name': 'Votre prénom',
   Appearance: 'Apparence',
@@ -861,7 +861,7 @@ export const french: Record<string, string> = {
   'Try again': 'Réessayer',
   'View course assessments': 'Voir les évaluations du cours',
   '1. Import your syllabus': '1. Importer votre plan de cours',
-  'How would you like to import?': 'Comment souhaitez-vous importer ?',
+  'How would you like to import?': 'Comment souhaitez-vous importer?',
   Term: 'Session',
   'Choose a term': 'Choisir une session',
   'Add term': 'Ajouter une session',
@@ -969,7 +969,7 @@ export const french: Record<string, string> = {
   Delete: 'Supprimer',
   Keep: 'Conserver',
   '(required)': '(obligatoire)',
-  'What needs to get done?': 'Que faut-il faire ?',
+  'What needs to get done?': 'Que faut-il faire?',
   'Add context, links, or a little extra detail?':
     'Ajoutez du contexte, des liens ou quelques détails…',
   Subtasks: 'Sous-tâches',
@@ -1018,14 +1018,14 @@ export const french: Record<string, string> = {
   'In Brightspace: Calendar → Settings → Enable Calendar Feeds, then Subscribe → copy the link. Choose all calendars to include all your courses.':
     'Dans Brightspace : Calendrier → Paramètres → Activer les flux, puis S’abonner → copier le lien. Choisissez tous les calendriers pour inclure tous vos cours.',
   'Saving calendar…': 'Enregistrement du calendrier…',
-  'courses ·': 'cours ?',
-  'deadlines ·': 'échéances ?',
+  'courses ·': 'cours?',
+  'deadlines ·': 'échéances?',
   'Disconnected · Saved link retained': 'Déconnecté à Lien conservé',
-  'imported entries ·': 'entrées importées ?',
+  'imported entries ·': 'entrées importées?',
   'more · view day': 'de plus à voir la journée',
   '↑ ↓ to navigate': 'À à pour naviguer',
   '↵ to select': 'À pour sélectionner',
-  'View all tasks →': 'Voir toutes les tâches ?',
+  'View all tasks →': 'Voir toutes les tâches?',
   'You’re all caught up. Add a task when you’re ready.':
     'Tout est à jour. Ajoutez une tâche quand vous le souhaitez.',
   'Saving…': 'Enregistrement…',
@@ -1033,7 +1033,7 @@ export const french: Record<string, string> = {
   'Find a course…': 'Trouver un cours…',
   'Assignment, lab, exam…': 'Devoir, laboratoire, examen…',
   '· Current weighted grade:': 'À Moyenne pondérée actuelle :',
-  '% of course ·': '% du cours ?',
+  '% of course ·': '% du cours?',
   'Command · Local edition · Ontario, Canada': 'Command · Édition locale · Ontario, Canada',
   'Command · Hosted edition · Ontario, Canada': 'Command · Édition hébergée · Ontario, Canada',
   'It does not remove downloaded files, backups, database logs or your provider’s calendar. Download a copy first if you need one.':
@@ -1067,7 +1067,7 @@ export const french: Record<string, string> = {
     'En choisissant Connecter et importer, vous autorisez Command à conserver ce lien privé et à actualiser les données toutes les 15 minutes pendant son fonctionnement. Vous pouvez déconnecter ou oublier le lien ci-dessous à tout moment.',
   'Waiting for first sync': 'En attente de la première synchronisation',
   'Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection.':
-    'Vos résultats et notes sont conservés. Les entrées qui disparaissent du flux restent disponibles ; les annulations explicites sont indiquées. La déconnexion conserve les entrées et le lien pour une reconnexion.',
+    'Vos résultats et notes sont conservés. Les entrées qui disparaissent du flux restent disponibles; les annulations explicites sont indiquées. La déconnexion conserve les entrées et le lien pour une reconnexion.',
   'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ':
     'Vérifie les mises à jour pendant l’utilisation, au plus toutes les 15 minutes par flux. Utilisez Synchroniser pour vérifier immédiatement. ',
   'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ':
@@ -1161,7 +1161,7 @@ export const french: Record<string, string> = {
   'Wander, follow your mouse along the edges, and hop along on page changes. Turn off for a still companion. Your device’s reduced-motion setting is always respected.':
     'Le compagnon se promène sur les bords, suit la souris et saute lors des changements de page. Désactivez cette option pour le garder immobile. Le réglage de réduction des mouvements de votre appareil est toujours respecté.',
   'Clicking Read syllabus or analysing pasted text sends it and the selected course name and term to Command’s reader and its configured AI provider (Google Gemini or OpenAI). No AI account or setup is needed. Command does not keep the original file; provider retention rules apply. Google’s free tier may use uploads to improve its products, so only upload non-sensitive syllabi.':
-    'Un clic sur Lire le plan de cours ou l’analyse de texte envoie son contenu, le cours et la session au lecteur de Command et à son fournisseur d’IA (Google Gemini ou OpenAI). Aucun compte d’IA n’est nécessaire. Command ne conserve pas le fichier original ; les règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut utiliser les documents pour améliorer ses produits : importez uniquement des plans non sensibles.',
+    'Un clic sur Lire le plan de cours ou l’analyse de texte envoie son contenu, le cours et la session au lecteur de Command et à son fournisseur d’IA (Google Gemini ou OpenAI). Aucun compte d’IA n’est nécessaire. Command ne conserve pas le fichier original; les règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut utiliser les documents pour améliorer ses produits : importez uniquement des plans non sensibles.',
   'Connecting to the reader… ': 'Connexion au lecteur… ',
   'Choose a term and, for an existing course, choose the course. ':
     'Choisissez une session et, pour un cours existant, le cours. ',
@@ -1169,7 +1169,7 @@ export const french: Record<string, string> = {
   'No assessments found. Try a clearer PDF or paste the grading and schedule sections, or add rows below.':
     'Aucune évaluation trouvée. Essayez un PDF plus net, collez les sections d’évaluation et d’horaire, ou ajoutez des lignes ci-dessous.',
   'Match calendar imports to existing assessments to avoid duplicates. Matches update only dates and weights; scores, progress, names and notes stay intact. Blank fields preserve existing dates and weights. For new assessments, blank weight means 0% and blank date means no deadline.':
-    'Associez les suggestions aux évaluations existantes pour éviter les doublons. Seules les dates et pondérations sont mises à jour ; résultats, avancement, noms et notes restent intacts. Les champs vides conservent les valeurs existantes. Pour une nouvelle évaluation, une pondération vide vaut 0 % et une date vide signifie aucune échéance.',
+    'Associez les suggestions aux évaluations existantes pour éviter les doublons. Seules les dates et pondérations sont mises à jour; résultats, avancement, noms et notes restent intacts. Les champs vides conservent les valeurs existantes. Pour une nouvelle évaluation, une pondération vide vaut 0 % et une date vide signifie aucune échéance.',
   'Times use your device time zone. A date with no time uses 23:59. Calendar sync can later replace the dates of calendar-linked assessments.':
     'Les heures utilisent le fuseau de votre appareil. Une date sans heure utilise 23 h 59. La synchronisation peut ensuite remplacer les dates des évaluations liées au calendrier.',
   'Not found': 'Introuvable',
@@ -1257,7 +1257,7 @@ export const french: Record<string, string> = {
   'Show password': 'Afficher le mot de passe',
   'Hide password': 'Masquer le mot de passe',
   Hide: 'Masquer',
-  'Sign out of Command?': 'Se déconnecter de Command ?',
+  'Sign out of Command?': 'Se déconnecter de Command?',
   'Stay signed in': 'Rester connecté',
   'Your saved work will stay here. You’ll need to sign in again to open your workspace.':
     'Votre travail enregistré sera conservé. Vous devrez vous reconnecter pour ouvrir votre espace.',
@@ -1322,25 +1322,25 @@ export const french: Record<string, string> = {
   'Add a recurring class to your weekly rhythm.': 'Ajoutez une séance récurrente à votre semaine.',
   'New course': 'Nouveau cours',
   'Create course': 'Créer le cours',
-  'Delete course?': 'Supprimer le cours ?',
+  'Delete course?': 'Supprimer le cours?',
   'Edit task': 'Modifier la tâche',
   'Create task': 'Créer la tâche',
-  'Delete task?': 'Supprimer la tâche ?',
+  'Delete task?': 'Supprimer la tâche?',
   'Edit assessment': 'Modifier l’évaluation',
   'Create assessment': 'Créer l’évaluation',
-  'Delete assessment?': 'Supprimer l’évaluation ?',
+  'Delete assessment?': 'Supprimer l’évaluation?',
   'New event': 'Nouvel événement',
   'Edit event': 'Modifier l’événement',
   'Create event': 'Créer l’événement',
-  'Delete event?': 'Supprimer l’événement ?',
+  'Delete event?': 'Supprimer l’événement?',
   'New semester': 'Nouvelle session',
   'Edit semester': 'Modifier la session',
   'Create semester': 'Créer la session',
-  'Delete semester?': 'Supprimer la session ?',
+  'Delete semester?': 'Supprimer la session?',
   'New class session': 'Nouvelle séance',
   'Edit class session': 'Modifier la séance',
   'Create class session': 'Créer la séance',
-  'Delete class session?': 'Supprimer la séance ?',
+  'Delete class session?': 'Supprimer la séance?',
   'this month': 'ce mois',
   'this week': 'cette semaine',
   'One page at a time. Go at your own pace, or skip anytime.':
@@ -1559,4 +1559,54 @@ export const french: Record<string, string> = {
     'Ouvrez le menu du navigateur, puis choisissez « Ajouter à l’écran d’accueil » ou « Installer l’application ».',
   Install: 'Installer',
   'Dismiss home screen tip': 'Masquer le conseil sur l’écran d’accueil',
+  // French audit (2026-11-18): strings that reached t() without a French entry.
+  'Could not save theme. Try again.': 'Impossible d’enregistrer le thème. Réessayez.',
+  'Unable to load calendars.': 'Impossible de charger les calendriers.',
+  'Saved link forgotten. Your imported entries are still here.':
+    'Lien enregistré oublié. Vos entrées importées sont toujours là.',
+  'Disconnected. Your imported entries are still here.':
+    'Déconnecté. Vos entrées importées sont toujours là.',
+  'https://… or webcal://…': 'https://… ou webcal://…',
+  'Calendar event': 'Événement du calendrier',
+  'Add your first assessment': 'Ajouter votre première évaluation',
+  'Add a class session': 'Ajouter une séance de cours',
+  'Your notes could not be saved. Please try again.':
+    'Vos remarques n’ont pas pu être enregistrées. Veuillez réessayer.',
+  'This change could not be saved. Please try again.':
+    'Cette modification n’a pas pu être enregistrée. Veuillez réessayer.',
+  'Unable to save. Please try again.': 'Enregistrement impossible. Veuillez réessayer.',
+  'Unable to delete. Please try again.': 'Suppression impossible. Veuillez réessayer.',
+  'Could not save this grade.': 'Impossible d’enregistrer cette note.',
+  'Unable to save your preferences. Please try again.':
+    'Impossible d’enregistrer vos préférences. Veuillez réessayer.',
+  'Unable to update this task. Please try again.':
+    'Impossible de modifier cette tâche. Veuillez réessayer.',
+  'Could not reach the syllabus reader. Check your connection and try again.':
+    'Impossible de joindre le lecteur de plans de cours. Vérifiez votre connexion et réessayez.',
+  'The syllabus could not be read.': 'Le plan de cours n’a pas pu être lu.',
+  'Import saved. Refresh this page to see your updated assessments.':
+    'Importation enregistrée. Actualisez la page pour voir vos évaluations à jour.',
+  'The import could not be saved.': 'L’importation n’a pas pu être enregistrée.',
+  'Course created.': 'Cours créé.',
+  'Saved: {created} new assessments and {updated} updated assessments.':
+    'Enregistré : {created} nouvelles évaluations et {updated} évaluations mises à jour.',
+  'Paste your syllabus, for example:\nMidterm 1 — October 20, 2026 at 14:00 — 25%\nAssignment 1 — November 2, 2026 at 23:59 — 10%':
+    'Collez votre plan de cours, par exemple :\nExamen de mi-session 1 — 20 octobre 2026 à 14 h — 25 %\nDevoir 1 — 2 novembre 2026 à 23 h 59 — 10 %',
+  'Keep {weight}': 'Garder {weight}',
+  'Average needed on the remaining {percent}': 'Moyenne nécessaire sur les {percent} restants',
+  'e.g. Assignment 1 · Requirements document': 'p. ex. Devoir 1 · Document des exigences',
+  'e.g. Study session at the library': 'p. ex. Séance d’étude à la bibliothèque',
+  'e.g. Lecture, tutorial, or lab': 'p. ex. Cours magistral, tutorat ou laboratoire',
+  'e.g. SITE 0102': 'p. ex. SITE 0102',
+  'e.g. SEG3101': 'p. ex. SEG3101',
+  'e.g. Software Requirements Analysis': 'p. ex. Analyse des exigences logicielles',
+  'e.g. 45': 'p. ex. 45',
+  'Anything you’d like to remember…': 'Ce que vous voulez retenir…',
+  'Grading rules': 'Règles de notation',
+  Category: 'Catégorie',
+  Page: 'Page',
+  '{name} study buddy': 'Compagnon d’étude {name}',
+  'Study buddy': 'Compagnon d’étude',
+  '{count} active filter': '{count} filtre actif',
+  '{count} active filters': '{count} filtres actifs',
 };

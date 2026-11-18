@@ -3,6 +3,7 @@ import { GradeGroups } from './grade-groups';
 import { GradeList } from './grade-list';
 import { DeleteCourse } from './delete-course';
 import { T, useLanguage, useT } from '@/components/language-provider';
+import { formatNumber, formatPercent } from '@/lib/i18n/format';
 import { translateGradeWarning } from '@/lib/i18n/grade-warnings';
 
 import Link from 'next/link';
@@ -37,8 +38,8 @@ import { statusLabel } from '@/components/editors/fields';
 const tabs = ['Overview', 'Assessments', 'Grades', 'Schedule', 'Notes'] as const;
 type CourseTab = (typeof tabs)[number];
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const percent = (value: number | null) =>
-  value === null ? '—' : `${value.toFixed(1).replace(/\.0$/, '')}%`;
+const percent = (value: number | null, locale: string) =>
+  value === null ? '—' : formatPercent(value, locale);
 const timeLabel = (value: string, hour12: boolean) => {
   const [hours, minutes] = value.split(':').map(Number);
   return new Date(2000, 0, 1, hours, minutes).toLocaleTimeString([], {
@@ -217,7 +218,7 @@ export function CourseDetail({ id }: { id: string }) {
                             · {t(statusLabel(assessment.type))}
                           </p>
                         </div>
-                        <span className="badge">{Number(assessment.weight.toFixed(4))}%</span>
+                        <span className="badge">{t.percent(assessment.weight, 2)}</span>
                         <ArrowUpRight className="muted" size={15} />
                       </button>
                     ))}
@@ -290,10 +291,9 @@ export function CourseDetail({ id }: { id: string }) {
                     <T text="On your to-do list" />
                   </h2>
                   <p className="muted mt-1 text-sm">
-                    {t(tasks.length === 1 ? '1 open task for' : '{count} open tasks for').replace(
-                      '{count}',
-                      String(tasks.length),
-                    )}{' '}
+                    {t(
+                      t.one(tasks.length) ? '{count} open task for' : '{count} open tasks for',
+                    ).replace('{count}', String(tasks.length))}{' '}
                     {course.code}
                   </p>
                 </div>
@@ -393,7 +393,7 @@ function GradeSummary({
           <T text="Current grade" />
         </p>
         <p className="mt-3 text-3xl font-semibold tracking-tight">
-          {percent(grades.currentGrade)}
+          {percent(grades.currentGrade, t.locale)}
           <GradeLetter percent={grades.currentGrade} className="text-xl" />
           <span className="ml-2 text-sm font-normal text-[var(--muted-foreground)]">
             {grades.currentGrade === null ? t('No grades yet') : t('on graded work')}
@@ -409,7 +409,7 @@ function GradeSummary({
           <T text="Course graded" />
         </p>
         <p className="mt-3 text-3xl font-semibold tracking-tight">
-          {percent(grades.completedWeight)}
+          {percent(grades.completedWeight, t.locale)}
         </p>
         <div
           className="mt-4 h-1.5 overflow-hidden rounded-sm bg-[var(--muted)]"
@@ -430,13 +430,13 @@ function GradeSummary({
           <T text="Earned toward final grade" />
         </p>
         <p className="mt-3 text-3xl font-semibold tracking-tight">
-          {grades.earnedPoints.toFixed(1).replace(/\.0$/, '')}
+          {formatNumber(grades.earnedPoints, t.locale)}
           <span className="ml-2 text-sm font-normal text-[var(--muted-foreground)]">
             <T text="/ 100 points" />
           </span>
         </p>
         <p className="muted mt-3 text-xs">
-          {percent(grades.remainingWeight)} <T text="of the course remains ungraded." />
+          {percent(grades.remainingWeight, t.locale)} <T text="of the course remains ungraded." />
         </p>
       </div>
     </div>
@@ -535,9 +535,9 @@ function AssessmentTable({
                   {contributions.has(assessment.id)
                     ? contributions.get(assessment.id)!.rule.name +
                       (contributions.get(assessment.id)!.rule.mode === 'equal'
-                        ? ` · ${Number(assessment.weight.toFixed(4))}%`
+                        ? ` · ${t.percent(assessment.weight, 2)}`
                         : '')
-                    : `${assessment.weight}%`}
+                    : t.percent(assessment.weight, 2)}
                 </td>
                 <td>
                   {assessment.score === null ? (
@@ -548,7 +548,7 @@ function AssessmentTable({
                         {assessment.score} / {assessment.maxScore}
                       </span>
                       <p className="muted mt-1 text-xs">
-                        {percent((assessment.score / assessment.maxScore) * 100)}
+                        {percent((assessment.score / assessment.maxScore) * 100, t.locale)}
                       </p>
                     </>
                   )}
@@ -556,7 +556,7 @@ function AssessmentTable({
                 {grades && (
                   <td>
                     {assessment.score !== null && assessment.status === 'GRADED' ? (
-                      `${((assessment.score / assessment.maxScore) * (contributions.get(assessment.id)?.weight ?? assessment.weight)).toFixed(2)} pts`
+                      `${formatNumber((assessment.score / assessment.maxScore) * (contributions.get(assessment.id)?.weight ?? assessment.weight), t.locale, 2)} pts`
                     ) : (
                       <span className="muted">—</span>
                     )}
@@ -681,7 +681,10 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
                     ? t('Check your target and assessment weights')
                     : result.projection === 'best-of'
                       ? t('Score needed on each remaining assessment')
-                      : `Average needed on the remaining ${percent(result.remainingWeight)}`}
+                      : t('Average needed on the remaining {percent}').replace(
+                          '{percent}',
+                          percent(result.remainingWeight, t.locale),
+                        )}
               </p>
               <p className="mt-2 text-3xl font-semibold tracking-tight">
                 {result.status === 'secured'
@@ -690,7 +693,7 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
                     ? t('Unable to calculate')
                     : result.requiredAverage === null
                       ? t('Out of reach')
-                      : percent(result.requiredAverage)}
+                      : percent(result.requiredAverage, t.locale)}
               </p>
               <p className="muted mt-3 text-sm leading-relaxed">
                 {result.status === 'impossible'
@@ -721,7 +724,8 @@ function GradesPanel({ assessments, course }: { assessments: Assessment[]; cours
               <T text="Your gradebook" />
             </h2>
             <p className="muted mt-1 text-sm">
-              {percent(summary.configuredWeight)} <T text="of course weight configured." />
+              {percent(summary.configuredWeight, t.locale)}{' '}
+              <T text="of course weight configured." />
             </p>
           </div>
           <Button

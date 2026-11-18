@@ -311,7 +311,7 @@ export function GradingRulesEditor({
               {r.mode === 'equal'
                 ? t('Automatic equal split')
                 : `${t('Best')} ${r.keep} / ${r.assessmentIds.length}`}{' '}
-              · {r.weight}%
+              · {t.percent(r.weight, 2)}
             </strong>
             <Button
               type="button"
@@ -334,8 +334,7 @@ export function GradingRulesEditor({
                 {r.assessmentIds.length > 0 && (
                   <>
                     {' '}
-                    · {Number((r.weight / r.assessmentIds.length).toFixed(4))}%{' '}
-                    <T text="each for now" />
+                    · {t.percent(r.weight / r.assessmentIds.length, 2)} <T text="each for now" />
                   </>
                 )}
               </p>
