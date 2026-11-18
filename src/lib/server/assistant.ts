@@ -111,7 +111,7 @@ async function prepare(
       intent.message?.trim() ||
       s(
         'Hey! How’s your day going? What can I help you with?',
-        'Salut ! Comment se passe ta journée ? Comment puis-je t’aider ?',
+        'Bonjour ! Comment se passe votre journée ? Comment puis-je vous aider ?',
       );
     return { reply: { id, status: 'answer', text, context: text } };
   }
@@ -122,7 +122,7 @@ async function prepare(
         intent.question ||
           s(
             'What would you like to plan or record?',
-            'Que souhaites-tu planifier ou enregistrer ?',
+            'Que souhaitez-vous planifier ou enregistrer ?',
           ),
       ),
     };
@@ -138,7 +138,7 @@ async function prepare(
     return {
       reply: clarify(
         id,
-        `${s('Which course do you mean? Use its full code or name.', 'De quel cours parles-tu ? Indique son code complet ou son nom.')}\n${options}`,
+        `${s('Which course do you mean? Use its full code or name.', 'De quel cours parlez-vous ? Indiquez son code complet ou son nom.')}\n${options}`,
       ),
     };
   }
@@ -154,7 +154,7 @@ async function prepare(
           id,
           s(
             'Which course is this for? Use its code or name, like SEG3102.',
-            'C’est pour quel cours ? Indique son code ou son nom, par exemple SEG3102.',
+            'C’est pour quel cours ? Indiquez son code ou son nom, par exemple SEG3102.',
           ),
         ),
       };
@@ -184,7 +184,7 @@ async function prepare(
           id,
           s(
             'Could you clarify what you want to see and the dates? I can check assessments, grades, tasks, classes, events or study sessions.',
-            'Peux-tu préciser ce que tu veux voir et les dates ? Je peux consulter les évaluations, notes, tâches, cours, événements et séances d’étude.',
+            'Pouvez-vous préciser ce que vous voulez voir et les dates ? Je peux consulter les évaluations, notes, tâches, cours, événements et séances d’étude.',
           ),
         ),
       };
@@ -220,7 +220,7 @@ async function prepare(
       return {
         reply: clarify(
           id,
-          s('Choose a date range of up to 31 days.', 'Choisis une période de 31 jours maximum.'),
+          s('Choose a date range of up to 31 days.', 'Choisissez une période de 31 jours maximum.'),
         ),
       };
     }
@@ -257,11 +257,11 @@ async function prepare(
         ? items.length
           ? s(
               `Yes — you have ${items.length} ${noun}${items.length === 1 ? '' : scope === 'classes' ? 'es' : 's'} planned${course ? ` for ${course.code}` : ''} (${dates}).${items.length > 12 ? ' Here are the first 12; the rest are in Calendar.' : ''}`,
-              `J’ai trouvé ${items.length} ${items.length === 1 ? noun : frenchPlural} dans ton planning${course ? ` pour ${course.code}` : ''} (${dates}).${items.length > 12 ? ' Voici les 12 premiers ; le reste figure dans le calendrier.' : ''}`,
+              `J’ai trouvé ${items.length} ${items.length === 1 ? noun : frenchPlural} dans votre planning${course ? ` pour ${course.code}` : ''} (${dates}).${items.length > 12 ? ' Voici les 12 premiers ; le reste figure dans le calendrier.' : ''}`,
             )
           : s(
               `I couldn’t find any ${noun}${scope === 'classes' ? 'es' : 's'} with saved dates${course ? ` for ${course.code}` : ''} in that period (${dates}).${scope === 'study_sessions' ? ' Want to plan one? Tell me a day, time and how long you’d like to study.' : ''}`,
-              `Je n’ai trouvé aucun élément de type « ${noun} » avec une date${course ? ` pour ${course.code}` : ''} pour cette période (${dates}).${scope === 'study_sessions' ? ' On en planifie une ? Indique le jour, l’heure et la durée.' : ''}`,
+              `Je n’ai trouvé aucun élément de type « ${noun} » avec une date${course ? ` pour ${course.code}` : ''} pour cette période (${dates}).${scope === 'study_sessions' ? ' On en planifie une ? Indiquez le jour, l’heure et la durée.' : ''}`,
             )
         : items.length
           ? s(
@@ -297,7 +297,7 @@ async function prepare(
       return {
         reply: clarify(
           id,
-          `${s('Which assessment? Choose its exact name:', 'Quelle évaluation ? Indique son nom exact :')}\n${data.assessments
+          `${s('Which assessment? Choose its exact name:', 'Quelle évaluation ? Indiquez son nom exact :')}\n${data.assessments
             .filter((a) => a.courseId === course.id)
             .slice(0, 25)
             .map((a) => a.name)
@@ -310,7 +310,7 @@ async function prepare(
           id,
           s(
             'What score did you receive, and out of how many points? For example, 9/10.',
-            'Quelle note as-tu obtenue et sur combien ? Par exemple, 9/10.',
+            'Quelle note avez-vous obtenue et sur combien ? Par exemple, 9/10.',
           ),
         ),
       };
@@ -368,7 +368,7 @@ async function prepare(
         id,
         s(
           'Choose a future date, a clear start time and an end time (up to 12 hours). Times during a daylight-saving clock change need a different time.',
-          'Choisis une date future, une heure de début précise et une heure de fin (12 heures maximum). Évite les heures ambiguës lors du changement d’heure.',
+          'Choisissez une date future, une heure de début précise et une heure de fin (12 heures maximum). Évitez les heures ambiguës lors du changement d’heure.',
         ),
       ),
     };
@@ -389,7 +389,7 @@ async function prepare(
         status: 'answer',
         text: s(
           'That study session is already on your calendar.',
-          'Cette séance d’étude figure déjà dans ton calendrier.',
+          'Cette séance d’étude figure déjà dans votre calendrier.',
         ),
         href: '/calendar',
       },
@@ -397,7 +397,7 @@ async function prepare(
   const conflicts = sessionConflicts(data, intent.startLocal!, intent.endLocal!, zone);
   const text = s(
     'You’re all set — your study session is on the calendar.',
-    'C’est prêt — ta séance d’étude est dans le calendrier.',
+    'C’est prêt — votre séance d’étude est dans le calendrier.',
   );
   const sessionDetails = friendlySession(intent.startLocal!, intent.endLocal!, language, zone);
   const plan: Plan = {
@@ -421,7 +421,7 @@ async function prepare(
       id,
       status: conflicts.length ? 'confirm' : 'saved',
       text: conflicts.length
-        ? `${s('You already have something planned at that time. Add this study session anyway?', 'Tu as déjà quelque chose de prévu à cette heure. Ajouter cette séance quand même ?')}\n\n${conflicts.map((c) => `${c.title} · ${friendlySession(c.start, c.end, language, zone)}`).join('\n')}`
+        ? `${s('You already have something planned at that time. Add this study session anyway?', 'Vous avez déjà quelque chose de prévu à cette heure. Ajouter cette séance quand même ?')}\n\n${conflicts.map((c) => `${c.title} · ${friendlySession(c.start, c.end, language, zone)}`).join('\n')}`
         : text,
       items: [{ title, detail: sessionDetails, href: '/calendar' }],
       href: '/calendar',

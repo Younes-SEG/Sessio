@@ -220,7 +220,7 @@ export function AssistantPanel() {
         body: JSON.stringify(body),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || s('Please try again.', 'Réessaie.'));
+      if (!response.ok) throw new Error(result.error || s('Please try again.', 'Veuillez réessayer.'));
       const reply = result as AssistantReply;
       setEntries((current) => {
         const entry: Entry = { key: reply.id, role: 'assistant', text: reply.text, reply };
@@ -256,7 +256,7 @@ export function AssistantPanel() {
       setError(
         failure instanceof Error
           ? failure.message
-          : s('Unable to send. Try again.', 'Envoi impossible. Réessaie.'),
+          : s('Unable to send. Try again.', 'Envoi impossible. Veuillez réessayer.'),
       );
       setRetry(body); // Retry the same ID; the server cannot apply it twice.
     } finally {
@@ -273,7 +273,7 @@ export function AssistantPanel() {
       setError(
         s(
           'Confirm or cancel the pending change first.',
-          'Confirme ou annule d’abord la modification en attente.',
+          'Confirmez ou annulez d’abord la modification en attente.',
         ),
       );
       return;
@@ -346,7 +346,7 @@ export function AssistantPanel() {
           <DialogDescription>
             {s(
               'Your week, your study plans, your grades.',
-              'Ta semaine, tes séances d’étude, tes notes.',
+              'Votre semaine, vos séances d’étude, vos notes.',
             )}
           </DialogDescription>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -394,7 +394,7 @@ export function AssistantPanel() {
             <div id="assistant-history" className="assistant-history">
               {!chats.length && (
                 <p>
-                  {s('Your conversations will appear here.', 'Tes conversations apparaîtront ici.')}
+                  {s('Your conversations will appear here.', 'Vos conversations apparaîtront ici.')}
                 </p>
               )}
               {chats.map((chat) => (
@@ -467,7 +467,7 @@ export function AssistantPanel() {
               <h3 className="assistant-welcome-title">
                 {s(
                   'What would make today a little easier?',
-                  'Comment rendre ta journée un peu plus facile ?',
+                  'Comment rendre votre journée un peu plus facile ?',
                 )}
               </h3>
               <div className="assistant-examples">
@@ -502,7 +502,7 @@ export function AssistantPanel() {
               <p className="assistant-welcome-hint">
                 {s(
                   'Pick an example to edit before sending. Changes show a result and an Undo button.',
-                  'Choisis un exemple à modifier avant l’envoi. Chaque modification affiche son résultat et un bouton Annuler.',
+                  'Choisissez un exemple à modifier avant l’envoi. Chaque modification affiche son résultat et un bouton Annuler.',
                 )}
               </p>
             </div>
@@ -584,7 +584,7 @@ export function AssistantPanel() {
                       <span className="text-xs text-muted-foreground">
                         {s(
                           'Action expired. Open the entry to make changes.',
-                          'Action expirée. Ouvre l’élément pour le modifier.',
+                          'Action expirée. Ouvrez l’élément pour le modifier.',
                         )}
                       </span>
                     )}
@@ -627,7 +627,7 @@ export function AssistantPanel() {
             <p role="alert" className="mb-3 text-sm text-destructive">
               {s(
                 'Gemini isn’t configured yet. See Ask Command in the user guide.',
-                'Gemini n’est pas encore configuré. Consulte le guide.',
+                'Gemini n’est pas encore configuré. Consultez le guide.',
               )}
             </p>
           )}
@@ -660,7 +660,7 @@ export function AssistantPanel() {
               onChange={(event) => setInput(event.target.value)}
               placeholder={s(
                 'Ask about your week or tell me what to save…',
-                'Pose une question ou indique quoi enregistrer…',
+                'Posez une question ou indiquez quoi enregistrer…',
               )}
               className="assistant-input"
               onKeyDown={(event) => {
@@ -686,11 +686,11 @@ export function AssistantPanel() {
             {hosted
               ? s(
                   'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini through Command’s paid API access. Grade numbers are calculated by Command, not the AI.',
-                  'Les conversations sont enregistrées dans ton espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini par l’accès payant de Command. Les notes sont calculées par Command, pas par l’IA.',
+                  'Les conversations sont enregistrées dans votre espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini par l’accès payant de Command. Les notes sont calculées par Command, pas par l’IA.',
                 )
               : s(
                   'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini. Avoid personal or confidential information on the free tier.',
-                  'Les conversations sont enregistrées dans ton espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini. Évite les renseignements personnels ou confidentiels avec le niveau gratuit.',
+                  'Les conversations sont enregistrées dans votre espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini. Évitez les renseignements personnels ou confidentiels avec le niveau gratuit.',
                 )}{' '}
             <Link href="/legal/privacy" onClick={() => setOpen(false)} className="underline">
               {s('Privacy details', 'Détails de confidentialité')}

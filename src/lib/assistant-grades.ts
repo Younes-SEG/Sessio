@@ -57,7 +57,7 @@ function scaleNote(profile: SchoolProfile | null, language: string) {
   return say(
     language,
     ` Letters use the ${profile.name} profile; your course outline is the final word.`,
-    ` Les lettres suivent le profil de ${schoolName(profile, 'fr')} ; ton plan de cours a le dernier mot.`,
+    ` Les lettres suivent le profil de ${schoolName(profile, 'fr')} ; votre plan de cours a le dernier mot.`,
   );
 }
 
@@ -129,7 +129,7 @@ function overview(
     return {
       text: s(
         'You don’t have any recorded grades in your current courses yet, so there’s no average to show.',
-        'Tu n’as encore aucune note enregistrée dans tes cours actuels, donc pas de moyenne à afficher.',
+        'Vous n’avez encore aucune note enregistrée dans vos cours actuels, donc pas de moyenne à afficher.',
       ),
       href: '/grades',
     };
@@ -181,11 +181,11 @@ function overview(
       (weighted
         ? s(
             `Your ${weightUnit(profile!, 'en')}-weighted semester average is ${pct(average, language)}${gradeSuffix(average, profile)}, with an estimated ${profile!.gpa!.label} of ${fmt(gpa!, language)}/${fmt(profile!.gpa!.max, language)}. `,
-            `Ta moyenne de session pondérée selon les ${weightUnit(profile!, 'fr')} est de ${pct(average, language)}${gradeSuffix(average, profile)}, avec une ${profile!.gpa!.label} estimée de ${fmt(gpa!, language)}/${fmt(profile!.gpa!.max, language)}. `,
+            `Votre moyenne de session pondérée selon les ${weightUnit(profile!, 'fr')} est de ${pct(average, language)}${gradeSuffix(average, profile)}, avec une ${profile!.gpa!.label} estimée de ${fmt(gpa!, language)}/${fmt(profile!.gpa!.max, language)}. `,
           )
         : s(
             `Your equal-weight average across ${standing.graded} course${standing.graded === 1 ? '' : 's'} with grades is ${pct(average, language)}${gradeSuffix(average, profile)}. `,
-            `Ta moyenne non pondérée sur ${standing.graded} cours notés est de ${pct(average, language)}${gradeSuffix(average, profile)}. `,
+            `Votre moyenne non pondérée sur ${standing.graded} cours notés est de ${pct(average, language)}${gradeSuffix(average, profile)}. `,
           )) +
       explanation +
       floorNote +
@@ -218,7 +218,7 @@ function current(
     return {
       text: s(
         `${course.code} has no recorded grades yet. Once a weighted assessment is graded, I can work out your standing.`,
-        `${course.code} n’a encore aucune note enregistrée. Dès qu’une évaluation pondérée est corrigée, je peux calculer où tu en es.`,
+        `${course.code} n’a encore aucune note enregistrée. Dès qu’une évaluation pondérée est corrigée, je peux calculer où vous en êtes.`,
       ),
       href: `/courses/${course.id}`,
     };
@@ -229,7 +229,7 @@ function current(
     text:
       s(
         `You’re at ${pct(summary.currentGrade, language)}${gradeSuffix(summary.currentGrade, profile)} in ${course.code}, based on the ${pct(summary.completedWeight, language)} of the course graded so far. You’ve locked in ${fmt(summary.earnedPoints, language)} of 100 course points, with ${pct(summary.remainingWeight, language)} still to come.`,
-        `Tu as ${pct(summary.currentGrade, language)}${gradeSuffix(summary.currentGrade, profile)} en ${course.code}, selon les ${pct(summary.completedWeight, language)} du cours déjà corrigés. Tu as obtenu ${fmt(summary.earnedPoints, language)} points sur 100, et il reste ${pct(summary.remainingWeight, language)} du cours.`,
+        `Vous avez ${pct(summary.currentGrade, language)}${gradeSuffix(summary.currentGrade, profile)} en ${course.code}, selon les ${pct(summary.completedWeight, language)} du cours déjà corrigés. Vous avez obtenu ${fmt(summary.earnedPoints, language)} points sur 100, et il reste ${pct(summary.remainingWeight, language)} du cours.`,
       ) +
       warning +
       scaleNote(profile, language),
@@ -242,7 +242,7 @@ function invalid(course: Course, language: string, reason?: string): Answer {
     text: say(
       language,
       `I can’t calculate a reliable target for ${course.code} yet.${reason ? ` ${reason}` : ''} Check its weights and scores on the course page.`,
-      `Je ne peux pas encore calculer d’objectif fiable pour ${course.code}.${reason ? ` ${reason}` : ''} Vérifie les pondérations et les notes sur la page du cours.`,
+      `Je ne peux pas encore calculer d’objectif fiable pour ${course.code}.${reason ? ` ${reason}` : ''} Vérifiez les pondérations et les notes sur la page du cours.`,
     ),
     href: `/courses/${course.id}`,
   };
@@ -262,7 +262,7 @@ function overall(data: AssistantWorkspace, course: Course, goal: Goal, language:
     return {
       text: s(
         `Good news: you’ve already secured ${goalText} in ${course.code}. Even with zero on everything left, you’d finish at or above it.`,
-        `Bonne nouvelle : tu as déjà obtenu ${goalText} en ${course.code}. Même avec zéro sur ce qui reste, tu finirais au-dessus.`,
+        `Bonne nouvelle : vous avez déjà obtenu ${goalText} en ${course.code}. Même avec zéro sur ce qui reste, vous finiriez au-dessus.`,
       ),
       href,
     };
@@ -277,7 +277,7 @@ function overall(data: AssistantWorkspace, course: Course, goal: Goal, language:
   return {
     text: s(
       `To finish ${course.code} with ${goalText}, you need an average of ${pct(up(result.requiredAverage!), language)} on the remaining ${pct(result.remainingWeight, language)} of the course. ${result.assumption}`,
-      `Pour terminer ${course.code} avec ${goalText}, il te faut une moyenne de ${pct(up(result.requiredAverage!), language)} sur les ${pct(result.remainingWeight, language)} du cours qui restent. ${result.assumption}`,
+      `Pour terminer ${course.code} avec ${goalText}, il vous faut une moyenne de ${pct(up(result.requiredAverage!), language)} sur les ${pct(result.remainingWeight, language)} du cours qui restent. ${result.assumption}`,
     ),
     href,
   };
@@ -298,7 +298,7 @@ function onAssessment(
     return {
       text: s(
         `I couldn’t find “${name}” in ${course.code}. Which assessment do you mean?`,
-        `Je n’ai pas trouvé « ${name} » dans ${course.code}. De quelle évaluation parles-tu ?`,
+        `Je n’ai pas trouvé « ${name} » dans ${course.code}. De quelle évaluation parlez-vous ?`,
       ),
       href,
     };
@@ -341,7 +341,7 @@ function onAssessment(
     others.length || missing > EPSILON
       ? s(
           ` This assumes you keep your current ${pct(assumed, language)} on the other remaining work.`,
-          ` On suppose que tu gardes ton ${pct(assumed, language)} actuel sur les autres travaux restants.`,
+          ` On suppose que vous gardez votre ${pct(assumed, language)} actuel sur les autres travaux restants.`,
         )
       : '';
   if (finalAt(0) >= goal.value - EPSILON)
@@ -349,7 +349,7 @@ function onAssessment(
       text:
         s(
           `You’d finish ${course.code} with at least ${goalText} even with zero on ${focus.name}.`,
-          `Tu finirais ${course.code} avec au moins ${goalText} même avec zéro à ${focus.name}.`,
+          `Vous finiriez ${course.code} avec au moins ${goalText} même avec zéro à ${focus.name}.`,
         ) + assumption,
       href,
     };
@@ -386,7 +386,7 @@ function onAssessment(
     text:
       s(
         `To finish ${course.code} with ${goalText}, you need at least ${pct(needed, language)}${raw} on ${focus.name}.`,
-        `Pour terminer ${course.code} avec ${goalText}, il te faut au moins ${pct(needed, language)}${raw} à ${focus.name}.`,
+        `Pour terminer ${course.code} avec ${goalText}, il vous faut au moins ${pct(needed, language)}${raw} à ${focus.name}.`,
       ) + assumption,
     href,
   };
@@ -411,8 +411,8 @@ export function gradeStatusAnswer(
           ? `“${requested.unsupported}” is not defined as a target in the ${profile.name} profile. What final percentage do you want to aim for in ${course.code}?`
           : `I don’t have a letter or pass scale for your school. What final percentage do you want to aim for in ${course.code}?`,
         profile
-          ? `« ${requested.unsupported} » n’est pas défini comme objectif dans le profil de ${schoolName(profile, 'fr')}. Quel pourcentage final veux-tu viser en ${course.code} ?`
-          : `Je n’ai pas de barème de lettres ou de réussite pour ton établissement. Quel pourcentage final veux-tu viser en ${course.code} ?`,
+          ? `« ${requested.unsupported} » n’est pas défini comme objectif dans le profil de ${schoolName(profile, 'fr')}. Quel pourcentage final voulez-vous viser en ${course.code} ?`
+          : `Je n’ai pas de barème de lettres ou de réussite pour votre établissement. Quel pourcentage final voulez-vous viser en ${course.code} ?`,
       ),
       href: `/courses/${course.id}`,
     };

@@ -111,8 +111,8 @@ export const french: Record<string, string> = {
   'Gmail connections are not available for this account yet.':
     'La connexion Gmail n’est pas encore disponible pour ce compte.',
   'AI is paused. Your planner is still available.':
-    'L’IA est en pause. Ton agenda reste disponible.',
-  'AI is busy. Please try again shortly.': 'L’IA est occupée. Réessaie dans un instant.',
+    'L’IA est en pause. Votre agenda reste disponible.',
+  'AI is busy. Please try again shortly.': 'L’IA est occupée. Veuillez réessayer dans un instant.',
   'AI allowances are not configured.':
     'Les limites d’utilisation de l’IA ne sont pas encore configurées.',
   'This AI model is not enabled.': 'Ce modèle d’IA n’est pas activé.',

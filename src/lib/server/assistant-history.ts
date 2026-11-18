@@ -58,7 +58,7 @@ export async function readAssistantChat(id: string, language = 'en') {
             ? say(
                 language,
                 'This request could not finish. You can send it again.',
-                'Cette demande n’a pas abouti. Tu peux la renvoyer.',
+                'Cette demande n’a pas abouti. Vous pouvez la renvoyer.',
               )
             : say(
                 language,

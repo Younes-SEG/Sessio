@@ -205,7 +205,7 @@ export function nextAssessmentAnswer(
       text: say(
         language,
         `I couldn’t find an upcoming ${noun}${intent.fromDate || intent.toDate ? ' in that date range' : ' with a saved date'}.${missing} You can check or add its date in your course.`,
-        `Je n’ai pas trouvé de ${noun} à venir${intent.fromDate || intent.toDate ? ' pour cette période' : ' avec une date enregistrée'}.${missing} Tu peux vérifier ou ajouter sa date dans ton cours.`,
+        `Je n’ai pas trouvé de ${noun} à venir${intent.fromDate || intent.toDate ? ' pour cette période' : ' avec une date enregistrée'}.${missing} Vous pouvez vérifier ou ajouter sa date dans votre cours.`,
       ),
       href: courseId ? `/courses/${courseId}` : '/courses',
     };
@@ -217,8 +217,8 @@ export function nextAssessmentAnswer(
         ? `You have ${tied.length} matching assessments scheduled at the same time.${missing}`
         : `Here’s your next ${noun}.${missing}`,
       tied.length > 1
-        ? `Tu as ${tied.length} évaluations correspondantes prévues en même temps.${missing}`
-        : `Voici ton prochain ${noun}.${missing}`,
+        ? `Vous avez ${tied.length} évaluations correspondantes prévues en même temps.${missing}`
+        : `Voici votre prochain ${noun}.${missing}`,
     ),
     items: tied.map((a) => ({
       title: `${visible.find((c) => c.id === a.courseId)!.code} · ${a.name}`,
