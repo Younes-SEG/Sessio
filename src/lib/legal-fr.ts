@@ -1,6 +1,6 @@
 import type { LegalDocument, LegalText } from './legal';
 
-export const policyUpdatedFr = '16 novembre 2026';
+export const policyUpdatedFr = '19 novembre 2026';
 
 // Same documents, sections and paragraph counts as legal.ts, in the same order.
 export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
@@ -30,14 +30,14 @@ export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
       {
         title: 'Où vos renseignements sont traités',
         paragraphs: [
-          'Command hébergé s’appuie sur ces fournisseurs de services, qui traitent des renseignements pour notre compte : Vercel exécute l’application (États-Unis, région de Washington, D.C.); Neon stocke la base de données et gère la connexion (États-Unis, Virginie); Render exécute le lecteur de plans de cours (États-Unis, Ohio); Google fournit l’IA Gemini utilisée par Ask Command et la lecture des plans de cours (États-Unis et autres emplacements de Google). Les fournisseurs de calendrier que vous connectez, comme Brightspace, reçoivent des requêtes de notre serveur.',
+          'Command hébergé s’appuie sur ces fournisseurs de services, qui traitent des renseignements pour notre compte : Render exécute l’application (États-Unis, Virginie) et le lecteur de plans de cours (États-Unis, Ohio); Neon stocke la base de données et gère la connexion (États-Unis, Virginie); Google fournit l’IA Gemini utilisée par Ask Command et la lecture des plans de cours (États-Unis et autres emplacements de Google). Les fournisseurs de calendrier que vous connectez, comme Brightspace, reçoivent des requêtes de notre serveur.',
           'Comme ces fournisseurs sont situés hors du Canada, vos renseignements sont stockés et traités aux États-Unis et peuvent être soumis aux lois de ce pays, y compris à l’accès légal de ses tribunaux et autorités. Nous avons choisi des fournisseurs aux pratiques de sécurité solides, limitons ce que chacun reçoit et avons évalué ces transferts avant d’offrir le service aux étudiants du Québec.',
         ],
       },
       {
         title: 'Votre espace de travail et votre compte',
         paragraphs: [
-          'Votre espace de travail est stocké dans PostgreSQL. Dans l’édition locale, cette base de données se trouve sur votre ordinateur et aucun compte n’est requis. Dans l’édition hébergée, Vercel traite les requêtes de l’application et Neon stocke les données de l’espace de travail. Des vérifications de propriété côté serveur limitent l’accès à l’espace de travail au compte connecté. Cela n’empêche pas l’accès par les exploitants autorisés du service ou par les fournisseurs d’infrastructure.',
+          'Votre espace de travail est stocké dans PostgreSQL. Dans l’édition locale, cette base de données se trouve sur votre ordinateur et aucun compte n’est requis. Dans l’édition hébergée, Render traite les requêtes de l’application et Neon stocke les données de l’espace de travail. Des vérifications de propriété côté serveur limitent l’accès à l’espace de travail au compte connecté. Cela n’empêche pas l’accès par les exploitants autorisés du service ou par les fournisseurs d’infrastructure.',
           'La connexion à l’édition hébergée utilise Neon Auth pour traiter votre courriel, votre nom facultatif, l’authentification par mot de passe et les sessions. Les courriels de vérification et de réinitialisation du mot de passe sont transactionnels, et non publicitaires. Command ne stocke pas de mots de passe en clair dans les tables de l’espace de travail. Un identifiant de compte vérifié relie votre espace de travail à votre connexion. Aucune date de naissance, aucun numéro d’étudiant, aucun renseignement de paiement ni profil marketing n’est requis.',
         ],
       },
@@ -60,7 +60,7 @@ export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
       {
         title: 'Connexions de calendrier',
         paragraphs: [
-          'Prévisualiser un abonnement envoie le lien au serveur Command de votre édition, qui demande le calendrier à son fournisseur. Pour l’édition hébergée, Vercel traite donc le lien privé et Neon le stocke après la connexion. Le fournisseur de calendrier reçoit la requête et peut journaliser l’adresse réseau du serveur et l’identifiant du flux. Les données d’aperçu ne sont enregistrées que si vous choisissez Connecter et importer.',
+          'Prévisualiser un abonnement envoie le lien au serveur Command de votre édition, qui demande le calendrier à son fournisseur. Pour l’édition hébergée, Render traite donc le lien privé et Neon le stocke après la connexion. Le fournisseur de calendrier reçoit la requête et peut journaliser l’adresse réseau du serveur et l’identifiant du flux. Les données d’aperçu ne sont enregistrées que si vous choisissez Connecter et importer.',
           'Connecter un calendrier enregistre l’URL privée du flux, les dates et le fuseau horaire choisis, les entrées importées, l’état de synchronisation ainsi que la date et la version de l’avis de connexion accepté. Les serveurs locaux vérifient environ toutes les 15 minutes pendant leur fonctionnement. Les connexions hébergées sont vérifiées lorsque vous utilisez l’application, au plus une fois toutes les 15 minutes automatiquement, ou lorsque vous demandez une synchronisation manuelle. Les liens de flux peuvent donner accès au calendrier; ne les publiez pas et ne les partagez pas.',
           'Déconnecter arrête les vérifications, mais conserve le lien pour une reconnexion. Oublier le lien supprime la connexion enregistrée et la correspondance de synchronisation, tout en conservant les entrées scolaires importées. Vous pouvez supprimer ces entrées une à une ou effacer votre espace de travail. Réimporter une connexion oubliée peut créer des doublons.',
         ],

@@ -1,4 +1,4 @@
-export const policyUpdated = 'November 16, 2026';
+export const policyUpdated = 'November 19, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
 export type LegalText = {
@@ -36,14 +36,14 @@ export const legalDocuments = {
       {
         title: 'Where your information is processed',
         paragraphs: [
-          'Hosted Command relies on these service providers, which process information on our behalf: Vercel runs the application (United States, Washington, D.C. region); Neon stores the database and handles sign-in (United States, Virginia); Render runs the syllabus reader (United States, Ohio); and Google provides the Gemini AI used by Ask Command and syllabus reading (United States and other Google locations). Calendar providers you connect, such as Brightspace, receive requests from our server.',
+          'Hosted Command relies on these service providers, which process information on our behalf: Render runs the application (United States, Virginia) and the syllabus reader (United States, Ohio); Neon stores the database and handles sign-in (United States, Virginia); and Google provides the Gemini AI used by Ask Command and syllabus reading (United States and other Google locations). Calendar providers you connect, such as Brightspace, receive requests from our server.',
           'Because these providers are outside Canada, your information is stored and processed in the United States and can be subject to the laws of that country, including lawful access by its courts and authorities. We chose providers with strong security practices, limit what each one receives, and assessed these transfers before offering the service to students in Quebec.',
         ],
       },
       {
         title: 'Your workspace and account',
         paragraphs: [
-          'Your workspace is stored in PostgreSQL. In the local edition that database is on your computer and no account is required. In the hosted edition, Vercel processes application requests and Neon stores workspace data. Server-side ownership checks restrict workspace access to the signed-in account. This does not prevent access by authorized service operators or infrastructure providers.',
+          'Your workspace is stored in PostgreSQL. In the local edition that database is on your computer and no account is required. In the hosted edition, Render processes application requests and Neon stores workspace data. Server-side ownership checks restrict workspace access to the signed-in account. This does not prevent access by authorized service operators or infrastructure providers.',
           'Hosted sign-in uses Neon Auth to process your email, optional name, password authentication and sessions. Verification and password-reset emails are transactional, not marketing. Command does not store plaintext passwords in its workspace tables. A verified account identifier links your workspace to your login. No date of birth, student ID, payment details or marketing profile is required.',
         ],
       },
@@ -66,7 +66,7 @@ export const legalDocuments = {
       {
         title: 'Calendar connections',
         paragraphs: [
-          'Previewing a subscription sends the link to the Command server running your edition, which requests the calendar from its provider. For the hosted edition this means Vercel processes the private link and Neon stores it after connection. The calendar provider receives the request and may log the server network address and feed credential. Preview data is not saved unless you choose Connect and import.',
+          'Previewing a subscription sends the link to the Command server running your edition, which requests the calendar from its provider. For the hosted edition this means Render processes the private link and Neon stores it after connection. The calendar provider receives the request and may log the server network address and feed credential. Preview data is not saved unless you choose Connect and import.',
           'Connecting saves the private feed URL, selected dates and time zone, imported entries, sync status and the date and version of the connection notice you accepted. Local servers check about every 15 minutes while running. Hosted connections are checked when you use the app, at most once per 15 minutes automatically, or when you ask for a manual sync. Feed links can grant calendar access; do not publish or share them.',
           'Disconnect stops checks but keeps the link for reconnection. Forget link removes the saved connection and sync mapping while keeping imported academic entries. You can delete those entries individually or erase your workspace. Reimporting a forgotten connection can create duplicates.',
         ],

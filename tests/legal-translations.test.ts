@@ -32,8 +32,11 @@ describe('French legal documents', () => {
       doc.sections.flatMap((s) => s.paragraphs).join(' ');
     const en = flat(legalDocuments.privacy);
     const fr = flat(legalDocumentsFr.privacy);
-    for (const place of ['Washington, D.C.', 'Virginia', 'Ohio']) expect(en).toContain(place);
-    for (const place of ['Washington, D.C.', 'Virginie', 'Ohio']) expect(fr).toContain(place);
+    for (const place of ['Virginia', 'Ohio']) expect(en).toContain(place);
+    for (const place of ['Virginie', 'Ohio']) expect(fr).toContain(place);
+    // The app moved from Vercel (Washington, D.C.) to Render (Virginia) on 2026-11-19.
+    expect(en).not.toContain('Vercel');
+    expect(fr).not.toContain('Vercel');
     expect(en).toContain('at least 18');
     expect(fr).toContain('au moins 18 ans');
   });
