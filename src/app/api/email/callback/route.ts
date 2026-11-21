@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   const response = isHosted()
     ? NextResponse.redirect(new URL(destination, origin))
     : new NextResponse(
-        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="refresh" content="0;url=${destination}"><title>Returning to Command</title></head><body><p>Returning to Command… <a href="${destination}">Continue</a></p></body></html>`,
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta http-equiv="refresh" content="0;url=${destination}"><title>Returning to Sessio</title></head><body><p>Returning to Sessio… <a href="${destination}">Continue</a></p></body></html>`,
         {
           headers: {
             'Content-Type': 'text/html; charset=utf-8',

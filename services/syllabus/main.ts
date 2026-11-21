@@ -37,7 +37,7 @@ const server = createSyllabusServer({
     (localReader || (process.env.COMMAND_READER_SIGNING_SECRET?.length || 0) >= 32),
 });
 server.listen(number('PORT', 8080, 65535), process.env.SYLLABUS_BIND || '127.0.0.1', () => {
-  console.log('Command syllabus service started. Request content logging is disabled.');
+  console.log('Sessio syllabus service started. Request content logging is disabled.');
 });
 function close() {
   clearInterval(pruning);

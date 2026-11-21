@@ -71,7 +71,7 @@ export function calendarNetworkMessage(error: unknown): string {
   }
   collect(error);
   if (codes.has('EACCES') || codes.has('EPERM'))
-    return 'Command’s server is blocked from accessing the internet. Restart Command outside a restricted development session and check its network permissions. Pasting the link again will not fix this.';
+    return 'Sessio’s server is blocked from accessing the internet. Restart Sessio outside a restricted development session and check its network permissions. Pasting the link again will not fix this.';
   if (codes.has('ENOTFOUND') || codes.has('EAI_AGAIN'))
     return 'The calendar server’s address could not be resolved. Check your internet connection and that the subscription link was copied completely.';
   if (

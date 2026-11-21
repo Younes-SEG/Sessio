@@ -169,7 +169,7 @@ export async function readSyllabusThroughService(
       throw new ApiError(504, 'Reading took too long. Try a shorter syllabus. Nothing was saved.');
     throw new ApiError(
       502,
-      'Command could not reach the syllabus reader or received an incomplete response. Check your connection and try again. Nothing was saved.',
+      'Sessio could not reach the syllabus reader or received an incomplete response. Check your connection and try again. Nothing was saved.',
     );
   } finally {
     reading = false;

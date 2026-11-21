@@ -39,7 +39,7 @@ export function courseSummary(data: Pick<Workspace, 'assessments'>, course: Cour
 }
 
 /**
- * The multi-course semester overview shared by the Grades page and Ask Command. A school's
+ * The multi-course semester overview shared by the Grades page and Ask Sessio. A school's
  * averaging floor applies here only; each course keeps its own grade. The GPA is credit-weighted
  * only when the school defines a GPA scale, a credit unit, points for every grade, and every
  * graded course has credits; otherwise courses count equally and no GPA is shown.

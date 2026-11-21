@@ -21,7 +21,7 @@ export async function beginGmail(body: unknown, origin: string | null) {
   z.object({ consent: z.literal(GMAIL_NOTICE) }).parse(body);
   const config = requireGmailConfig();
   if (origin !== config.origin)
-    throw new ApiError(400, 'Open Command at the address configured for Gmail before connecting.');
+    throw new ApiError(400, 'Open Sessio at the address configured for Gmail before connecting.');
   const state = randomBytes(32).toString('base64url');
   const verifier = randomBytes(32).toString('base64url');
   await db.gmailOAuthState.deleteMany({ where: { expiresAt: { lt: new Date() } } });

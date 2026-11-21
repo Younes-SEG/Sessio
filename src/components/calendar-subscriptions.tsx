@@ -130,7 +130,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
   const setup = Boolean(onConnected);
   const fullNotice = (
     <p id={setup ? undefined : 'calendar-preview-notice'} className="muted text-xs leading-relaxed">
-      <T text="Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Command is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access." />{' '}
+      <T text="Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Sessio is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access." />{' '}
       {data.hosted &&
         t(
           'Your private link is stored in your online workspace and fetched by the hosted server. ',
@@ -145,10 +145,10 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
     <p className="muted text-xs leading-relaxed">
       {data.hosted
         ? t(
-            'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ',
+            'Checks for updates while you use Sessio, at most every 15 minutes per feed. Use Sync now for an immediate check. ',
           )
         : t(
-            'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ',
+            'Checks every 15 minutes while the Sessio server is running, even if you close this tab. Catches up after restart. ',
           )}
       <T text="Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection." />
     </p>
@@ -198,7 +198,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
                 // First-run setup keeps one short notice visible; the full text sits in
                 // "How this works" below, and Settings → Calendar still shows everything.
                 <p id="calendar-preview-notice" className="muted text-xs leading-relaxed">
-                  <T text="Command keeps this private link to refresh your deadlines. Use only a link you are authorized to access." />{' '}
+                  <T text="Sessio keeps this private link to refresh your deadlines. Use only a link you are authorized to access." />{' '}
                   <Link className="underline" href="/legal/privacy">
                     <T text="Calendar privacy details" />
                   </Link>
@@ -353,7 +353,7 @@ export function CalendarSubscriptions({ onConnected }: { onConnected?: () => voi
                   <T text="Matching courses are reused; missing courses are created. Deadlines become assessments with no grade and 0% weight until you fill those in. Availability notices stay calendar events." />
                 </p>
                 <p id="calendar-connect-notice" className="text-sm leading-relaxed">
-                  <T text="By choosing Connect and import, you authorize Command to store this private link and import and refresh its calendar data every 15 minutes while running. You can disconnect or forget it below at any time." />
+                  <T text="By choosing Connect and import, you authorize Sessio to store this private link and import and refresh its calendar data every 15 minutes while running. You can disconnect or forget it below at any time." />
                   {data.hosted && ' Hosted automatic checks depend on using the app.'}
                 </p>
                 <Button

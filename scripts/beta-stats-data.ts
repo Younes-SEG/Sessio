@@ -67,14 +67,14 @@ export const FUNNEL_LABELS: Record<FunnelStep, string> = {
   calendar: 'connected a calendar',
   gmail: 'connected Gmail',
   ownTask: 'created their own task',
-  chat: 'used Ask Command',
+  chat: 'used Ask Sessio',
 };
 
 const TOTAL_KEYS = ['courses', 'assessments', 'grades', 'ownTasks', 'chats30'] as const;
 type TotalKey = (typeof TOTAL_KEYS)[number];
 
 // Activity = something only an open, signed-in app causes: a chat message, a task the student
-// wrote, or a Gmail/calendar check (both run only while Command is open).
+// wrote, or a Gmail/calendar check (both run only while Sessio is open).
 const SQL = `
 WITH ws AS (
   SELECT s."workspaceId" AS id, s."createdAt" FROM "Settings" s
@@ -198,11 +198,11 @@ export function formatBetaStats(stats: BetaStats) {
   const line = (label: string, value: number, of = stats.workspaces) =>
     `  ${label.padEnd(width)}  ${String(value).padStart(5)}  ${percent(value, of).padStart(4)}`;
   return [
-    `Command beta stats (counts only) - ${stats.generatedAt}`,
+    `Sessio beta stats (counts only) - ${stats.generatedAt}`,
     '',
     `Workspaces: ${stats.workspaces} (accounts being deleted are excluded)`,
     `Active in the last 7 days: ${stats.active.days7} - last 30 days: ${stats.active.days30}`,
-    '  (active = wrote a task, used Ask Command, or had Gmail/calendar checked while the app was open)',
+    '  (active = wrote a task, used Ask Sessio, or had Gmail/calendar checked while the app was open)',
     '',
     `New workspaces: ${stats.retention.new7} in the last 7 days, ${stats.retention.new30} in the last 30 days`,
     `Week-4 return: ${stats.retention.week4Returned} of ${stats.retention.week4Eligible} workspaces at least 28 days old ` +
@@ -215,7 +215,7 @@ export function formatBetaStats(stats: BetaStats) {
     '',
     'Totals:',
     `  courses ${stats.totals.courses}, assessments ${stats.totals.assessments}, recorded grades ${stats.totals.grades}`,
-    `  own tasks ${stats.totals.ownTasks}, Ask Command messages in the last 30 days ${stats.totals.chats30}`,
+    `  own tasks ${stats.totals.ownTasks}, Ask Sessio messages in the last 30 days ${stats.totals.chats30}`,
     '',
     'AI in the last 30 days (estimate from stored pricing, not an invoice):',
     `  ${stats.ai30.attempts} requests, ${usd(stats.ai30.estimatedMicros)} total, ` +

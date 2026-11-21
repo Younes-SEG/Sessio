@@ -95,15 +95,15 @@ test('sign out requires confirmation, supports cancellation and retains failures
 for (const [path, heading, detail] of [
   [
     'invitation-only',
-    'Command is invitation only',
-    'Your email is verified, but this account has not been invited to Command.',
+    'Sessio is invitation only',
+    'Your email is verified, but this account has not been invited to Sessio.',
   ],
   [
     'account-deleting',
     'Your account is being deleted',
     'This workspace is unavailable while your account is being deleted.',
   ],
-  ['access-denied', 'Access denied', 'Command could not confirm access to this workspace.'],
+  ['access-denied', 'Access denied', 'Sessio could not confirm access to this workspace.'],
 ] as const) {
   test(`${path} explains the denial without loading a workspace`, async ({ page }) => {
     let requests = 0;

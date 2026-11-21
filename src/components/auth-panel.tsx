@@ -73,7 +73,7 @@ export function SignOutButton({ className }: { className?: string }) {
         >
           <LogOut className="mb-3 text-muted-foreground" size={24} aria-hidden="true" />
           <AlertDialog.Title className="text-xl font-semibold">
-            {t('Sign out of Command?')}
+            {t('Sign out of Sessio?')}
           </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-sm leading-relaxed text-muted-foreground">
             {t(
@@ -111,9 +111,9 @@ export function AccessDeniedPanel({
   const t = useT();
   const content = {
     'invitation-only': {
-      title: 'Command is invitation only',
+      title: 'Sessio is invitation only',
       description:
-        'Your email is verified, but this account has not been invited to Command. Contact support if you believe you should have access.',
+        'Your email is verified, but this account has not been invited to Sessio. Contact support if you believe you should have access.',
     },
     'account-deleting': {
       title: 'Your account is being deleted',
@@ -123,7 +123,7 @@ export function AccessDeniedPanel({
     'access-denied': {
       title: 'Access denied',
       description:
-        'Command could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.',
+        'Sessio could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.',
     },
   }[mode];
   return (
@@ -180,7 +180,7 @@ export function AuthUnavailablePanel() {
       <h1 className="text-2xl font-semibold">{t('Sign-in is being set up')}</h1>
       <p className="muted mt-4 leading-relaxed">
         {t(
-          'Command is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.',
+          'Sessio is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.',
         )}
       </p>
     </>
@@ -243,7 +243,7 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
     'forgot-password': 'Reset your password',
     'reset-password': 'Choose a new password',
     'verify-email': 'Check your email',
-    'sign-out': 'Sign out of Command',
+    'sign-out': 'Sign out of Sessio',
   };
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -422,7 +422,7 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
         {signIn ? (
           <div className="auth-signup">
             <p className="muted text-center">
-              <T text="New to Command?" />
+              <T text="New to Sessio?" />
             </p>
             <Link href="/auth/sign-up" className="auth-action auth-action-signup">
               <UserPlus size={18} aria-hidden="true" />

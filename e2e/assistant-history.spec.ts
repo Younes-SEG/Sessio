@@ -64,12 +64,12 @@ test('saved chats reopen after refresh, keep separate conversations, and delete 
   });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  const launch = () => page.getByRole('button', { name: 'Ask Command', exact: true }).click();
+  const launch = () => page.getByRole('button', { name: 'Ask Sessio', exact: true }).click();
   await launch();
-  const panel = page.getByRole('dialog', { name: 'Ask Command' });
+  const panel = page.getByRole('dialog', { name: 'Ask Sessio' });
   const send = async (text: string) => {
     await expect(panel.getByRole('button', { name: 'Recent chats' })).toBeEnabled();
-    await panel.getByLabel('Message Command').fill(text);
+    await panel.getByLabel('Message Sessio').fill(text);
     await panel.getByRole('button', { name: 'Send message' }).click();
     await expect(panel.getByText(`Reply: ${text}`, { exact: true })).toBeVisible();
   };

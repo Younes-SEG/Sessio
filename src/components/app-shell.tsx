@@ -1,5 +1,6 @@
 'use client';
 import { AssistantPanel } from './assistant-panel';
+import { BrandMark } from '@/components/brand-mark';
 import { OnboardingProvider, useOnboarding } from './onboarding';
 import { T, useT } from '@/components/language-provider';
 import { useState, type ReactNode } from 'react';
@@ -23,7 +24,6 @@ import {
   Search,
   Settings2,
   Sun,
-  Terminal,
 } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
 import { Button } from './ui/button';
@@ -83,9 +83,9 @@ function Sidebar({ onNavigate, onQuickAdd }: { onNavigate?: () => void; onQuickA
     <div className="sidebar-inner">
       <Link className="brand" href="/" onClick={onNavigate}>
         <span className="brand-symbol" aria-hidden>
-          <Terminal size={19} strokeWidth={2.2} />
+          <BrandMark size={19} />
         </span>
-        Command
+        Sessio
       </Link>
       <div className="workspace-label">
         <T text="A little more clarity." />

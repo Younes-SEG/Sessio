@@ -33,7 +33,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         <h2 className="section-title">Avis de notes par courriel</h2>
         <p>
           Dans Notes → Courriels de notes, connectez le compte Gmail qui reçoit vos courriels
-          scolaires. Command vérifie les avis toutes les cinq minutes lorsque l’application est
+          scolaires. Sessio vérifie les avis toutes les cinq minutes lorsque l’application est
           ouverte et visible. Les résultats clairement associés à une évaluation sont enregistrés
           automatiquement dans Notes. Les cas incertains et les conflits avec une note saisie
           manuellement restent à vérifier. Si le courriel ne contient pas de résultat, consultez
@@ -78,7 +78,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
       <section id="midsemester" className="card scroll-mt-6 space-y-3 p-4">
         <h2 className="section-title">Commencer en milieu de session</h2>
         <p>
-          Vous pouvez commencer à utiliser Command à tout moment de la session. Vos travaux passés
+          Vous pouvez commencer à utiliser Sessio à tout moment de la session. Vos travaux passés
           et vos notes s’ajoutent en deux étapes :
         </p>
         <ol className="list-decimal space-y-2 pl-5">
@@ -94,13 +94,13 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           <li>
             Ouvrez le cours, allez à l’onglet Notes et choisissez Coller les notes de Brightspace.
             Dans Brightspace, ouvrez la page Notes du cours, sélectionnez tout le tableau, copiez-le
-            et collez-le dans Command, puis choisissez Lire les notes. Vérifiez les correspondances
+            et collez-le dans Sessio, puis choisissez Lire les notes. Vérifiez les correspondances
             et enregistrez.
           </li>
         </ol>
         <p className="muted">
           Seuls les résultats sont lus; les commentaires de l’enseignant ne sont pas enregistrés.
-          Les nouvelles notes sont cochées automatiquement. Si Command a déjà une note différente,
+          Les nouvelles notes sont cochées automatiquement. Si Sessio a déjà une note différente,
           elle reste inchangée sauf si vous la cochez.
         </p>
       </section>
@@ -119,12 +119,12 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         <p>
           Un fichier .ics téléchargé est un instantané. Le lien d’abonnement permet la
           synchronisation environ toutes les 15 minutes pendant le fonctionnement du serveur local.
-          En ligne, ouvrez Command pour déclencher les vérifications. Synchroniser lance une
+          En ligne, ouvrez Sessio pour déclencher les vérifications. Synchroniser lance une
           vérification immédiate, au plus une fois par minute.
         </p>
         <p>
           Les échéances de cours deviennent des évaluations, sans créer de tâches. Un identifiant
-          d’événement stable permet de reconnaître la même entrée en anglais ou en français. Command
+          d’événement stable permet de reconnaître la même entrée en anglais ou en français. Sessio
           ne fusionne jamais deux devoirs uniquement parce que leurs noms ou dates se ressemblent.
           Les résultats, pondérations et avancement existants sont conservés.
         </p>
@@ -167,22 +167,22 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
           heure utilise 23 h 59 dans votre fuseau horaire.
         </p>
         <p>
-          Les pondérations groupées ou conditionnelles nécessitent votre vérification. Command
+          Les pondérations groupées ou conditionnelles nécessitent votre vérification. Sessio
           permet de confirmer une règle comme « Les 4 meilleurs quiz sur 5 comptent » dans les
           consignes supplémentaires après la lecture. Vérifiez les évaluations et leur pondération
           totale : la règle utilise la moyenne à poids égaux des meilleurs pourcentages. Les notes
           inconnues ne valent pas zéro. Modifiez ou retirez les règles dans l’onglet Notes du cours.
           Les autres consignes restent des notes sans modifier les calculs. Si le plan indique une
-          semaine et une séance, confirmez votre section après la lecture. Command déduit les dates
+          semaine et une séance, confirmez votre section après la lecture. Sessio déduit les dates
           sans ambiguïté et signale les jours fériés. Vous pouvez corriger les dates ou les laisser
           vides. Ces choix ne créent pas de cours récurrents. Une importation est un instantané;
           relisez les révisions ultérieures. La synchronisation du calendrier peut remplacer les
           dates d’évaluations liées.
         </p>
         <p id="syllabus-privacy" className="scroll-mt-6">
-          Le fichier, le cours et la session sont envoyés au lecteur de Command et à son fournisseur
+          Le fichier, le cours et la session sont envoyés au lecteur de Sessio et à son fournisseur
           d’IA (Google Gemini ou OpenAI), sans vos autres dossiers ni liens privés. Aucun compte
-          d’IA n’est requis pour l’utilisateur. Command ne conserve pas le fichier original; les
+          d’IA n’est requis pour l’utilisateur. Sessio ne conserve pas le fichier original; les
           règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut
           utiliser les documents pour améliorer ses produits, avec possibilité de révision humaine.
           Utilisez uniquement des plans non sensibles. En cas d’indisponibilité, réessayez plus tard
@@ -266,7 +266,7 @@ export function GuideLanguage({ children }: { children: ReactNode }) {
         </p>
         <p>
           Après un redémarrage, la version locale nécessite la base de données et le serveur. Dans
-          le dossier Command, lancez <code>npm run db:local</code> dans un terminal, puis{' '}
+          le dossier Sessio, lancez <code>npm run db:local</code> dans un terminal, puis{' '}
           <code>npm run dev</code> dans un autre. Ouvrez <code>http://127.0.0.1:3000</code> et
           gardez les deux processus en marche.
         </p>

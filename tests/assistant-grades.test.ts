@@ -309,11 +309,11 @@ describe('grade answers are calculated by the app, never the model', () => {
     expect(answer.text).toContain('The default pass mark is 55%');
     expect(answer.text).toContain('Health sciences: 65%');
     expect(answer.text).toContain('Gas technician: 75%');
-    expect(answer.text).toContain('Command does not guess');
+    expect(answer.text).toContain('Sessio does not guess');
 
     const french = gradeStatusAnswer(base, intent({ targetPass: true }), 'fr', seg, conestoga);
     expect(french.text).toContain('Sciences de la santé : 65 %');
-    expect(french.text).toContain('Command ne la devine pas');
+    expect(french.text).toContain('Sessio ne la devine pas');
   });
 
   it('marks York letter conversions as estimates but not uOttawa conversions', () => {

@@ -28,9 +28,9 @@ function cellsFromHtml(html: string): string[][] | null {
 }
 
 const notes: Record<PastePlanRow['note'], string> = {
-  new: 'No grade in Command yet.',
-  same: 'Already saved in Command.',
-  different: 'Command already has a different grade. Tick Import to replace it.',
+  new: 'No grade in Sessio yet.',
+  same: 'Already saved in Sessio.',
+  different: 'Sessio already has a different grade. Tick Import to replace it.',
   unmatched: 'No matching assessment. Choose one, or import your syllabus first.',
   duplicate: 'Another row already uses this assessment.',
 };
@@ -225,13 +225,13 @@ export function PasteGrades({
                           {current && current.score !== null && (
                             <>
                               {' '}
-                              <T text="In Command:" /> {current.score} / {current.maxScore}
+                              <T text="In Sessio:" /> {current.score} / {current.maxScore}
                             </>
                           )}
                         </p>
                         {row.grade.dropped && (
                           <p className="muted text-xs">
-                            <T text="Dropped in Brightspace. Command applies your best-of rule itself." />
+                            <T text="Dropped in Brightspace. Sessio applies your best-of rule itself." />
                           </p>
                         )}
                       </div>

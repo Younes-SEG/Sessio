@@ -7,10 +7,10 @@ const workspaceStateCopy = [
   'Your saved data is safe. Please try loading this page again.',
   'Try again',
   'Loading workspace',
-  'Command · Personal workspace',
+  'Sessio · Personal workspace',
   'Let’s get your workspace ready.',
   'Your workspace is temporarily unavailable. Please try again shortly.',
-  'Command could not connect to your database. Start your local database, then return here to pick up where you left off.',
+  'Sessio could not connect to your database. Start your local database, then return here to pick up where you left off.',
   'Keep it running in its own terminal. Your app server is already running, so you do not need to run setup again.',
   'For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in your database.',
 ];

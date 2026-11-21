@@ -52,9 +52,9 @@ test('chat keeps recent social and query context without sending returned calend
     return route.continue();
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Ask Command', exact: true }).click();
-  const panel = page.getByRole('dialog', { name: 'Ask Command' });
-  const input = panel.getByLabel('Message Command');
+  await page.getByRole('button', { name: 'Ask Sessio', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Ask Sessio' });
+  const input = panel.getByLabel('Message Sessio');
   for (const text of [
     'hey how are you?',
     'doing well thanks',
@@ -165,8 +165,8 @@ test('chat clarifies, saves, confirms and undoes without replaying earlier actio
     return route.continue();
   });
   await page.goto('/');
-  await page.getByRole('button', { name: 'Ask Command', exact: true }).click();
-  const panel = page.getByRole('dialog', { name: 'Ask Command' });
+  await page.getByRole('button', { name: 'Ask Sessio', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Ask Sessio' });
   await expect(panel).toBeVisible();
   await expect(
     panel.getByText('Chats are saved privately in your workspace', { exact: false }),
@@ -180,7 +180,7 @@ test('chat clarifies, saves, confirms and undoes without replaying earlier actio
     .getByRole('button', { name: 'I got 9/10 on Assignment 1 in SEG3102.', exact: true })
     .click();
   expect(calls).toHaveLength(0); // Examples fill the input; they do not save anything.
-  const input = panel.getByLabel('Message Command');
+  const input = panel.getByLabel('Message Sessio');
   await input.fill('I got 9/10');
   await input.press('Enter');
   await expect(panel.getByText('Which course and assessment?', { exact: true })).toBeVisible();
@@ -201,9 +201,9 @@ test('chat clarifies, saves, confirms and undoes without replaying earlier actio
   await panel.getByRole('button', { name: 'Close dialog' }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator('.topbar').getByRole('button', { name: 'Passer en français' }).click();
-  await page.getByRole('button', { name: 'Demander à Command', exact: true }).click();
-  const french = page.getByRole('dialog', { name: 'Demander à Command' });
-  await expect(french.getByLabel('Message à Command')).toBeVisible();
+  await page.getByRole('button', { name: 'Demander à Sessio', exact: true }).click();
+  const french = page.getByRole('dialog', { name: 'Demander à Sessio' });
+  await expect(french.getByLabel('Message à Sessio')).toBeVisible();
   await french.evaluate((element) =>
     Promise.all(element.getAnimations().map((animation) => animation.finished)),
   );

@@ -151,9 +151,9 @@ function renderPage(rows: DashboardRows, now: Date) {
     const enabled = controls.get(id) === true;
     return `<div class="control ${enabled ? 'on' : 'off'}"><strong>${escapeHtml(id)}</strong><span>${exists ? (enabled ? 'enabled' : 'paused') : 'missing (paused)'}</span></div>`;
   };
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="60"><title>Command AI usage</title><style>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="60"><title>Sessio AI usage</title><style>
     :root{color-scheme:light dark;font-family:ui-sans-serif,system-ui,sans-serif;background:#f5efe5;color:#26221d}body{max-width:1180px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;gap:20px;align-items:end}h1{font-size:1.7rem;margin:0}h2{margin-top:34px;font-size:1.2rem}.muted,.note{color:#6c6258;font-size:.88rem}.cards,.controls{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0}.cards>div,.control{background:#fffaf1;border:1px solid #ded2c2;border-radius:12px;padding:14px 16px;min-width:180px}.cards strong,.control strong{display:block;font-size:1.15rem}.cards span,.control span{display:block;margin-top:3px;color:#6c6258}.control.on{border-color:#71a37b}.control.off{border-color:#c99083}.table-wrap{overflow:auto;border:1px solid #ded2c2;border-radius:12px;background:#fffaf1}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{padding:10px 12px;text-align:right;border-bottom:1px solid #e7ddcf;white-space:nowrap}th:first-child,td:first-child{text-align:left}thead th{background:#eee3d4}.total{font-weight:700}@media(prefers-color-scheme:dark){:root{background:#1b1916;color:#f2eadf}.cards>div,.control,.table-wrap{background:#25211d;border-color:#51483e}.cards span,.control span,.muted,.note{color:#bdb1a3}th,td{border-color:#443c34}thead th{background:#332d27}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
-  </style></head><body><header><div><h1>Command AI usage</h1><div class="muted">Local operator view / UTC / refreshes every 60 seconds</div></div><div class="muted">Updated ${escapeHtml(now.toISOString())}</div></header>
+  </style></head><body><header><div><h1>Sessio AI usage</h1><div class="muted">Local operator view / UTC / refreshes every 60 seconds</div></div><div class="muted">Updated ${escapeHtml(now.toISOString())}</div></header>
   <section><h2>Controls</h2><div class="controls">${['all', 'chat', 'syllabus'].map(control).join('')}</div></section>
   <section><h2>Conservative reservations</h2><div class="cards">${budgetCard('today', buckets.get(`global:${periods.day}`) || BigInt(0), parseOptionalCap(process.env.COMMAND_AI_DAILY_MICROS))}${budgetCard('this month', buckets.get(`global:${periods.month}`) || BigInt(0), parseOptionalCap(process.env.COMMAND_AI_MONTHLY_MICROS))}</div><p class="note">Reservations are no-refund ceilings, not provider invoices. Estimated recorded cost uses each attempt's stored pricing snapshot and observed input/output tokens.</p></section>
   ${summaryTable(`Today / ${periods.day} UTC`, day, labels)}
@@ -208,5 +208,5 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Command AI usage dashboard: http://${HOST}:${PORT}`);
+  console.log(`Sessio AI usage dashboard: http://${HOST}:${PORT}`);
 });

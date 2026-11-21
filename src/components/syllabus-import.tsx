@@ -621,7 +621,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
             <T text="MB)" />
           </p>
           <p className="muted text-xs leading-relaxed" id="syllabus-ai-notice">
-            <T text="Clicking Read syllabus or analysing pasted text sends it and the selected course name and term to Command’s reader and its configured AI provider (Google Gemini or OpenAI). No AI account or setup is needed. Command does not keep the original file; provider retention rules apply. Google’s free tier may use uploads to improve its products, so only upload non-sensitive syllabi." />{' '}
+            <T text="Clicking Read syllabus or analysing pasted text sends it and the selected course name and term to Sessio’s reader and its configured AI provider (Google Gemini or OpenAI). No AI account or setup is needed. Sessio does not keep the original file; provider retention rules apply. Google’s free tier may use uploads to improve its products, so only upload non-sensitive syllabi." />{' '}
             <Link href="/guide#syllabus-privacy" className="underline">
               <T text="How your syllabus is handled" />
             </Link>
@@ -712,7 +712,7 @@ export function SyllabusImport({ initialCourseId }: { initialCourseId?: string }
                 <T text="Reading your syllabus and checking dates and weights… This may take a minute or two." />
               </p>
               <p className="muted text-xs">
-                <T text="If the provider is temporarily busy, Command retries automatically. Keep this page open." />
+                <T text="If the provider is temporarily busy, Sessio retries automatically. Keep this page open." />
               </p>
             </div>
           </div>

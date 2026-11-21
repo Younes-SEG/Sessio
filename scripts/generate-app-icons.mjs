@@ -1,6 +1,7 @@
-// Regenerates the installable-app PNG icons from src/app/icon.svg (the Command logo).
+// Regenerates the installable-app PNG icons from src/app/icon.svg (the Sessio logo).
 // Run after changing the logo: node scripts/generate-app-icons.mjs
 import { mkdir, readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const logo = await readFile(new URL('../src/app/icon.svg', import.meta.url), 'utf8');
@@ -21,6 +22,6 @@ for (const [name, svg, size] of icons) {
   await sharp(Buffer.from(svg), { density: (72 * size) / 48 })
     .resize(size, size)
     .png({ compressionLevel: 9 })
-    .toFile(new URL(name, out).pathname);
+    .toFile(fileURLToPath(new URL(name, out)));
 }
 console.log(`Wrote ${icons.length} icons to public/icons/`);

@@ -49,7 +49,7 @@ export function AiAgeConfirm() {
       </h2>
       <p className="muted text-sm leading-relaxed">
         {t(
-          'Ask Command and syllabus reading use Google Gemini, which may only be used by people 18 or older. Everything else in Command works at any age.',
+          'Ask Sessio and syllabus reading use Google Gemini, which may only be used by people 18 or older. Everything else in Sessio works at any age.',
         )}{' '}
         <Link className="underline" href="/legal/terms">
           {t('Terms')}

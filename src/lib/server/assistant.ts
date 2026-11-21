@@ -59,7 +59,7 @@ const receiptKey = (workspaceId: string, id: string) => ({ workspaceId_id: { wor
 const changed = () =>
   new ApiError(
     409,
-    'This entry changed since the request. Ask again so Command can use the latest information.',
+    'This entry changed since the request. Ask again so Sessio can use the latest information.',
   );
 
 async function snapshot(tx: Tx, workspaceId: string): Promise<AssistantWorkspace> {
@@ -577,7 +577,7 @@ export async function assistantRequest(raw: unknown): Promise<AssistantReply> {
       await recordAssistantReply(tx, workspaceId, row.conversationId, reply);
       return reply;
     });
-  if (input.messages.at(-1)?.role !== 'user') throw new ApiError(400, 'Send a message to Command.');
+  if (input.messages.at(-1)?.role !== 'user') throw new ApiError(400, 'Send a message to Sessio.');
   let modelMessages = input.messages;
   const previous = await transaction(async (tx) => {
     const chat = input.conversationId

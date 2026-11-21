@@ -1,10 +1,10 @@
-# Command
+# Sessio
 
 A university command center with a local edition and hosted private accounts built with Next.js, TypeScript, Tailwind CSS, shadcn/ui components, Prisma, and PostgreSQL.
 
 ## Run locally
 
-Optional Gmail grade notifications: follow [Gmail setup](GMAIL_SETUP.md), then open **Grades → Email updates**. Command finds matching emails while open and lets you review scores before saving them. Gmail setup is separate from a Gemini API key or ChatGPT's Gmail connection.
+Optional Gmail grade notifications: follow [Gmail setup](GMAIL_SETUP.md), then open **Grades → Email updates**. Sessio finds matching emails while open and lets you review scores before saving them. Gmail setup is separate from a Gemini API key or ChatGPT's Gmail connection.
 
 For a hosted website with sign-in and private workspaces, follow [Vercel + Neon setup](docs/vercel.md). Each account starts empty; local data is not automatically uploaded or assigned to an account.
 
@@ -48,7 +48,7 @@ Dates and recurring classes use your device's local time zone. An all-day event'
 
 ## Shared syllabus reading
 
-Users do not configure AI accounts, API keys or model downloads. The planner sends only the chosen syllabus and course/semester context to Command’s shared reader. It returns suggestions for review; only confirmed assessments are saved in your workspace. Reading starts only with **Read syllabus** (or the pasted-text submit button); refresh never retries a paid request, and there is no local-key fallback.
+Users do not configure AI accounts, API keys or model downloads. The planner sends only the chosen syllabus and course/semester context to Sessio’s shared reader. It returns suggestions for review; only confirmed assessments are saved in your workspace. Reading starts only with **Read syllabus** (or the pasted-text submit button); refresh never retries a paid request, and there is no local-key fallback.
 
 The separately deployable service and owner instructions are in [services/syllabus/README.md](services/syllabus/README.md). It includes HTTPS client integration, a persistent atomic quota store, upload limits, cancellation, provider error handling and a deployment Dockerfile. Deploy the reader separately from the planner. The hosted planner uses Neon Auth and per-account ownership; the local edition remains bound to loopback.
 
@@ -66,7 +66,7 @@ Calendar subscriptions create missing courses from Brightspace's course labels, 
 
 The local Node server checks connected feeds every 15 minutes and on startup when due, including while the browser is closed. The open app refreshes its display every minute and on focus. **Sync now** requests an immediate check (limited to once per minute). Stop the server and syncing stops; the next startup catches up. On Vercel, authenticated workspace refreshes check up to three due feeds after the response. Hosted automatic refresh depends on app activity, not a persistent timer.
 
-The server needs outbound HTTPS access. Starting it inside a network-restricted development tool can leave the local app working while every calendar request fails with `EACCES`. Start Command normally from your terminal or the tool's approved network-capable mode; retain loopback binding and TLS/feed validation. The app now distinguishes network-permission, DNS and certificate failures without exposing the private URL.
+The server needs outbound HTTPS access. Starting it inside a network-restricted development tool can leave the local app working while every calendar request fails with `EACCES`. Start Sessio normally from your terminal or the tool's approved network-capable mode; retain loopback binding and TLS/feed validation. The app now distinguishes network-permission, DNS and certificate failures without exposing the private URL.
 
 Each subscription retains its selected date range. Reconnect with new dates for a new term. Stable event IDs prevent duplicates across refreshes and reconnection to the same URL. Sync updates source titles/dates/locations while preserving locally entered grades, weights, progress and notes. Manually deleted imported items stay deleted. Explicit cancellations are labelled; cancelled assessments lose their due date but retain grades. Missing feed entries are kept because a provider can shorten its feed without cancelling work.
 

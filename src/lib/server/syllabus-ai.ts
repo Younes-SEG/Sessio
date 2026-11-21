@@ -300,7 +300,7 @@ export async function readSyllabusWithAi(
     // Provider errors can contain document text and credentials; do not log or return them.
     throw new ApiError(
       502,
-      'Command could not reach the AI reader. Check your internet connection and the server’s network permissions, then try again.',
+      'Sessio could not reach the AI reader. Check your internet connection and the server’s network permissions, then try again.',
     );
   } finally {
     reading = false;

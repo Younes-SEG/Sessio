@@ -74,7 +74,7 @@ const basisCopy: Record<Exclude<StandingBasis, 'weighted'>, string> = {
     'Courses count equally because {school} doesn’t publish grade points for every letter.',
 };
 
-/** Semester average (and GPA when the school defines one), shared with Ask Command. */
+/** Semester average (and GPA when the school defines one), shared with Ask Sessio. */
 export function SemesterStandingCard() {
   const t = useT();
   const { data } = useWorkspace();

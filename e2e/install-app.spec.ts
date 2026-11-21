@@ -7,7 +7,7 @@ test('manifest, icons and service worker load', async ({ page, request }) => {
   const response = await request.get('/manifest.webmanifest');
   expect(response.ok()).toBe(true);
   const manifest = await response.json();
-  expect(manifest).toMatchObject({ name: 'Command', display: 'standalone', start_url: '/' });
+  expect(manifest).toMatchObject({ name: 'Sessio', display: 'standalone', start_url: '/' });
   for (const icon of [...manifest.icons, { src: '/icons/apple-touch-icon.png' }]) {
     const file = await request.get(icon.src);
     expect(file.ok(), icon.src).toBe(true);
@@ -49,7 +49,7 @@ test('home screen tip shows on phones in English and French and stays dismissed'
   const english = await phone(browser, baseURL!, 'en');
   const page = await english.newPage();
   await page.goto('/');
-  const tip = page.getByRole('complementary', { name: 'Add Command to your home screen' });
+  const tip = page.getByRole('complementary', { name: 'Add Sessio to your home screen' });
   await expect(tip).toContainText('Tap Share, then Add to Home Screen.');
   await tip.getByRole('button', { name: 'Dismiss home screen tip' }).click();
   await expect(tip).toBeHidden();
@@ -62,7 +62,7 @@ test('home screen tip shows on phones in English and French and stays dismissed'
   const frenchPage = await french.newPage();
   await frenchPage.goto('/');
   const frenchTip = frenchPage.getByRole('complementary', {
-    name: 'Ajoutez Command à votre écran d’accueil',
+    name: 'Ajoutez Sessio à votre écran d’accueil',
   });
   await expect(frenchTip).toContainText('Ouvrez le menu du navigateur');
   await expect(

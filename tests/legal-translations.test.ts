@@ -22,7 +22,7 @@ describe('French legal documents', () => {
       ...legalDocuments[document].sections.flatMap((s) => [s.title, ...s.paragraphs]),
     ]);
     const french = legalDocumentsFr[document];
-    // Product names can match ("Ask Command"); whole sentences must not.
+    // Product names can match ("Ask Sessio"); whole sentences must not.
     for (const text of [french.introduction, ...french.sections.flatMap((s) => s.paragraphs)])
       expect(english.has(text), text).toBe(false);
   });

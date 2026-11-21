@@ -43,7 +43,7 @@ export async function interpretAssistant(
   if (!key)
     throw new ApiError(
       503,
-      'Ask Command needs a Gemini API key. Configure GEMINI_API_KEY on the server or in your private .env.syllabus.local file.',
+      'Ask Sessio needs a Gemini API key. Configure GEMINI_API_KEY on the server or in your private .env.syllabus.local file.',
     );
   const schema = z.toJSONSchema(assistantIntentSchema);
   delete schema.$schema;
@@ -52,7 +52,7 @@ export async function interpretAssistant(
   const dayAt = (offset: number) =>
     new Date(+localDay + offset * 86_400_000).toISOString().slice(0, 10);
   const mondayOffset = -((localDay.getUTCDay() + 6) % 7);
-  const instructions = `You interpret requests for Command, a student planner. Return only the specified JSON; never claim anything was saved or read.
+  const instructions = `You interpret requests for Sessio, a student planner. Return only the specified JSON; never claim anything was saved or read.
 Current local time: ${localNow}. Time zone: ${zone}. Language for questions: ${language === 'fr' ? 'French' : 'English'}.
 Verified local date boundaries: today=${dayAt(0)}, tomorrow=${dayAt(1)}, yesterday=${dayAt(-1)}, this week=${dayAt(mondayOffset)} through ${dayAt(mondayOffset + 6)}, next week=${dayAt(mondayOffset + 7)} through ${dayAt(mondayOffset + 13)}, previous week=${dayAt(mondayOffset - 7)} through ${dayAt(mondayOffset - 1)}. Use these exact boundaries when those phrases are requested. Default upcoming window ends ${dayAt(29)}.
 Supported jobs: chat (friendly conversation, greetings, thanks, encouragement, general study advice or explaining your capabilities), query (all supported workspace questions, using the composable query object), grade_status (read-only course standing and grade targets), grade (record one existing assessment's numeric score), schedule (create one study-session calendar event), clarify (missing information or unsupported action). agenda and next_assessment exist for older requests: never generate them for new requests.
@@ -103,7 +103,7 @@ Use previous conversation to understand social replies and read-only follow-ups:
         response.status === 429 ? 429 : 503,
         response.status === 429 || response.status >= 500
           ? 'Gemini is busy or its usage limit was reached. Try again later; nothing was changed.'
-          : 'Ask Command could not reach Gemini. Check your API setup and try again; nothing was changed.',
+          : 'Ask Sessio could not reach Gemini. Check your API setup and try again; nothing was changed.',
       );
     }
     const envelope = z
@@ -140,8 +140,8 @@ Use previous conversation to understand social replies and read-only follow-ups:
     throw new ApiError(
       503,
       signal.aborted
-        ? 'Ask Command timed out. Please try again; nothing was changed.'
-        : 'Ask Command could not understand that request. Please rephrase it; nothing was changed.',
+        ? 'Ask Sessio timed out. Please try again; nothing was changed.'
+        : 'Ask Sessio could not understand that request. Please rephrase it; nothing was changed.',
     );
   }
 }

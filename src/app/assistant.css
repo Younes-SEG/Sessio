@@ -1,4 +1,4 @@
-/* Ask Command has its own visual language. Every selector is scoped to the AI. */
+/* Ask Sessio has its own visual language. Every selector is scoped to the AI. */
 .assistant-overlay[data-state='open'] {
   animation: assistant-backdrop-in 260ms ease-out both;
 }

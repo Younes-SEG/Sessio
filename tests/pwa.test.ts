@@ -18,9 +18,9 @@ function pngSize(path: string) {
 describe('installable website', () => {
   const app = manifest();
 
-  it('describes a standalone Command app in the site colours', () => {
+  it('describes a standalone Sessio app in the site colours', () => {
     expect(app).toMatchObject({
-      name: 'Command',
+      name: 'Sessio',
       start_url: '/',
       scope: '/',
       display: 'standalone',

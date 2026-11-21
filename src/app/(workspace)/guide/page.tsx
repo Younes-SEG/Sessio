@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 
 export const metadata = { title: 'User guide' };
 const topics = [
-  ['assistant', 'Ask Command'],
+  ['assistant', 'Ask Sessio'],
   ['start', 'Get started'],
   ['midsemester', 'Starting mid-semester'],
   ['calendar', 'Connect and sync a calendar'],
@@ -110,7 +110,7 @@ export default function GuidePage() {
         <section id="midsemester" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">Starting mid-semester</h2>
           <p className="leading-relaxed">
-            You can start using Command at any point in the term. Your past work and grades come in
+            You can start using Sessio at any point in the term. Your past work and grades come in
             two quick steps:
           </p>
           <ol className="list-decimal space-y-3 pl-5 leading-relaxed">
@@ -125,12 +125,12 @@ export default function GuidePage() {
             <li>
               Open the course, go to its Grades tab and choose Paste grades from Brightspace. In
               Brightspace, open the course&apos;s Grades page, select the whole table, copy it and
-              paste it into Command, then select Read grades. Review the matches and save.
+              paste it into Sessio, then select Read grades. Review the matches and save.
             </li>
           </ol>
           <p className="muted leading-relaxed">
             Only scores are read; instructor comments are not saved. New grades are selected
-            automatically. If Command already has a different grade for an assessment, it is left
+            automatically. If Sessio already has a different grade for an assessment, it is left
             unchanged unless you tick it. Rows with no matching assessment can be assigned by hand,
             or import the syllabus first.
           </p>
@@ -154,7 +154,7 @@ export default function GuidePage() {
               Preview calendar, then Connect and import.
             </li>
             <li>
-              Connected calendars are checked approximately every 15 minutes while the Command
+              Connected calendars are checked approximately every 15 minutes while the Sessio
               server is running. Use Sync now to request a check sooner; repeated requests are
               limited to once a minute.
             </li>
@@ -214,7 +214,7 @@ export default function GuidePage() {
             Manage or remove saved rules in the course’s Grades tab. Other instructions remain notes
             and do not change calculations automatically. When a syllabus gives a week and a
             lecture, tutorial or lab instead of an exact date, confirm your section in the review
-            screen. Command fills only unambiguous session dates, labels them as inferred, and flags
+            screen. Sessio fills only unambiguous session dates, labels them as inferred, and flags
             holidays or breaks. You can override a date manually or save an assessment without a
             date. Session choices do not create recurring classes.
           </p>
@@ -230,7 +230,7 @@ export default function GuidePage() {
         <section id="syllabus-setup" className="card scroll-mt-6 space-y-4 p-4">
           <h2 className="text-lg font-semibold">Syllabus reading: no setup needed</h2>
           <p className="leading-relaxed">
-            Choose your term, select your syllabus and click Read syllabus. Command connects to its
+            Choose your term, select your syllabus and click Read syllabus. Sessio connects to its
             online reader automatically; you do not need an AI account, API key or model download.
             Internet access is needed for reading. Your planner and grades stay in your workspace;
             they are not sent to the AI reader.
@@ -245,15 +245,15 @@ export default function GuidePage() {
           <h2 className="text-lg font-semibold">How your syllabus is handled</h2>
           <p className="muted leading-relaxed">
             Uploading a syllabus or submitting pasted text sends its content and the selected course
-            code/name and term dates to Command’s reader and its configured provider, Google Gemini
+            code/name and term dates to Sessio’s reader and its configured provider, Google Gemini
             or OpenAI. Your other academic records and private calendar links are not sent.
-            Command’s operator manages the AI connection and its usage costs. The service uses
+            Sessio’s operator manages the AI connection and its usage costs. The service uses
             temporary network-based usage counters to limit abuse, without saving your document or
-            grades. Command keeps the original document only in memory and saves reviewed assessment
+            grades. Sessio keeps the original document only in memory and saves reviewed assessment
             details and source excerpts only after you confirm.
           </p>
           <p className="muted leading-relaxed">
-            Command sends PDFs inline without creating persistent file uploads. OpenAI requests
+            Sessio sends PDFs inline without creating persistent file uploads. OpenAI requests
             disable response storage; neither provider guarantees zero retention through this setup.
             Google’s free tier may use submitted content to improve its products and may involve
             human review. Only use non-sensitive syllabi with the free tier. Read{' '}
@@ -319,7 +319,7 @@ export default function GuidePage() {
           <p className="muted leading-relaxed">
             The awaiting-grades count is a reminder list, not confirmation that your instructor has
             published a result. Gmail notifications can be reviewed under Grades → Grade emails;
-            Command does not directly access your Brightspace gradebook.
+            Sessio does not directly access your Brightspace gradebook.
           </p>
         </section>
         <section id="email" className="card scroll-mt-6 space-y-4 p-4">
@@ -327,10 +327,10 @@ export default function GuidePage() {
           <p>
             Open Grades → Grade emails, connect the Gmail account receiving your forwarded school
             emails, and select Check emails now. Automatic checks run every five minutes while
-            Command is open and visible. Clear assessment and score matches are saved directly to
+            Sessio is open and visible. Clear assessment and score matches are saved directly to
             Grades, with a record under Automatic grade updates. Uncertain matches and conflicts
             with manually entered grades stay for review. Emails without a score remain
-            notifications; Command cannot retrieve a score behind a Brightspace login.
+            notifications; Sessio cannot retrieve a score behind a Brightspace login.
           </p>
           <p>
             Use Email preferences to change the Gmail search filter or pause automatic checks.
@@ -412,7 +412,7 @@ export default function GuidePage() {
             </summary>
             <p className="muted pt-2 leading-relaxed">
               Use the HTTPS or webcal subscription link, not a Brightspace sign-in page. Confirm
-              feeds are still enabled at school. If Command reports blocked network access, restart
+              feeds are still enabled at school. If Sessio reports blocked network access, restart
               it normally outside a restricted development session and check its network
               permissions. Re-pasting cannot fix blocked internet access. If no events appear, check
               the import dates.
@@ -425,9 +425,9 @@ export default function GuidePage() {
             <p className="muted pt-2 leading-relaxed">
               Make sure the subscription includes the right courses and dates, then check its Last
               synced time in Settings. Some school work is not included in calendar feeds; add those
-              assessments manually. Command can refresh while its browser tab is closed only if its
+              assessments manually. Sessio can refresh while its browser tab is closed only if its
               local server is still running if you use the downloaded edition. On the hosted
-              edition, open Command to trigger due checks or choose Sync now.
+              edition, open Sessio to trigger due checks or choose Sync now.
             </p>
           </details>
           <details>
@@ -436,7 +436,7 @@ export default function GuidePage() {
             </summary>
             <p className="muted pt-2 leading-relaxed">
               The current local version needs both its database and app server running. In the
-              Command project folder, run npm run db:local in one terminal and npm start in another,
+              Sessio project folder, run npm run db:local in one terminal and npm start in another,
               then open http://127.0.0.1:3000 on that computer. Keep both running. A desktop
               installer is not included yet.
             </p>

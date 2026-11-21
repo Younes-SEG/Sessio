@@ -60,7 +60,7 @@ export function LegalContent({
       <header className="mb-10 flex flex-wrap items-start justify-between gap-4">
         <div>
           <Link href="/" className="text-lg font-semibold">
-            Command
+            Sessio
           </Link>
           <p className="muted mt-2 text-sm">
             {hosted ? text.hosted : text.local} · {text.info}

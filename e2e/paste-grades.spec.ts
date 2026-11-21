@@ -57,7 +57,7 @@ test('pasted Brightspace grades are reviewed before saving and never overwrite s
     await expect(page.getByRole('checkbox', { name: /Lab 01 · 2 \/ 2/ })).toBeChecked();
     const conflict = page.getByRole('checkbox', { name: /Assignment 1 · 95 \/ 100/ });
     await expect(conflict).not.toBeChecked();
-    await expect(page.getByText('In Command: 80 / 100')).toBeVisible();
+    await expect(page.getByText('In Sessio: 80 / 100')).toBeVisible();
 
     const result = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])

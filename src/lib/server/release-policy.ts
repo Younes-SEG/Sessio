@@ -21,7 +21,7 @@ export function assertHostedAccess(workspaceId: string) {
   if (!hostedAccessAllowed(workspaceId))
     throw ApiError.accessDenied(
       'not-invited',
-      'Command is currently available to invited accounts only.',
+      'Sessio is currently available to invited accounts only.',
     );
 }
 export function signupAllowed() {

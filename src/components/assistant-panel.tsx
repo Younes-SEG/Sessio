@@ -328,7 +328,7 @@ export function AssistantPanel() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="assistant-trigger">
           <AssistantMark />
-          <span>{s('Ask Command', 'Demander à Command')}</span>
+          <span>{s('Ask Sessio', 'Demander à Sessio')}</span>
           <span className="assistant-trigger-badge" aria-hidden="true">
             AI
           </span>
@@ -342,7 +342,7 @@ export function AssistantPanel() {
               COMMAND <b>AI</b>
             </span>
           </div>
-          <DialogTitle>{s('Ask Command', 'Demander à Command')}</DialogTitle>
+          <DialogTitle>{s('Ask Sessio', 'Demander à Sessio')}</DialogTitle>
           <DialogDescription>
             {s(
               'Your week, your study plans, your grades.',
@@ -514,7 +514,7 @@ export function AssistantPanel() {
             >
               <p className="assistant-message-author">
                 {entry.role === 'assistant' && <AssistantMark />}
-                {entry.role === 'user' ? s('You', 'Toi') : 'Command'}
+                {entry.role === 'user' ? s('You', 'Vous') : 'Sessio'}
                 {entry.role === 'assistant' && (
                   <span className="assistant-message-badge" aria-hidden="true">
                     AI
@@ -626,7 +626,7 @@ export function AssistantPanel() {
           {configured === false && (
             <p role="alert" className="mb-3 text-sm text-destructive">
               {s(
-                'Gemini isn’t configured yet. See Ask Command in the user guide.',
+                'Gemini isn’t configured yet. See Ask Sessio in the user guide.',
                 'Gemini n’est pas encore configuré. Consultez le guide.',
               )}
             </p>
@@ -649,7 +649,7 @@ export function AssistantPanel() {
             className="assistant-input-shell"
           >
             <label className="sr-only" htmlFor="assistant-message">
-              {s('Message Command', 'Message à Command')}
+              {s('Message Sessio', 'Message à Sessio')}
             </label>
             <textarea
               ref={field}
@@ -685,8 +685,8 @@ export function AssistantPanel() {
           <p className="assistant-privacy">
             {hosted
               ? s(
-                  'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini through Command’s paid API access. Grade numbers are calculated by Command, not the AI.',
-                  'Les conversations sont enregistrées dans votre espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini par l’accès payant de Command. Les notes sont calculées par Command, pas par l’IA.',
+                  'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini through Sessio’s paid API access. Grade numbers are calculated by Sessio, not the AI.',
+                  'Les conversations sont enregistrées dans votre espace privé jusqu’à leur suppression. Seul le contexte récent de cette conversation est envoyé à Google Gemini par l’accès payant de Sessio. Les notes sont calculées par Sessio, pas par l’IA.',
                 )
               : s(
                   'Chats are saved privately in your workspace until you delete them. Only recent context from this chat goes to Google Gemini. Avoid personal or confidential information on the free tier.',

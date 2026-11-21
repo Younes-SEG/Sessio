@@ -1,4 +1,4 @@
-// Command's service worker: makes the site installable and shows a short offline notice.
+// Sessio's service worker: makes the site installable and shows a short offline notice.
 // Privacy (shared phones): it never stores pages, API responses or anything signed in.
 // The only cached file is the static, public /offline.html. While the device is online it
 // does not touch any request, so sign-in redirects and callbacks behave exactly as without it.

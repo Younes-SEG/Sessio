@@ -72,7 +72,7 @@ function passRulesNote(profile: SchoolProfile | null, language: string) {
     .join('; ');
   return say(
     language,
-    ` The default pass mark is ${pct(profile.passPercent, language)}. Program/course variants: ${variants}. Check which one applies; Command does not guess.`,
+    ` The default pass mark is ${pct(profile.passPercent, language)}. Program/course variants: ${variants}. Check which one applies; Sessio does not guess.`,
     gradeAssistantFrench.passRulesNote(pct(profile.passPercent, language), variants),
   );
 }

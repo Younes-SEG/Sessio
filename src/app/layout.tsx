@@ -6,10 +6,10 @@ import { APP_BACKGROUND, THEME_BOOTSTRAP, THEME_COOKIE, themePreference } from '
 import { ServiceWorkerRegistration } from '@/components/install-tip';
 
 export const metadata: Metadata = {
-  title: { default: 'Command — Your personal command center', template: '%s · Command' },
+  title: { default: 'Sessio — Your personal command center', template: '%s · Sessio' },
   description: 'Your courses, tasks, grades, and study plans in one personal workspace.',
   icons: { apple: '/icons/apple-touch-icon.png' },
-  appleWebApp: { capable: true, title: 'Command', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'Sessio', statusBarStyle: 'default' },
 };
 
 // The phone's status bar follows the chosen theme (the same cookie the page uses).

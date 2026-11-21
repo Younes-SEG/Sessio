@@ -90,7 +90,7 @@ export function SchoolUpdatesBadge() {
   return count > 0 ? <span className="nav-count">{count}</span> : null;
 }
 
-/** Polling runs while Command is open and visible; the server saves clear grades. */
+/** Polling runs while Sessio is open and visible; the server saves clear grades. */
 export function EmailAutoSync() {
   const { refresh } = useWorkspace();
   useEffect(() => {
@@ -213,7 +213,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
         setNotice(
           result.revoked
             ? 'Gmail disconnected. Imported grades are kept.'
-            : 'Gmail disconnected locally. You can also remove Command in your Google account connections.',
+            : 'Gmail disconnected locally. You can also remove Sessio in your Google account connections.',
         );
       }
     } catch (e) {
@@ -298,7 +298,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
           <h2 className="section-title">{t('Connect Gmail')}</h2>
           <p className="muted text-sm">
             {t(
-              'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.',
+              'Google grants read-only mailbox access. Sessio searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.',
             )}
           </p>
           {!data.configured ? (
@@ -339,7 +339,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
                 />
                 <span>
                   {t(
-                    'Allow Command to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.',
+                    'Allow Sessio to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.',
                   )}
                 </span>
               </label>
@@ -390,7 +390,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
           )}
           <p className="muted text-sm">
             {t(
-              'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Command is closed.',
+              'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Sessio is closed.',
             )}
           </p>
           <details className="space-y-4">
@@ -432,7 +432,7 @@ export function EmailUpdates({ announcements = false }: { announcements?: boolea
                 onChange={(e) => setAutoSync(e.target.checked)}
                 disabled={busy}
               />
-              {t('Check automatically while Command is open')}
+              {t('Check automatically while Sessio is open')}
             </label>
             <Button
               variant="outline"
@@ -704,7 +704,7 @@ function SchoolAnnouncement({
           </ul>
           <p className="muted text-xs">
             {t(
-              'If this is wrong, open the assessment and change its date. Command will not apply this email again.',
+              'If this is wrong, open the assessment and change its date. Sessio will not apply this email again.',
             )}
           </p>
         </div>
@@ -716,7 +716,7 @@ function SchoolAnnouncement({
           </summary>
           <p className="muted text-sm">
             {t(
-              'Command could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.',
+              'Sessio could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.',
             )}
           </p>
           <label className="block space-y-2 text-sm">

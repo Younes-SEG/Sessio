@@ -127,7 +127,7 @@ export function InstallTip() {
         <Smartphone aria-hidden className="mt-0.5 shrink-0 text-[var(--primary)]" size={20} />
         <div className="min-w-0 flex-1">
           <h2 id="install-tip-title" className="text-sm font-semibold">
-            {t('Add Command to your home screen')}
+            {t('Add Sessio to your home screen')}
           </h2>
           <p className="muted mt-1 text-xs leading-relaxed">
             {prompt

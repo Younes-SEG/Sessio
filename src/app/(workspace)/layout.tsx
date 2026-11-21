@@ -45,7 +45,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
       ) : (
         <main className="min-h-screen grid place-items-center p-4">
           <div className="card p-9 max-w-lg">
-            <div className="eyebrow mb-4">{t('Command · Personal workspace')}</div>
+            <div className="eyebrow mb-4">{t('Sessio · Personal workspace')}</div>
             <h1 className="text-2xl font-semibold tracking-tight mb-3">
               {t('Let’s get your workspace ready.')}
             </h1>
@@ -53,7 +53,7 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
               {isHosted()
                 ? t('Your workspace is temporarily unavailable. Please try again shortly.')
                 : t(
-                    'Command could not connect to your database. Start your local database, then return here to pick up where you left off.',
+                    'Sessio could not connect to your database. Start your local database, then return here to pick up where you left off.',
                   )}
             </p>
             {!isHosted() && (

@@ -8,8 +8,8 @@ import { APP_BACKGROUND } from '@/lib/theme';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: '/',
-    name: 'Command',
-    short_name: 'Command',
+    name: 'Sessio',
+    short_name: 'Sessio',
     description: 'Your courses, tasks, grades, and study plans in one personal workspace.',
     start_url: '/',
     scope: '/',

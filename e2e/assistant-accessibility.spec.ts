@@ -46,10 +46,10 @@ for (const theme of ['light', 'dark'] as const) {
       (dark) => document.documentElement.classList.toggle('dark', dark),
       theme === 'dark',
     );
-    const trigger = page.getByRole('button', { name: 'Ask Command', exact: true });
+    const trigger = page.getByRole('button', { name: 'Ask Sessio', exact: true });
     await trigger.focus();
     await page.keyboard.press('Enter');
-    const dialog = page.getByRole('dialog', { name: 'Ask Command' });
+    const dialog = page.getByRole('dialog', { name: 'Ask Sessio' });
     await expect(dialog).toBeVisible();
     const audit = async () => {
       const result = await new AxeBuilder({ page })
@@ -63,13 +63,13 @@ for (const theme of ['light', 'dark'] as const) {
       ).toEqual([]);
     };
     await audit();
-    await dialog.getByLabel('Message Command').fill('test');
+    await dialog.getByLabel('Message Sessio').fill('test');
     await page.keyboard.press('Enter');
     await expect(dialog.getByText('<img src=x onerror=alert(1)> is plain text.')).toBeVisible();
     await expect(dialog.locator('img')).toHaveCount(0);
     await audit();
     await page.setViewportSize({ width: 320, height: 740 });
-    await expect(dialog.getByLabel('Message Command')).toBeVisible();
+    await expect(dialog.getByLabel('Message Sessio')).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'Close dialog' })).toBeVisible();
     expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
     expect(await dialog.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');

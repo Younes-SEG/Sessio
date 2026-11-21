@@ -55,7 +55,7 @@ test('first run brings in the Brightspace calendar before going Home', async ({ 
     page.getByRole('heading', { name: 'Bring in your courses and deadlines' }),
   ).toBeVisible();
   // Setup shows one short privacy line; the full explanation is folded under "How this works".
-  await expect(page.getByText('Command keeps this private link to refresh')).toBeVisible();
+  await expect(page.getByText('Sessio keeps this private link to refresh')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Calendar privacy details' }).first()).toBeVisible();
   const details = page.getByTestId('calendar-how-it-works');
   await expect(details.getByText(/Save calendar stores this private link/)).toBeHidden();

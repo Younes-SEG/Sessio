@@ -74,8 +74,8 @@ export function BrightspaceNotificationGuide({ french = false }: { french?: bool
         <strong>{choose('Summary of Activity → Never', 'Résumé des activités → Jamais')}</strong>
         <p className="mt-1">
           {choose(
-            'Use instant notifications instead of daily or weekly summaries. Summaries can repeat results already sent individually. This reduces repeated emails; it does not remove copies already imported into Command.',
-            'Utilisez les notifications instantanées plutôt que les résumés quotidiens ou hebdomadaires. Les résumés peuvent répéter des résultats déjà envoyés séparément. Cela réduit les répétitions, sans supprimer les copies déjà importées dans Command.',
+            'Use instant notifications instead of daily or weekly summaries. Summaries can repeat results already sent individually. This reduces repeated emails; it does not remove copies already imported into Sessio.',
+            'Utilisez les notifications instantanées plutôt que les résumés quotidiens ou hebdomadaires. Les résumés peuvent répéter des résultats déjà envoyés séparément. Cela réduit les répétitions, sans supprimer les copies déjà importées dans Sessio.',
           )}
         </p>
       </div>
@@ -107,8 +107,8 @@ export function BrightspaceNotificationGuide({ french = false }: { french?: bool
         <p>
           <strong>{choose('ON:', 'ACTIVÉ :')}</strong>{' '}
           {choose(
-            'Include my grade value in notifications from Grades. Command needs the actual score in the email to save a grade automatically; a release notice alone is not enough.',
-            'Inclure la valeur de ma note dans les notifications de Notes. Command a besoin du résultat dans le courriel pour l’enregistrer automatiquement; un simple avis de publication ne suffit pas.',
+            'Include my grade value in notifications from Grades. Sessio needs the actual score in the email to save a grade automatically; a release notice alone is not enough.',
+            'Inclure la valeur de ma note dans les notifications de Notes. Sessio a besoin du résultat dans le courriel pour l’enregistrer automatiquement; un simple avis de publication ne suffit pas.',
           )}
         </p>
         <p>
@@ -134,14 +134,14 @@ export function BrightspaceNotificationGuide({ french = false }: { french?: bool
       </details>
       <p className="text-sm">
         {choose(
-          'Course-specific exceptions: enable Activity Feed posts, discussion mentions/subscriptions or ePortfolio feedback if your instructor uses them for important course work. Keep two-day deadline emails if those assessments are missing from Command or calendar sync is unreliable. This quieter setup assumes you also check Brightspace for course content.',
-          'Exceptions selon le cours : activez les publications du Fil d’activité, les mentions/abonnements aux discussions ou la rétroaction ePortfolio si votre enseignant les utilise pour du travail important. Gardez les rappels d’échéance à deux jours si ces évaluations manquent dans Command ou si la synchronisation du calendrier est peu fiable. Cette configuration suppose que vous consultez aussi le contenu dans Brightspace.',
+          'Course-specific exceptions: enable Activity Feed posts, discussion mentions/subscriptions or ePortfolio feedback if your instructor uses them for important course work. Keep two-day deadline emails if those assessments are missing from Sessio or calendar sync is unreliable. This quieter setup assumes you also check Brightspace for course content.',
+          'Exceptions selon le cours : activez les publications du Fil d’activité, les mentions/abonnements aux discussions ou la rétroaction ePortfolio si votre enseignant les utilise pour du travail important. Gardez les rappels d’échéance à deux jours si ces évaluations manquent dans Sessio ou si la synchronisation du calendrier est peu fiable. Cette configuration suppose que vous consultez aussi le contenu dans Brightspace.',
         )}
       </p>
       <p className="muted text-sm">
         {choose(
-          'Command groups matching announcement and direct-email copies from the same course within three days, ignoring template headers and footers. You can open every original email. Changed content, grade notices, deadline-change notices and summaries remain separate; these settings still help reduce overlap.',
-          'Command regroupe les annonces et courriels directs identiques du même cours reçus dans un délai de trois jours, sans tenir compte des en-têtes et pieds de page automatiques. Chaque original reste accessible. Les contenus modifiés, avis de notes, changements d’échéance et résumés restent séparés; ces paramètres réduisent encore les répétitions.',
+          'Sessio groups matching announcement and direct-email copies from the same course within three days, ignoring template headers and footers. You can open every original email. Changed content, grade notices, deadline-change notices and summaries remain separate; these settings still help reduce overlap.',
+          'Sessio regroupe les annonces et courriels directs identiques du même cours reçus dans un délai de trois jours, sans tenir compte des en-têtes et pieds de page automatiques. Chaque original reste accessible. Les contenus modifiés, avis de notes, changements d’échéance et résumés restent séparés; ces paramètres réduisent encore les répétitions.',
         )}
       </p>
       <p className="text-sm">

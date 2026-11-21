@@ -4,7 +4,7 @@ export const gradeAssistantFrench = {
   guidelineNote: (school: string) =>
     ` Les conversions en lettres de ${school} sont des lignes directrices; l’enseignant décide, donc ce résultat est une estimation.`,
   passRulesNote: (defaultPercent: string, variants: string) =>
-    ` La note de passage par défaut est ${defaultPercent}. Variantes selon le programme ou le type de cours : ${variants}. Vérifie laquelle s’applique; Command ne la devine pas.`,
+    ` La note de passage par défaut est ${defaultPercent}. Variantes selon le programme ou le type de cours : ${variants}. Vérifie laquelle s’applique; Sessio ne la devine pas.`,
 };
 
 export const french: Record<string, string> = {
@@ -29,8 +29,8 @@ export const french: Record<string, string> = {
   'No school chosen': 'Aucun établissement choisi',
   '24-hour': '24 heures',
   '12-hour': '12 heures',
-  'This copy of Command runs on your computer and keeps your data in its local database. There is no account to sign in to.':
-    'Cette copie de Command fonctionne sur votre ordinateur et garde vos données dans sa base de données locale. Il n’y a aucun compte auquel se connecter.',
+  'This copy of Sessio runs on your computer and keeps your data in its local database. There is no account to sign in to.':
+    'Cette copie de Sessio fonctionne sur votre ordinateur et garde vos données dans sa base de données locale. Il n’y a aucun compte auquel se connecter.',
   'Signing out ends this session on this device.':
     'La déconnexion met fin à cette session sur cet appareil.',
   'This term': 'Cette session',
@@ -70,8 +70,8 @@ export const french: Record<string, string> = {
   Selected: 'S\u00e9lectionn\u00e9',
   'No listed school matches your search.':
     'Aucun \u00e9tablissement r\u00e9pertori\u00e9 ne correspond.',
-  'Your school helps Command use the right grade scale and course weights.':
-    'Votre \u00e9tablissement aide Command \u00e0 utiliser le bon bar\u00e8me et les bonnes pond\u00e9rations de cours.',
+  'Your school helps Sessio use the right grade scale and course weights.':
+    'Votre \u00e9tablissement aide Sessio \u00e0 utiliser le bon bar\u00e8me et les bonnes pond\u00e9rations de cours.',
   'Save school': 'Enregistrer l\u2019\u00e9tablissement',
   'Choose school': 'Choisir un \u00e9tablissement',
   "My school isn't listed": 'Mon \u00e9tablissement n\u2019est pas dans la liste',
@@ -81,8 +81,8 @@ export const french: Record<string, string> = {
   'Could not save your school. Please try again.':
     'Impossible d\u2019enregistrer votre \u00e9tablissement. Veuillez r\u00e9essayer.',
   'YOUR SCHOOL, YOUR SCALE': 'VOTRE \u00c9TABLISSEMENT, VOTRE BAR\u00c8ME',
-  'This helps Command use the right letter grades, GPA scale and course weights.':
-    'Cela aide Command \u00e0 utiliser les bonnes notes en lettres, l\u2019\u00e9chelle de MPC et les bonnes pond\u00e9rations de cours.',
+  'This helps Sessio use the right letter grades, GPA scale and course weights.':
+    'Cela aide Sessio \u00e0 utiliser les bonnes notes en lettres, l\u2019\u00e9chelle de MPC et les bonnes pond\u00e9rations de cours.',
   'You can change this later in Settings.':
     'Vous pourrez modifier ce choix dans les r\u00e9glages.',
   School: '\u00c9tablissement',
@@ -98,15 +98,15 @@ export const french: Record<string, string> = {
   Continue: 'Continuer',
   Skip: 'Passer',
   'Account deletion and support': 'Suppression du compte et assistance',
-  'Command is invitation only': 'Command est accessible sur invitation seulement',
-  'Your email is verified, but this account has not been invited to Command. Contact support if you believe you should have access.':
-    'Votre adresse courriel est vérifiée, mais ce compte n’a pas été invité à utiliser Command. Communiquez avec le soutien si vous croyez devoir y avoir accès.',
+  'Sessio is invitation only': 'Sessio est accessible sur invitation seulement',
+  'Your email is verified, but this account has not been invited to Sessio. Contact support if you believe you should have access.':
+    'Votre adresse courriel est vérifiée, mais ce compte n’a pas été invité à utiliser Sessio. Communiquez avec le soutien si vous croyez devoir y avoir accès.',
   'Your account is being deleted': 'Votre compte est en cours de suppression',
   'This workspace is unavailable while your account is being deleted. Contact support if you need help.':
     'Cet espace de travail est inaccessible pendant la suppression de votre compte. Communiquez avec le soutien si vous avez besoin d’aide.',
   'Access denied': 'Accès refusé',
-  'Command could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.':
-    'Command n’a pas pu confirmer l’accès à cet espace de travail. Déconnectez-vous et réessayez, ou communiquez avec le soutien si le problème persiste.',
+  'Sessio could not confirm access to this workspace. Sign out and try again, or contact support if the problem continues.':
+    'Sessio n’a pas pu confirmer l’accès à cet espace de travail. Déconnectez-vous et réessayez, ou communiquez avec le soutien si le problème persiste.',
   'Contact support': 'Communiquer avec le soutien',
   'Gmail connections are not available for this account yet.':
     'La connexion Gmail n’est pas encore disponible pour ce compte.',
@@ -118,8 +118,8 @@ export const french: Record<string, string> = {
   'This AI model is not enabled.': 'Ce modèle d’IA n’est pas activé.',
   'AI allowance reached. Daily allowances reset at 00:00 UTC; monthly allowances reset on the first.':
     'Limite d’IA atteinte. La limite quotidienne est renouvelée à 00 h UTC, et la limite mensuelle le premier du mois.',
-  'Command is currently available to invited accounts only.':
-    'Command est actuellement réservé aux comptes invités.',
+  'Sessio is currently available to invited accounts only.':
+    'Sessio est actuellement réservé aux comptes invités.',
   'New accounts are currently available by invitation only.':
     'Les nouveaux comptes sont accessibles sur invitation uniquement.',
   'The syllabus reader connection is not configured.':
@@ -154,12 +154,12 @@ export const french: Record<string, string> = {
   'All course notifications marked as read.': 'Tous les avis de cours sont marqués comme lus.',
   'Deadline updated automatically from this email':
     'Échéance mise à jour automatiquement à partir de ce courriel',
-  'If this is wrong, open the assessment and change its date. Command will not apply this email again.':
-    'Si c’est une erreur, ouvrez l’évaluation et changez sa date. Command n’appliquera plus ce courriel.',
-  'Allow Command to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.':
-    'Autoriser Command à lire les courriels pertinents toutes les cinq minutes pendant que l’application est ouverte. Les résultats clairement associés à une évaluation sont enregistrés automatiquement; les cas incertains restent à vérifier.',
-  'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Command is closed.':
-    'Les résultats clairement associés à une évaluation vont directement dans Notes. Les cas incertains et les conflits avec les notes saisies manuellement restent à vérifier. La recherche couvre les 30 derniers jours au départ, puis les nouveautés, et s’arrête lorsque Command est fermé.',
+  'If this is wrong, open the assessment and change its date. Sessio will not apply this email again.':
+    'Si c’est une erreur, ouvrez l’évaluation et changez sa date. Sessio n’appliquera plus ce courriel.',
+  'Allow Sessio to read matching emails and check every five minutes while the app is open. Clear assessment and score matches are saved automatically; uncertain results stay for review.':
+    'Autoriser Sessio à lire les courriels pertinents toutes les cinq minutes pendant que l’application est ouverte. Les résultats clairement associés à une évaluation sont enregistrés automatiquement; les cas incertains restent à vérifier.',
+  'Clear assessment and score matches go straight to Grades. Uncertain results and conflicts with manually entered grades stay for review. Checks cover the last 30 days initially, then recent updates, and stop when Sessio is closed.':
+    'Les résultats clairement associés à une évaluation vont directement dans Notes. Les cas incertains et les conflits avec les notes saisies manuellement restent à vérifier. La recherche couvre les 30 derniers jours au départ, puis les nouveautés, et s’arrête lorsque Sessio est fermé.',
   Read: 'Lu',
   'Could not mark as read. Please try again.': 'Impossible de marquer comme lu. Réessayez.',
   'Notifications are marked as read after two seconds in view. Read messages stay here; assessment changes still need your confirmation.':
@@ -185,8 +185,8 @@ export const french: Record<string, string> = {
   'Assessment change': 'Modification d’évaluation',
   Announcement: 'Annonce',
   'Review an assessment deadline': 'Vérifier une échéance d’évaluation',
-  'Command could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.':
-    'Command n’a pas pu associer ce changement à une seule évaluation et une seule date, donc rien n’a changé. Confirmez l’évaluation, la date et l’heure avant d’enregistrer.',
+  'Sessio could not match this change to one assessment and one date, so nothing was changed. Confirm the assessment, new date and time before saving.':
+    'Sessio n’a pas pu associer ce changement à une seule évaluation et une seule date, donc rien n’a changé. Confirmez l’évaluation, la date et l’heure avant d’enregistrer.',
   'Current deadline:': 'Échéance actuelle :',
   'Not set': 'Non définie',
   'New due date': 'Nouvelle date limite',
@@ -221,10 +221,10 @@ export const french: Record<string, string> = {
   'Gmail connection setup is not complete.':
     'La configuration de la connexion Gmail est incomplète.',
   'Set up Gmail for this local installation': 'Configurer Gmail pour cette installation locale',
-  'Google grants read-only mailbox access. Command searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.':
-    'Google accorde un accès en lecture seule à votre boîte de réception. Command recherche les avis scolaires correspondants, lit leur texte et conserve le texte lisible du message à vérifier. Il n’envoie aucun courriel, ne modifie pas votre boîte de réception, ne télécharge pas les pièces jointes et ne transmet pas vos courriels à des services d’IA.',
-  'Allow Command to read matching emails and check every five minutes while the app is open. I will review each grade before it is saved.':
-    'Autoriser Command à lire les courriels correspondants et à vérifier toutes les cinq minutes lorsque l’application est ouverte. Je vérifierai chaque note avant son enregistrement.',
+  'Google grants read-only mailbox access. Sessio searches for matching school notifications, reads their text, and keeps the readable message text for review. It does not send email, change your inbox, download attachments, or send email to AI services.':
+    'Google accorde un accès en lecture seule à votre boîte de réception. Sessio recherche les avis scolaires correspondants, lit leur texte et conserve le texte lisible du message à vérifier. Il n’envoie aucun courriel, ne modifie pas votre boîte de réception, ne télécharge pas les pièces jointes et ne transmet pas vos courriels à des services d’IA.',
+  'Allow Sessio to read matching emails and check every five minutes while the app is open. I will review each grade before it is saved.':
+    'Autoriser Sessio à lire les courriels correspondants et à vérifier toutes les cinq minutes lorsque l’application est ouverte. Je vérifierai chaque note avant son enregistrement.',
   'Gmail was not connected. Try again and allow read-only email access.':
     'Gmail n’a pas été connecté. Réessayez et autorisez l’accès en lecture seule aux courriels.',
   'Gmail connected. Your email updates are ready to check.':
@@ -234,14 +234,14 @@ export const french: Record<string, string> = {
   'Not checked yet': 'Pas encore vérifié',
   'More matching emails are available. Check again to continue the scan.':
     'D’autres courriels correspondent au filtre. Vérifiez à nouveau pour continuer.',
-  'Checks cover the last 30 days initially, then recent updates. Grades only change after you review and save them. Local checks stop when Command is closed.':
-    'La première vérification couvre les 30 derniers jours, puis les mises à jour récentes. Les notes changent seulement après votre vérification et votre enregistrement. Les vérifications locales s’arrêtent lorsque Command est fermé.',
+  'Checks cover the last 30 days initially, then recent updates. Grades only change after you review and save them. Local checks stop when Sessio is closed.':
+    'La première vérification couvre les 30 derniers jours, puis les mises à jour récentes. Les notes changent seulement après votre vérification et votre enregistrement. Les vérifications locales s’arrêtent lorsque Sessio est fermé.',
   'Email preferences': 'Préférences des courriels',
   'Gmail search filter': 'Filtre de recherche Gmail',
-  'Use Gmail search words or a label such as label:School. This filter limits what Command reads; Google permission still covers your mailbox.':
-    'Utilisez des termes de recherche Gmail ou un libellé comme label:School. Ce filtre limite ce que Command lit; l’autorisation Google couvre toujours votre boîte de réception.',
-  'Check automatically while Command is open':
-    'Vérifier automatiquement lorsque Command est ouvert',
+  'Use Gmail search words or a label such as label:School. This filter limits what Sessio reads; Google permission still covers your mailbox.':
+    'Utilisez des termes de recherche Gmail ou un libellé comme label:School. Ce filtre limite ce que Sessio lit; l’autorisation Google couvre toujours votre boîte de réception.',
+  'Check automatically while Sessio is open':
+    'Vérifier automatiquement lorsque Sessio est ouvert',
   'Save email preferences': 'Enregistrer les préférences des courriels',
   'Disconnect Gmail': 'Déconnecter Gmail',
   'Disconnect Gmail and delete its saved email reviews? Grades you already saved will stay.':
@@ -272,8 +272,8 @@ export const french: Record<string, string> = {
   'Grade saved from your email review.': 'Note enregistrée après vérification du courriel.',
   'Gmail disconnected. Imported grades are kept.':
     'Gmail déconnecté. Les notes importées sont conservées.',
-  'Gmail disconnected locally. You can also remove Command in your Google account connections.':
-    'Gmail déconnecté localement. Vous pouvez aussi retirer Command des connexions de votre compte Google.',
+  'Gmail disconnected locally. You can also remove Sessio in your Google account connections.':
+    'Gmail déconnecté localement. Vous pouvez aussi retirer Sessio des connexions de votre compte Google.',
   'Reconnect Gmail to continue checking emails.':
     'Reconnectez Gmail pour continuer à vérifier les courriels.',
   'Gmail is unavailable. Please try again later.':
@@ -283,8 +283,8 @@ export const french: Record<string, string> = {
   'This grade changed since you opened the review. Refresh and check it again.':
     'Cette note a changé depuis l’ouverture de la vérification. Actualisez et vérifiez à nouveau.',
   'This email update was already reviewed.': 'Cet avis a déjà été vérifié.',
-  'Open Command at the address configured for Gmail before connecting.':
-    'Ouvrez Command à l’adresse configurée pour Gmail avant de vous connecter.',
+  'Open Sessio at the address configured for Gmail before connecting.':
+    'Ouvrez Sessio à l’adresse configurée pour Gmail avant de vous connecter.',
   'Syllabus imported': 'Plan de cours importé',
   Fall: 'Automne',
   Winter: 'Hiver',
@@ -298,7 +298,7 @@ export const french: Record<string, string> = {
   'Reading your syllabus…': 'Lecture de votre plan de cours…',
   'Take the guided tour': 'Faire la visite guidée',
   'YOUR SPACE, AT YOUR PACE': 'VOTRE ESPACE, À VOTRE RYTHME',
-  'Welcome to Command.': 'Bienvenue dans Command.',
+  'Welcome to Sessio.': 'Bienvenue dans Sessio.',
   'Your courses, deadlines and study plans, with a little more breathing room.':
     'Vos cours, vos échéances et vos plans d’étude, avec un peu plus de tranquillité.',
   'Let’s get comfortable, one step at a time.': 'Prenons nos repères, une étape à la fois.',
@@ -310,18 +310,18 @@ export const french: Record<string, string> = {
     'La configuration prend environ deux minutes, et vous pouvez passer chaque étape.',
   'YOUR SEMESTER, READY': 'VOTRE SESSION, PRÊTE',
   'Bring in your courses and deadlines': 'Importez vos cours et vos échéances',
-  'Paste your Brightspace calendar link and Command creates your term, courses and deadlines for you.':
-    'Collez le lien de votre calendrier Brightspace et Command crée votre session, vos cours et vos échéances pour vous.',
+  'Paste your Brightspace calendar link and Sessio creates your term, courses and deadlines for you.':
+    'Collez le lien de votre calendrier Brightspace et Sessio crée votre session, vos cours et vos échéances pour vous.',
   'Skip for now': 'Passer pour l’instant',
   'Import a syllabus instead': 'Importer plutôt un plan de cours',
   'AI features are for people 18 or older': 'Les fonctions d’IA sont réservées aux 18 ans et plus',
-  'Ask Command and syllabus reading use Google Gemini, which may only be used by people 18 or older. Everything else in Command works at any age.':
-    'Ask Command et la lecture des plans de cours utilisent Google Gemini, qui ne peut être utilisé que par des personnes de 18 ans ou plus. Tout le reste de Command fonctionne à tout âge.',
+  'Ask Sessio and syllabus reading use Google Gemini, which may only be used by people 18 or older. Everything else in Sessio works at any age.':
+    'Ask Sessio et la lecture des plans de cours utilisent Google Gemini, qui ne peut être utilisé que par des personnes de 18 ans ou plus. Tout le reste de Sessio fonctionne à tout âge.',
   'I’m 18 or older': 'J’ai 18 ans ou plus',
   'Could not save your confirmation. Please try again.':
     'Impossible d’enregistrer votre confirmation. Veuillez réessayer.',
-  'Confirm that you are 18 or older to use Ask Command and syllabus reading.':
-    'Confirmez que vous avez 18 ans ou plus pour utiliser Ask Command et la lecture des plans de cours.',
+  'Confirm that you are 18 or older to use Ask Sessio and syllabus reading.':
+    'Confirmez que vous avez 18 ans ou plus pour utiliser Ask Sessio et la lecture des plans de cours.',
   'Add grade weights from a syllabus': 'Ajouter les pondérations à partir d’un plan de cours',
   'You can connect or change this later in Settings → Calendar.':
     'Vous pourrez le connecter ou le modifier plus tard dans Paramètres → Calendrier.',
@@ -359,8 +359,8 @@ export const french: Record<string, string> = {
   'Your grades are only calculated from the results you enter.':
     'Vos moyennes sont calculées uniquement à partir des résultats saisis.',
   'Come back to one clear focus': 'Retrouvez une priorité claire',
-  'Start here when you open Command. Your focus shows the work to do next and study reminders for upcoming quizzes and exams.':
-    'Commencez ici en ouvrant Command. Votre priorité montre le travail à venir et les rappels d’étude pour les prochains quiz et examens.',
+  'Start here when you open Sessio. Your focus shows the work to do next and study reminders for upcoming quizzes and exams.':
+    'Commencez ici en ouvrant Sessio. Votre priorité montre le travail à venir et les rappels d’étude pour les prochains quiz et examens.',
   'You can replay this tour anytime from the User guide.':
     'Vous pouvez refaire cette visite à tout moment depuis le Guide d’utilisation.',
 
@@ -380,8 +380,8 @@ export const french: Record<string, string> = {
 
   'Check this when the task is finished, then save your changes. Uncheck it to put the task back in progress.':
     'Cochez cette case lorsque la tâche est terminée, puis enregistrez vos modifications. Décochez-la pour remettre la tâche en cours.',
-  'If the provider is temporarily busy, Command retries automatically. Keep this page open.':
-    'Si le fournisseur est temporairement occupé, Command réessaie automatiquement. Gardez cette page ouverte.',
+  'If the provider is temporarily busy, Sessio retries automatically. Keep this page open.':
+    'Si le fournisseur est temporairement occupé, Sessio réessaie automatiquement. Gardez cette page ouverte.',
   'This group replaces the individual weight above.':
     'Ce groupe remplace la pondération individuelle ci-dessus.',
   'Not currently counted': 'Non retenu pour le moment',
@@ -562,7 +562,7 @@ export const french: Record<string, string> = {
   and: 'et',
   'Privacy policy': 'Politique de confidentialité',
   'Forgot your password?': 'Mot de passe oublié?',
-  'New to Command?': 'Vous découvrez Command?',
+  'New to Sessio?': 'Vous découvrez Sessio?',
   'Create an account': 'Créer un compte',
   'Back to sign in': 'Retour à la connexion',
   'Sign in': 'Se connecter',
@@ -575,8 +575,8 @@ export const french: Record<string, string> = {
     'Collez votre lien d’abonnement Brightspace. Les échéances deviennent des évaluations, sans doubler les entrées traduites.',
   'Calendar subscription link': 'Lien d’abonnement au calendrier',
   'Calendar privacy details': 'Confidentialité du calendrier',
-  'Command keeps this private link to refresh your deadlines. Use only a link you are authorized to access.':
-    'Command conserve ce lien privé pour actualiser vos échéances. Utilisez seulement un lien auquel vous avez le droit d’accéder.',
+  'Sessio keeps this private link to refresh your deadlines. Use only a link you are authorized to access.':
+    'Sessio conserve ce lien privé pour actualiser vos échéances. Utilisez seulement un lien auquel vous avez le droit d’accéder.',
   'How this works': 'Comment ça fonctionne',
   'Preview calendar': 'Aperçu du calendrier',
   'Calendar changes save here separately from your preferences.':
@@ -1034,8 +1034,8 @@ export const french: Record<string, string> = {
   'Assignment, lab, exam…': 'Devoir, laboratoire, examen…',
   '· Current weighted grade:': 'À Moyenne pondérée actuelle :',
   '% of course ·': '% du cours?',
-  'Command · Local edition · Ontario, Canada': 'Command · Édition locale · Ontario, Canada',
-  'Command · Hosted edition · Ontario, Canada': 'Command · Édition hébergée · Ontario, Canada',
+  'Sessio · Local edition · Ontario, Canada': 'Sessio · Édition locale · Ontario, Canada',
+  'Sessio · Hosted edition · Ontario, Canada': 'Sessio · Édition hébergée · Ontario, Canada',
   'It does not remove downloaded files, backups, database logs or your provider’s calendar. Download a copy first if you need one.':
     'Les fichiers téléchargés, sauvegardes, journaux de base de données et calendriers du fournisseur ne sont pas supprimés. Téléchargez d’abord une copie si nécessaire.',
   '12-hour · 2:30 PM': '12 heures · 2:30 PM',
@@ -1059,18 +1059,18 @@ export const french: Record<string, string> = {
   'Office hours, links, room numbers…': 'Heures de bureau, liens, salles…',
   'Add context, links, or a little extra detail…':
     'Ajoutez du contexte, des liens ou quelques détails…',
-  'Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Command is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access.':
-    'Enregistrer le calendrier conserve ce lien privé, importe la période choisie et permet une actualisation toutes les 15 minutes pendant que Command fonctionne. L’aperçu consulte le flux sans l’enregistrer. Le fournisseur reçoit la requête. Utilisez uniquement un lien auquel vous êtes autorisé à accéder.',
+  'Save calendar stores this private link, imports the selected dates and enables refresh every 15 minutes while Sessio is running. Preview checks the feed without saving. Your calendar provider receives the request. Use only a link you are authorized to access.':
+    'Enregistrer le calendrier conserve ce lien privé, importe la période choisie et permet une actualisation toutes les 15 minutes pendant que Sessio fonctionne. L’aperçu consulte le flux sans l’enregistrer. Le fournisseur reçoit la requête. Utilisez uniquement un lien auquel vous êtes autorisé à accéder.',
   'Matching courses are reused; missing courses are created. Deadlines become assessments with no grade and 0% weight until you fill those in. Availability notices stay calendar events.':
     'Les cours existants sont réutilisés et les cours manquants sont créés. Les échéances deviennent des évaluations sans note, avec une pondération de 0 % à compléter. Les avis de disponibilité restent des événements.',
-  'By choosing Connect and import, you authorize Command to store this private link and import and refresh its calendar data every 15 minutes while running. You can disconnect or forget it below at any time.':
-    'En choisissant Connecter et importer, vous autorisez Command à conserver ce lien privé et à actualiser les données toutes les 15 minutes pendant son fonctionnement. Vous pouvez déconnecter ou oublier le lien ci-dessous à tout moment.',
+  'By choosing Connect and import, you authorize Sessio to store this private link and import and refresh its calendar data every 15 minutes while running. You can disconnect or forget it below at any time.':
+    'En choisissant Connecter et importer, vous autorisez Sessio à conserver ce lien privé et à actualiser les données toutes les 15 minutes pendant son fonctionnement. Vous pouvez déconnecter ou oublier le lien ci-dessous à tout moment.',
   'Waiting for first sync': 'En attente de la première synchronisation',
   'Grades and notes stay yours. Entries that disappear from the feed are kept for review; explicit cancellations are labelled. Disconnecting keeps imported entries and remembers this feed for reconnection.':
     'Vos résultats et notes sont conservés. Les entrées qui disparaissent du flux restent disponibles; les annulations explicites sont indiquées. La déconnexion conserve les entrées et le lien pour une reconnexion.',
-  'Checks for updates while you use Command, at most every 15 minutes per feed. Use Sync now for an immediate check. ':
+  'Checks for updates while you use Sessio, at most every 15 minutes per feed. Use Sync now for an immediate check. ':
     'Vérifie les mises à jour pendant l’utilisation, au plus toutes les 15 minutes par flux. Utilisez Synchroniser pour vérifier immédiatement. ',
-  'Checks every 15 minutes while the Command server is running, even if you close this tab. Catches up after restart. ':
+  'Checks every 15 minutes while the Sessio server is running, even if you close this tab. Catches up after restart. ':
     'Vérifie toutes les 15 minutes pendant que le serveur fonctionne, même si cet onglet est fermé. Rattrape les mises à jour au redémarrage. ',
   'Your private link is stored in your online workspace and fetched by the hosted server. ':
     'Votre lien privé est conservé dans votre espace en ligne et consulté par le serveur hébergé. ',
@@ -1160,8 +1160,8 @@ export const french: Record<string, string> = {
     'La session active est sélectionnée par défaut pour les nouveaux cours. Sélectionnez une session pour modifier ses dates, son état actif ou la supprimer.',
   'Wander, follow your mouse along the edges, and hop along on page changes. Turn off for a still companion. Your device’s reduced-motion setting is always respected.':
     'Le compagnon se promène sur les bords, suit la souris et saute lors des changements de page. Désactivez cette option pour le garder immobile. Le réglage de réduction des mouvements de votre appareil est toujours respecté.',
-  'Clicking Read syllabus or analysing pasted text sends it and the selected course name and term to Command’s reader and its configured AI provider (Google Gemini or OpenAI). No AI account or setup is needed. Command does not keep the original file; provider retention rules apply. Google’s free tier may use uploads to improve its products, so only upload non-sensitive syllabi.':
-    'Un clic sur Lire le plan de cours ou l’analyse de texte envoie son contenu, le cours et la session au lecteur de Command et à son fournisseur d’IA (Google Gemini ou OpenAI). Aucun compte d’IA n’est nécessaire. Command ne conserve pas le fichier original; les règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut utiliser les documents pour améliorer ses produits : importez uniquement des plans non sensibles.',
+  'Clicking Read syllabus or analysing pasted text sends it and the selected course name and term to Sessio’s reader and its configured AI provider (Google Gemini or OpenAI). No AI account or setup is needed. Sessio does not keep the original file; provider retention rules apply. Google’s free tier may use uploads to improve its products, so only upload non-sensitive syllabi.':
+    'Un clic sur Lire le plan de cours ou l’analyse de texte envoie son contenu, le cours et la session au lecteur de Sessio et à son fournisseur d’IA (Google Gemini ou OpenAI). Aucun compte d’IA n’est nécessaire. Sessio ne conserve pas le fichier original; les règles de conservation du fournisseur s’appliquent. L’offre gratuite de Google peut utiliser les documents pour améliorer ses produits : importez uniquement des plans non sensibles.',
   'Connecting to the reader… ': 'Connexion au lecteur… ',
   'Choose a term and, for an existing course, choose the course. ':
     'Choisissez une session et, pour un cours existant, le cours. ',
@@ -1247,7 +1247,7 @@ export const french: Record<string, string> = {
   'Reset your password': 'Réinitialiser votre mot de passe',
   'Choose a new password': 'Choisir un nouveau mot de passe',
   'Check your email': 'Vérifiez votre courriel',
-  'Sign out of Command': 'Se déconnecter de Command',
+  'Sign out of Sessio': 'Se déconnecter de Sessio',
   'Verify your email before opening your private workspace. You can request another link below.':
     'Vérifiez votre courriel avant d’ouvrir votre espace privé. Vous pouvez demander un autre lien ci-dessous.',
   'Keep your courses, grades and plans together in your own private workspace.':
@@ -1257,7 +1257,7 @@ export const french: Record<string, string> = {
   'Show password': 'Afficher le mot de passe',
   'Hide password': 'Masquer le mot de passe',
   Hide: 'Masquer',
-  'Sign out of Command?': 'Se déconnecter de Command?',
+  'Sign out of Sessio?': 'Se déconnecter de Sessio?',
   'Stay signed in': 'Rester connecté',
   'Your saved work will stay here. You’ll need to sign in again to open your workspace.':
     'Votre travail enregistré sera conservé. Vous devrez vous reconnecter pour ouvrir votre espace.',
@@ -1292,8 +1292,8 @@ export const french: Record<string, string> = {
     'Si un compte utilise cette adresse courriel, vous recevrez un lien de réinitialisation du mot de passe. Vérifiez votre boîte de réception et votre dossier de pourriels.',
   'Please try again later.': 'Veuillez réessayer plus tard.',
   'Sign-in is being set up': 'La connexion est en cours de configuration',
-  'Command is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.':
-    'Command est en ligne, mais l’accès aux comptes n’est pas encore prêt. Revenez sous peu. Vous n’avez rien à installer.',
+  'Sessio is online, but account access is not ready yet. Please check back shortly. There is nothing for you to install.':
+    'Sessio est en ligne, mais l’accès aux comptes n’est pas encore prêt. Revenez sous peu. Vous n’avez rien à installer.',
   'Your courses. Your plans. A little more clarity.':
     'Vos cours. Vos projets. Un peu plus de clarté.',
   'Not Started': 'Non commencé',
@@ -1511,9 +1511,9 @@ export const french: Record<string, string> = {
     'Aucune note trouvée. Copiez tout le tableau des notes, y compris la colonne Points.',
   'Review grades': 'Vérifier les notes',
   Import: 'Importer',
-  'In Command:': 'Dans Command :',
-  'Dropped in Brightspace. Command applies your best-of rule itself.':
-    'Retirée dans Brightspace. Command applique lui-même votre règle des meilleurs résultats.',
+  'In Sessio:': 'Dans Sessio :',
+  'Dropped in Brightspace. Sessio applies your best-of rule itself.':
+    'Retirée dans Brightspace. Sessio applique lui-même votre règle des meilleurs résultats.',
   'Save to': 'Enregistrer dans',
   'Not imported': 'Non importée',
   'Save selected grades': 'Enregistrer les notes sélectionnées',
@@ -1522,10 +1522,10 @@ export const french: Record<string, string> = {
     'Certaines notes n’ont pas pu être enregistrées. Vérifiez-les et réessayez.',
   'Choose a different assessment for each grade.':
     'Choisissez une évaluation différente pour chaque note.',
-  'No grade in Command yet.': 'Aucune note dans Command pour l’instant.',
-  'Already saved in Command.': 'Déjà enregistrée dans Command.',
-  'Command already has a different grade. Tick Import to replace it.':
-    'Command a déjà une note différente. Cochez Importer pour la remplacer.',
+  'No grade in Sessio yet.': 'Aucune note dans Sessio pour l’instant.',
+  'Already saved in Sessio.': 'Déjà enregistrée dans Sessio.',
+  'Sessio already has a different grade. Tick Import to replace it.':
+    'Sessio a déjà une note différente. Cochez Importer pour la remplacer.',
   'No matching assessment. Choose one, or import your syllabus first.':
     'Aucune évaluation correspondante. Choisissez-en une, ou importez d’abord votre plan de cours.',
   'Another row already uses this assessment.': 'Une autre ligne utilise déjà cette évaluation.',
@@ -1541,17 +1541,17 @@ export const french: Record<string, string> = {
   'Your saved data is safe. Please try loading this page again.':
     'Vos données enregistrées sont en sécurité. Essayez de recharger cette page.',
   'Loading workspace': 'Chargement de l’espace',
-  'Command · Personal workspace': 'Command · Espace personnel',
+  'Sessio · Personal workspace': 'Sessio · Espace personnel',
   'Let’s get your workspace ready.': 'Préparons votre espace.',
   'Your workspace is temporarily unavailable. Please try again shortly.':
     'Votre espace est temporairement indisponible. Réessayez dans un instant.',
-  'Command could not connect to your database. Start your local database, then return here to pick up where you left off.':
-    'Command n’a pas pu se connecter à votre base de données. Démarrez votre base de données locale, puis revenez ici pour reprendre là où vous en étiez.',
+  'Sessio could not connect to your database. Start your local database, then return here to pick up where you left off.':
+    'Sessio n’a pas pu se connecter à votre base de données. Démarrez votre base de données locale, puis revenez ici pour reprendre là où vous en étiez.',
   'Keep it running in its own terminal. Your app server is already running, so you do not need to run setup again.':
     'Laissez-la ouverte dans son propre terminal. Le serveur de l’application fonctionne déjà, donc inutile de relancer l’installation.',
   'For an existing PostgreSQL server, check DATABASE_URL in .env. Your data stays in your database.':
     'Pour un serveur PostgreSQL existant, vérifiez DATABASE_URL dans .env. Vos données restent dans votre base de données.',
-  'Add Command to your home screen': 'Ajoutez Command à votre écran d’accueil',
+  'Add Sessio to your home screen': 'Ajoutez Sessio à votre écran d’accueil',
   'Open it like an app, without the browser bars.':
     'Ouvrez-le comme une application, sans les barres du navigateur.',
   'Tap Share, then Add to Home Screen.': 'Touchez Partager, puis « Sur l’écran d’accueil ».',

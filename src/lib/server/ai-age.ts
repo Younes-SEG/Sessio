@@ -3,10 +3,10 @@ import { ApiError } from './errors';
 import { isHosted } from './hosting';
 
 // Google's Gemini API terms allow use only by people 18 or older, so hosted AI
-// features (Ask Command, syllabus reading) require a one-time confirmation.
+// features (Ask Sessio, syllabus reading) require a one-time confirmation.
 // 428, not 403: a 403 would route the browser to the access-denied pages.
 export const AI_AGE_MESSAGE =
-  'Confirm that you are 18 or older to use Ask Command and syllabus reading.';
+  'Confirm that you are 18 or older to use Ask Sessio and syllabus reading.';
 
 export async function assertAiAgeConfirmed(workspaceId: string) {
   if (!isHosted()) return;

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Terminal } from 'lucide-react';
+import { BrandMark } from '@/components/brand-mark';
 import {
   AccessDeniedPanel,
   AuthPageFooter,
@@ -44,9 +44,9 @@ export default async function AuthPage({
           className="mb-8 inline-flex items-center gap-3 text-xl font-semibold"
         >
           <span className="grid size-10 place-items-center rounded-sm bg-primary text-primary-foreground">
-            <Terminal aria-hidden size={24} />
+            <BrandMark size={24} />
           </span>
-          Command
+          Sessio
         </Link>
         <section className="card p-4 sm:p-9">
           {accessView ? (

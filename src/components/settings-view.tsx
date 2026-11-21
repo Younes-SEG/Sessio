@@ -218,7 +218,7 @@ function AccountSection() {
         <h2 className="section-title">{t('Local workspace')}</h2>
         <p className="muted mt-2 text-sm leading-relaxed">
           {t(
-            'This copy of Command runs on your computer and keeps your data in its local database. There is no account to sign in to.',
+            'This copy of Sessio runs on your computer and keeps your data in its local database. There is no account to sign in to.',
           )}
         </p>
       </section>

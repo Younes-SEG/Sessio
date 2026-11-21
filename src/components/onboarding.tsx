@@ -1,5 +1,6 @@
 'use client';
 
+import { BrandMark } from '@/components/brand-mark';
 import {
   createContext,
   useContext,
@@ -11,7 +12,7 @@ import {
 } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Dialog as Primitive } from 'radix-ui';
-import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Compass, Terminal } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Compass } from 'lucide-react';
 import { useWorkspace } from './workspace-provider';
 import { LanguageSwitch, useT } from './language-provider';
 import { Button } from './ui/button';
@@ -328,7 +329,7 @@ function SchoolStep({
         <p className="welcome-eyebrow">{t('YOUR SCHOOL, YOUR SCALE')}</p>
         <h1>{t('Which school do you attend?')}</h1>
         <p className="welcome-description">
-          {t('This helps Command use the right letter grades, GPA scale and course weights.')}
+          {t('This helps Sessio use the right letter grades, GPA scale and course weights.')}
         </p>
         <div className="mx-auto mt-6 w-full max-w-xl text-left">
           <SchoolPicker value={selected} onChange={setSelected} autoFocus />
@@ -376,7 +377,7 @@ function Welcome({
           <BookOpen size={38} strokeWidth={1.3} />
         </div>
         <p className="welcome-eyebrow">{t('YOUR SPACE, AT YOUR PACE')}</p>
-        <h1>{t('Welcome to Command.')}</h1>
+        <h1>{t('Welcome to Sessio.')}</h1>
         <p className="welcome-description">
           {t('Your courses, deadlines and study plans, with a little more breathing room.')}
         </p>
@@ -412,9 +413,9 @@ function WelcomeTopbar() {
     <header className="welcome-topbar">
       <span className="welcome-brand">
         <span className="brand-symbol">
-          <Terminal size={20} aria-hidden />
+          <BrandMark size={20} />
         </span>
-        Command
+        Sessio
       </span>
       <LanguageSwitch />
     </header>
@@ -445,7 +446,7 @@ function SetupStep({
         <h1>{t('Bring in your courses and deadlines')}</h1>
         <p className="welcome-description">
           {t(
-            'Paste your Brightspace calendar link and Command creates your term, courses and deadlines for you.',
+            'Paste your Brightspace calendar link and Sessio creates your term, courses and deadlines for you.',
           )}
         </p>
         <div className="mx-auto mt-6 w-full max-w-xl text-left">

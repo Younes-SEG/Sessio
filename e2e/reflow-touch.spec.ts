@@ -93,7 +93,7 @@ async function seed(page: Page, baseURL: string): Promise<string> {
 async function open(page: Page, path: string) {
   await page.goto(path);
   await expect(page.locator('h1').first()).toBeVisible();
-  await expect(page.locator('h1').first()).not.toHaveText(/Welcome to Command/);
+  await expect(page.locator('h1').first()).not.toHaveText(/Welcome to Sessio/);
 }
 
 test('core pages reflow at 320 px and keep touch targets usable', async ({ page, baseURL }) => {

@@ -1,4 +1,4 @@
-# Command shared syllabus reader (owner deployment)
+# Sessio shared syllabus reader (owner deployment)
 
 Users upload and review, without an AI key, AI account or model installation. The downloadable planner stays on loopback with its local database. Deploy **only this service**, never expose the existing workspace server. The service has no database credentials or workspace routes.
 
@@ -18,7 +18,7 @@ The repository-root `render.yaml` prepares one Starter service plus a 1 GB disk,
 4. Set daily/monthly request caps from `env.example`, then set `SYLLABUS_ENABLED=true` when ready to accept requests. Turning it off and restarting stops new reads; already submitted requests may still incur charges.
 5. Verify the host's forwarding behavior before setting `SYLLABUS_TRUST_PROXY_HOPS`. With 0 the socket address is used and forwarded headers are ignored. Behind a proxy that means users may share the proxy's quota. With N trusted hops, the Nth address from the right of `X-Forwarded-For` is used. Restrict direct origin access and ensure **every** ingress path has exactly this trusted chain. Never trust the leftmost value blindly. Do not guess this setting for an unverified host.
 6. Check HTTPS `/health`, then set the public origin in `src/lib/syllabus-service-config.ts` and build the app release. This is a publisher step; users do not edit anything. `COMMAND_SYLLABUS_SERVICE_URL` is an optional developer override. Production accepts only HTTPS origins with no credentials, path, query or fragment. Redirects are rejected.
-7. Upload a non-sensitive sample through Command, verify dates and weights, save reviewed rows, then confirm the provider usage dashboard and quota persistence after a service restart. Mocked tests do not establish live model accuracy.
+7. Upload a non-sensitive sample through Sessio, verify dates and weights, save reviewed rows, then confirm the provider usage dashboard and quota persistence after a service restart. Mocked tests do not establish live model accuracy.
 
 Render documentation: [Docker services](https://render.com/docs/docker), [persistent disks](https://render.com/docs/disks). Provider guidance: [production setup](https://developers.openai.com/api/docs/guides/production-best-practices), [spend controls](https://developers.openai.com/api/docs/guides/spend-limits).
 
@@ -32,7 +32,7 @@ SQLite reserves all counters atomically on the persistent disk before calling th
 
 Uploads: PDF/DOCX/JPG/PNG/TXT, 8 MB, 60 PDF pages or 100,000 text characters. Images: 25 megapixels maximum, oriented and resized to at most 4096 pixels per side with metadata stripped. DOCX archives: at most 32 MB expanded, 2,000 entries, 20 embedded JPG/PNG images with at most 8 MB normalized image data. No macros or external resources are executed or fetched. DOCX page layout is not preserved; preview warnings recommend PDF for complex layouts. Body deadline: 30 seconds. Provider timeout: 120 seconds. No documents or responses are persisted or logged by this service; accepted source excerpts are saved only in the user's local planner. The service sends original PDFs inline; OpenAI requests use `store:false`. Provider retention still applies. Gemini free-tier content may be used for Google product improvement and human review: use non-sensitive samples and review https://ai.google.dev/gemini-api/terms before public release.
 
-Usage storage contains aggregate counters and an HMAC of the network prefix salted with the UTC day, not raw addresses or document details. Daily identifiers expire the following UTC day and are pruned hourly and at startup; aggregate month counters expire next month. Persistent-disk snapshots and hosting/proxy logs may have separate retention. Disable request-body/header capture in hosting diagnostics and document the selected host's retention and processing locations in public notices before release. Finish the operator/contact details already flagged in Command's policies.
+Usage storage contains aggregate counters and an HMAC of the network prefix salted with the UTC day, not raw addresses or document details. Daily identifiers expire the following UTC day and are pruned hourly and at startup; aggregate month counters expire next month. Persistent-disk snapshots and hosting/proxy logs may have separate retention. Disable request-body/header capture in hosting diagnostics and document the selected host's retention and processing locations in public notices before release. Finish the operator/contact details already flagged in Sessio's policies.
 
 ## Local service development
 

@@ -31,8 +31,8 @@ export function LegalFooter({ hosted = false }: { hosted?: boolean }) {
         <T
           text={
             hosted
-              ? 'Command · Hosted edition · Ontario, Canada'
-              : 'Command · Local edition · Ontario, Canada'
+              ? 'Sessio · Hosted edition · Ontario, Canada'
+              : 'Sessio · Local edition · Ontario, Canada'
           }
         />
       </p>

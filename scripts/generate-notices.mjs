@@ -4,7 +4,7 @@ import { resolve, join } from 'node:path';
 const root = process.cwd();
 const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 const sections = [
-  'Command — third-party notices\nGenerated from package-lock.json. Includes installed production packages and available licence texts. Optional packages absent on this platform are identified by their declared licence. Preserve package sources and notices when redistributing.\n',
+  'Sessio — third-party notices\nGenerated from package-lock.json. Includes installed production packages and available licence texts. Optional packages absent on this platform are identified by their declared licence. Preserve package sources and notices when redistributing.\n',
 ];
 let count = 0;
 for (const [relative, entry] of Object.entries(lock.packages).sort(([a], [b]) =>
