@@ -67,13 +67,14 @@ async function handle(request: Request, context: Context) {
     response.headers.set('Cache-Control', 'private, no-store');
     return response;
   } catch (error) {
+    const message =
+      error instanceof ApiError ? error.message : 'Sign-in is temporarily unavailable.';
+    const reason = error instanceof ApiError && error.reason ? { reason: error.reason } : {};
     return Response.json(
       {
-        error: {
-          message:
-            error instanceof ApiError ? error.message : 'Sign-in is temporarily unavailable.',
-          ...(error instanceof ApiError && error.reason ? { reason: error.reason } : {}),
-        },
+        // The auth SDK reads a top-level message; without it the student sees "HTTP 403".
+        message,
+        error: { message, ...reason },
       },
       {
         status: error instanceof ApiError ? error.status : 503,

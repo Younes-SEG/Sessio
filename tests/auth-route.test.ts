@@ -26,4 +26,8 @@ it('blocks direct signup POSTs independently of the UI', async () => {
   );
   expect(result.status).toBe(403);
   expect(handler).not.toHaveBeenCalled();
+  // The auth SDK shows a top-level message; without it students saw "HTTP 403".
+  const body = await result.json();
+  expect(body.message).toBe('New accounts are currently available by invitation only.');
+  expect(body.error.message).toBe(body.message);
 });

@@ -280,6 +280,8 @@ export function AuthPanel({ mode, token }: { mode: string; token?: string }) {
         if (result.error)
           throw new Error(
             passwordError(result.error) ||
+              // Our server refuses sign-up while it is invitation only; show its reason.
+              (result.error.status === 403 && result.error.message) ||
               'Unable to create this account. Try signing in or resetting your password if you already have an account.',
           );
         setNotice(
