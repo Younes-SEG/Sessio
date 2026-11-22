@@ -1,5 +1,7 @@
+import { cache } from 'react';
 import { ApiError } from './errors';
 import { isHosted } from './hosting';
+import { claimInvitation } from './invitations';
 
 function listed(name: string, workspaceId: string) {
   return (process.env[name] || '')
@@ -17,13 +19,21 @@ export function hostedAccessAllowed(workspaceId: string) {
     listed('COMMAND_INVITED_WORKSPACES', workspaceId)
   );
 }
+const notInvited = () =>
+  ApiError.accessDenied('not-invited', 'Sessio is currently available to invited accounts only.');
+
 export function assertHostedAccess(workspaceId: string) {
-  if (!hostedAccessAllowed(workspaceId))
-    throw ApiError.accessDenied(
-      'not-invited',
-      'Sessio is currently available to invited accounts only.',
-    );
+  if (!hostedAccessAllowed(workspaceId)) throw notInvited();
 }
+
+/**
+ * Deployment allow list first, then an invitation for this verified email (claimed by this
+ * workspace on first use). Request-scoped cache: one lookup per request.
+ */
+export const assertInvitedAccess = cache(async (workspaceId: string, verifiedEmail: string) => {
+  if (hostedAccessAllowed(workspaceId)) return;
+  if (!(await claimInvitation(workspaceId, verifiedEmail))) throw notInvited();
+});
 export function signupAllowed() {
   return !isHosted() || process.env.COMMAND_ALLOW_SIGNUP === 'true';
 }

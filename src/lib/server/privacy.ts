@@ -5,6 +5,7 @@ import { getWorkspace } from './workspace';
 import { listSubscriptions } from './calendar-subscriptions';
 import { requireWorkspaceId } from './auth';
 import { exportEmailData } from './email-updates';
+import { listInvites } from './invitations';
 
 export async function exportWorkspace() {
   const workspaceId = await requireWorkspaceId();
@@ -39,6 +40,8 @@ export async function exportWorkspace() {
     assistantChats: await db.assistantConversation.findMany({
       where: { workspaceId: await requireWorkspaceId() },
     }),
+    // Invitations this account sent (the invited emails and whether each person joined).
+    invitationsSent: (await listInvites(workspaceId)).invites,
   };
 }
 

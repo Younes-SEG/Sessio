@@ -59,6 +59,15 @@ import {
 } from '../src/lib/email-grades';
 
 import { formatBetaStats, readBetaStats, type BetaStats } from '../scripts/beta-stats-data';
+import {
+  INVITE_LIMIT,
+  claimInvitation,
+  createInvite,
+  hasOpenInvite,
+  listAllInvites,
+  listInvites,
+  revokeInvite,
+} from '../src/lib/server/invitations';
 
 const original = process.env.DATABASE_URL;
 
@@ -3445,4 +3454,71 @@ it('backfills workspace creation dates from the earliest stored timestamp', asyn
   const b = await db.settings.findUniqueOrThrow({ where: { id: 'bf-b' } });
   expect(Math.abs(a.createdAt.getTime() - (now - 20 * day))).toBeLessThan(1000);
   expect(b.createdAt.getTime()).toBe(untouched.getTime());
+});
+
+it('limits invitations to five, lets only the invited email claim one, and keeps them per account', async () => {
+  vi.stubEnv('COMMAND_HOSTED', 'true');
+  vi.stubEnv('COMMAND_OWNER_WORKSPACES', 'user:invite-owner');
+  try {
+    const inviter = 'user:invite-a';
+    for (let i = 1; i <= INVITE_LIMIT; i++) await createInvite(inviter, `Friend${i}@Example.test`);
+    await expect(createInvite(inviter, 'one-more@example.test')).rejects.toMatchObject({
+      status: 409,
+    });
+    expect((await listInvites(inviter)).remaining).toBe(0);
+    // Emails are compared case-insensitively and can only be invited once, by anyone.
+    await expect(createInvite('user:invite-b', 'FRIEND1@example.test')).rejects.toMatchObject({
+      status: 409,
+    });
+    await expect(createInvite('user:invite-b', 'not an email')).rejects.toThrow();
+
+    // Only the invited email opens sign-up, and the first workspace to use it keeps it.
+    expect(await hasOpenInvite('friend1@example.test')).toBe(true);
+    expect(await hasOpenInvite('stranger@example.test')).toBe(false);
+    expect(await claimInvitation('user:invite-friend1', 'Friend1@example.test')).toBe(true);
+    expect(await claimInvitation('user:invite-friend1', 'friend1@example.test')).toBe(true);
+    expect(await claimInvitation('user:someone-else', 'friend1@example.test')).toBe(false);
+    expect(await hasOpenInvite('friend1@example.test')).toBe(false);
+
+    // Taking back: only the sender, only unused ones; the owner can take back any unused one.
+    const mine = (await listInvites(inviter)).invites;
+    const used = mine.find((i) => i.joined)!;
+    const unused = mine.find((i) => !i.joined)!;
+    await expect(revokeInvite('user:invite-b', unused.id)).rejects.toMatchObject({ status: 404 });
+    await expect(revokeInvite(inviter, used.id)).rejects.toMatchObject({ status: 404 });
+    await revokeInvite(inviter, unused.id);
+    expect((await listInvites(inviter)).remaining).toBe(1);
+
+    // The owner has no limit and sees everyone's invitations; others can't list all.
+    for (let i = 1; i <= INVITE_LIMIT + 1; i++)
+      await createInvite('user:invite-owner', `owner-guest${i}@example.test`);
+    const all = await listAllInvites('user:invite-owner');
+    expect(all.some((i) => i.email === 'friend1@example.test' && i.joined && i.sentByStudent)).toBe(
+      true,
+    );
+    await expect(listAllInvites(inviter)).rejects.toMatchObject({ status: 404 });
+    const pendingFromStudent = all.find((i) => i.sentByStudent && !i.joined)!;
+    await revokeInvite('user:invite-owner', pendingFromStudent.id);
+
+    // Export lists what this account sent; erasing it drops unused invitations (friends'
+    // emails) but keeps friends who joined, now without a link to the erased workspace.
+    identity.current = inviter;
+    const exported = await exportWorkspace();
+    expect(exported.invitationsSent.length).toBeGreaterThan(0);
+    await eraseWorkspace();
+    const after = await db.invitation.findMany({ where: { email: { startsWith: 'friend' } } });
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ email: 'friend1@example.test', invitedBy: null });
+    expect(await claimInvitation('user:invite-friend1', 'friend1@example.test')).toBe(true);
+
+    // Deleting the invited person's whole account ends their invitation too.
+    await blockAccount('user:invite-friend1');
+    await eraseBlockedAccount('user:invite-friend1');
+    expect(await db.invitation.count({ where: { email: 'friend1@example.test' } })).toBe(0);
+    // A blocked account can't send invitations (database write barrier).
+    await blockAccount('user:invite-blocked');
+    await expect(createInvite('user:invite-blocked', 'x@example.test')).rejects.toThrow();
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });

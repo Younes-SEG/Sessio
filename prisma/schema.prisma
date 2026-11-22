@@ -304,6 +304,20 @@ model AiAttempt {
   @@index([status, expiresAt])
 }
 
+// Invite-only access: one row per invited email (lowercased). `invitedBy` is the inviting
+// workspace (null once that workspace is erased); `workspaceId` is set when the invited
+// person first opens Sessio with that verified email, and from then on grants their access.
+model Invitation {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  invitedBy   String?
+  createdAt   DateTime  @default(now())
+  workspaceId String?   @unique
+  acceptedAt  DateTime?
+
+  @@index([invitedBy, createdAt])
+}
+
 // Content-free deletion barrier. Never used as a substitute for provider session verification.
 model AccountLifecycle {
   workspaceId String @id

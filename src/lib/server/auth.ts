@@ -1,5 +1,5 @@
 import { assertAccountActive } from './account-lifecycle';
-import { assertHostedAccess } from './release-policy';
+import { assertInvitedAccess } from './release-policy';
 import { cache } from 'react';
 import type { createNeonAuth } from '@neon/auth/next/server';
 import { ApiError } from './errors';
@@ -88,7 +88,8 @@ export async function requireWorkspaceId(): Promise<string> {
   const user = await verifiedAccount();
   // Derived solely from the validated identity, never a client-supplied workspace ID.
   const workspaceId = `user:${user.id}`;
-  assertHostedAccess(workspaceId);
+  // The email is verified above, so an invitation can only be claimed by its owner.
+  await assertInvitedAccess(workspaceId, user.email);
   await assertAccountActive(workspaceId);
   return workspaceId;
 }

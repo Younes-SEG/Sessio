@@ -3,6 +3,10 @@ import { getAuth } from '@/lib/server/auth';
 import { isHosted } from '@/lib/server/hosting';
 import { assertSameOrigin } from '@/lib/server/origin';
 import { ApiError } from '@/lib/server/errors';
+import { hasOpenInvite } from '@/lib/server/invitations';
+
+const INVITE_ONLY_MESSAGE =
+  'Sessio is invite-only for now. Ask someone who uses Sessio to invite this email address.';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -26,8 +30,15 @@ async function handle(request: Request, context: Context) {
         { status: 404 },
       );
     const { path } = await context.params;
-    if (path.join('/') === 'sign-up/email' && !signupAllowed())
-      throw new ApiError(403, 'New accounts are currently available by invitation only.');
+    // While sign-up is closed, only an email with an unused invitation can create an account.
+    const inviteOnly = path.join('/') === 'sign-up/email' && !signupAllowed();
+    const notInvited = () => new ApiError(403, INVITE_ONLY_MESSAGE);
+    if (
+      inviteOnly &&
+      (request.method !== 'POST' ||
+        request.headers.get('content-type')?.split(';')[0] !== 'application/json')
+    )
+      throw notInvited();
     if (!publicEndpoints.has(path.join('/')))
       return Response.json({ error: 'Not found.' }, { status: 404 });
     if (request.method === 'POST') {
@@ -52,10 +63,20 @@ async function handle(request: Request, context: Context) {
       } finally {
         reader.releaseLock();
       }
+      const body = Buffer.concat(chunks);
+      if (inviteOnly) {
+        let email: unknown;
+        try {
+          email = (JSON.parse(body.toString('utf8')) as { email?: unknown })?.email;
+        } catch {
+          throw notInvited();
+        }
+        if (typeof email !== 'string' || !(await hasOpenInvite(email))) throw notInvited();
+      }
       request = new Request(request.url, {
         method: 'POST',
         headers: request.headers,
-        body: Buffer.concat(chunks),
+        body,
         signal: request.signal,
       });
     }

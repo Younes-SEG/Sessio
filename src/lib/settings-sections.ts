@@ -1,6 +1,7 @@
 /** Settings sections, in display order; each has its own page at /settings/<id>. */
 export const settingsSectionIds = [
   'account',
+  'invites',
   'profile',
   'appearance',
   'calendar',

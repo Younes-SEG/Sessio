@@ -21,6 +21,7 @@ import {
   Plus,
   ShieldCheck,
   Sun,
+  UserPlus,
   UserRound,
   type LucideIcon,
 } from 'lucide-react';
@@ -40,9 +41,16 @@ import { SchoolPicker } from './school-picker';
 import { dismissSchoolPrompt } from './school-prompt';
 import { useAccount } from './account-provider';
 import { SignOutButton } from './auth-panel';
+import { InvitesSection } from './invites-section';
 
 const settingsSections = [
   { id: 'account', title: 'Account', description: 'Who is signed in.', icon: UserRound },
+  {
+    id: 'invites',
+    title: 'Invite friends',
+    description: 'Share Sessio with up to 5 friends.',
+    icon: UserPlus,
+  },
   {
     id: 'profile',
     title: 'Profile & school',
@@ -125,6 +133,9 @@ export function SettingsView() {
   const t = useT();
   const router = useRouter();
   const summary = useSectionSummary();
+  const { data } = useWorkspace();
+  // Invitations exist only online; a local installation has no accounts to invite.
+  const sections = settingsSections.filter(({ id }) => id !== 'invites' || data.hosted);
   useEffect(() => {
     const target = legacyAnchors[window.location.hash];
     if (target) router.replace(`/settings/${target}`);
@@ -145,7 +156,7 @@ export function SettingsView() {
         </div>
       </header>
       <nav aria-label={t('Settings sections')} className="card divide-y divide-[var(--border)]">
-        {settingsSections.map(({ id, title, description, icon: Icon }) => {
+        {sections.map(({ id, title, description, icon: Icon }) => {
           const value = summary(id);
           return (
             <Link
@@ -192,6 +203,7 @@ export function SettingsSection({ id }: { id: SettingsSectionId }) {
         </div>
       </header>
       {id === 'account' && <AccountSection />}
+      {id === 'invites' && <InvitesPanel />}
       {id === 'profile' && <ProfileSection />}
       {id === 'appearance' && <AppearanceSection />}
       {id === 'calendar' && <CalendarSection />}
@@ -207,6 +219,19 @@ export function SettingsSection({ id }: { id: SettingsSectionId }) {
       {id === 'privacy' && <PrivacyControls />}
     </div>
   );
+}
+
+function InvitesPanel() {
+  const { data } = useWorkspace();
+  if (!data.hosted)
+    return (
+      <section className="card p-4 sm:p-5">
+        <p className="muted text-sm">
+          <T text="Invitations are part of the online edition of Sessio." />
+        </p>
+      </section>
+    );
+  return <InvitesSection />;
 }
 
 function AccountSection() {

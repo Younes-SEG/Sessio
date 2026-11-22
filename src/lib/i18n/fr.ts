@@ -1609,4 +1609,48 @@ export const french: Record<string, string> = {
   'Study buddy': 'Compagnon d’étude',
   '{count} active filter': '{count} filtre actif',
   '{count} active filters': '{count} filtres actifs',
+  // Invitations (2026-11-22)
+  'Sessio is invite-only for now. Ask someone who uses Sessio to invite this email address.':
+    'Sessio est sur invitation seulement pour le moment. Demandez à une personne qui utilise Sessio d’inviter cette adresse courriel.',
+  'Invite friends': 'Inviter des amis',
+  'Share Sessio with up to 5 friends.': 'Partagez Sessio avec jusqu’à 5 amis.',
+  'Invitations are part of the online edition of Sessio.':
+    'Les invitations font partie de l’édition en ligne de Sessio.',
+  'Invitations are part of the online edition.':
+    'Les invitations font partie de l’édition en ligne.',
+  'Loading your invitations…': 'Chargement de vos invitations…',
+  'Invite a friend': 'Inviter un ami',
+  'You can send as many invitations as you like.':
+    'Vous pouvez envoyer autant d’invitations que vous le voulez.',
+  '{remaining} of {limit} invitations left.': 'Il vous reste {remaining} invitations sur {limit}.',
+  'Sessio is invite-only for now: only the email you invite can create an account.':
+    'Sessio est sur invitation seulement pour le moment : seule l’adresse courriel invitée peut créer un compte.',
+  'Their email': 'Son adresse courriel',
+  Invite: 'Inviter',
+  'You have used all your invitations. Taking back an unused one frees it.':
+    'Vous avez utilisé toutes vos invitations. Retirer une invitation inutilisée la libère.',
+  'Invitation saved for {email}. Send them this link and ask them to sign up with that email:':
+    'Invitation enregistrée pour {email}. Envoyez-lui ce lien et demandez-lui de s’inscrire avec cette adresse :',
+  Copied: 'Copié',
+  'Copy link': 'Copier le lien',
+  'Copy the link by hand: select it and press Ctrl+C.':
+    'Copiez le lien à la main : sélectionnez-le et appuyez sur Ctrl+C.',
+  'Your invitations': 'Vos invitations',
+  'You haven’t invited anyone yet.': 'Vous n’avez encore invité personne.',
+  'All invitations (only you can see this)': 'Toutes les invitations (vous seul les voyez)',
+  '{joined} joined, {pending} waiting.': '{joined} inscrites, {pending} en attente.',
+  'Sent by you': 'Envoyée par vous',
+  'Sent by a student': 'Envoyée par un étudiant',
+  'Sender’s account removed': 'Compte de l’expéditeur supprimé',
+  Joined: 'Inscrit',
+  'Waiting to sign up': 'En attente d’inscription',
+  'Take back': 'Retirer',
+  'You have used all 5 of your invitations.': 'Vous avez utilisé vos 5 invitations.',
+  'This person has already been invited.': 'Cette personne a déjà été invitée.',
+  'This invitation was already used or no longer exists.':
+    'Cette invitation a déjà été utilisée ou n’existe plus.',
+  'Enter an email address.': 'Entrez une adresse courriel.',
+  'This email address is too long.': 'Cette adresse courriel est trop longue.',
+  'Enter a valid email address.': 'Entrez une adresse courriel valide.',
+  'Choose an invitation.': 'Choisissez une invitation.',
 };

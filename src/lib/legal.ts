@@ -1,4 +1,4 @@
-export const policyUpdated = 'November 19, 2026';
+export const policyUpdated = 'November 22, 2026';
 export const calendarNoticeVersion = '2026-10-07';
 
 export type LegalText = {
@@ -28,7 +28,7 @@ export const legalDocuments = {
         paragraphs: [
           'Account: your email address, an optional name and sign-in records, so you can sign in and keep your workspace private.',
           'Workspace: the courses, assessments, grades, tasks, notes, calendar entries, terms and preferences you enter or import, so Sessio can organize your studies.',
-          'Optional connections: a private calendar link you choose to connect, a syllabus you choose to read, chat messages you send to Ask Sessio and school email notices from a Gmail account you connect (in the hosted edition, only for invited testers). Each is used only for the feature you started.',
+          'Optional connections: a private calendar link you choose to connect, a syllabus you choose to read, chat messages you send to Ask Sessio and school email notices from a Gmail account you connect (in the hosted edition, only for invited testers). Each is used only for the feature you started. Invitations (hosted edition): the email address of a friend you invite, so only that person can create an account. You see whether they joined, and the operator sees all invitations. An unused invitation is deleted when you take it back or erase your workspace; a used one stays with the invited person’s account until that account is deleted.',
           'Service records: content-free AI usage records, deletion records and short security logs, so we can enforce fair-use limits, honour deletions and protect the service.',
           'We collect only what each feature needs. We do not sell personal information, show ads, build marketing profiles or use your information to train AI models.',
         ],

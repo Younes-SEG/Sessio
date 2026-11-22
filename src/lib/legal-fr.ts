@@ -1,6 +1,6 @@
 import type { LegalDocument, LegalText } from './legal';
 
-export const policyUpdatedFr = '19 novembre 2026';
+export const policyUpdatedFr = '22 novembre 2026';
 
 // Same documents, sections and paragraph counts as legal.ts, in the same order.
 export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
@@ -22,7 +22,7 @@ export const legalDocumentsFr: Record<LegalDocument, LegalText> = {
         paragraphs: [
           'Compte : votre adresse courriel, un nom facultatif et les données de connexion, pour que vous puissiez vous connecter et garder votre espace de travail privé.',
           'Espace de travail : les cours, évaluations, notes, tâches, notes personnelles, entrées de calendrier, sessions et préférences que vous saisissez ou importez, pour que Sessio puisse organiser vos études.',
-          'Connexions facultatives : un lien de calendrier privé que vous choisissez de connecter, un plan de cours que vous choisissez de faire lire, les messages que vous envoyez à Ask Sessio et les avis scolaires d’un compte Gmail que vous connectez (dans l’édition hébergée, seulement pour les testeurs invités). Chacun sert uniquement à la fonction que vous avez lancée.',
+          'Connexions facultatives : un lien de calendrier privé que vous choisissez de connecter, un plan de cours que vous choisissez de faire lire, les messages que vous envoyez à Ask Sessio et les avis scolaires d’un compte Gmail que vous connectez (dans l’édition hébergée, seulement pour les testeurs invités). Chacun sert uniquement à la fonction que vous avez lancée. Invitations (édition hébergée) : l’adresse courriel d’un ami que vous invitez, pour que seule cette personne puisse créer un compte. Vous voyez si elle s’est inscrite, et l’exploitant voit toutes les invitations. Une invitation inutilisée est supprimée lorsque vous la retirez ou effacez votre espace de travail; une invitation utilisée reste liée au compte de la personne invitée jusqu’à la suppression de ce compte.',
           'Registres du service : des registres d’utilisation de l’IA sans contenu, des registres de suppression et de courts journaux de sécurité, pour appliquer les limites d’utilisation équitable, respecter les suppressions et protéger le service.',
           'Nous recueillons seulement ce dont chaque fonction a besoin. Nous ne vendons pas de renseignements personnels, n’affichons pas de publicité, ne créons pas de profils marketing et n’utilisons pas vos renseignements pour entraîner des modèles d’IA.',
         ],
